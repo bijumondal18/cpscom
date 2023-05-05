@@ -4,6 +4,7 @@ import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupDescription/Presentation/chnage_group_description.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupTitle/Presentation/change_group_title.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
+import 'package:cpscom_admin/Utils/custom_snack_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_confirmation_dialog.dart';
 import 'package:cpscom_admin/Widgets/custom_image_picker.dart';
@@ -13,7 +14,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Commons/app_images.dart';
-import '../../../Widgets/custom_loader.dart';
 
 class GroupInfoScreen extends StatefulWidget {
   final QueryDocumentSnapshot groupDetails;
@@ -242,7 +242,7 @@ class ParticipantsCard extends StatelessWidget {
             .doc(groupDetails.id)
             .snapshots(),
         builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          membersList = snapshot.data!['members'];
+          membersList = snapshot.data?['members'];
           return Container(
             padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
             color: AppColors.white,
@@ -298,7 +298,8 @@ class ParticipantsCard extends StatelessWidget {
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: AppColors.lightGrey,
-                          foregroundImage: NetworkImage("${AppStrings.imagePath}${membersList[index]['profile_picture']}"),
+                          foregroundImage: NetworkImage(
+                              "${AppStrings.imagePath}${membersList[index]['profile_picture']}"),
                         ),
                         title: Text(
                           "${membersList[index]['name']}",
@@ -326,12 +327,27 @@ class ParticipantsCard extends StatelessWidget {
                             : isAdmin == true
                                 ? IconButton(
                                     onPressed: () {
-                                      ViewDialogs.confirmationDialog(
-                                          context,
-                                          'Delete Member?',
-                                          'Are you sure want to delete this member from this group?',
-                                          'Confirm',
-                                          'Cancel');
+                                      FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(FirebaseAuth
+                                              .instance.currentUser!.uid)
+                                          .collection('groups')
+                                          .doc(groupDetails.id)
+                                          .update({
+                                        'members':
+                                            FieldValue
+                                            .arrayRemove([membersList[index]])
+                                      }).then((value) => customSnackBar(
+                                              context,
+                                              'Member Deleted Successfully',
+                                              AppColors
+                                                  .successSnackBarBackground));
+                                      // ViewDialogs.confirmationDialog(
+                                      //     context,
+                                      //     'Delete Member?',
+                                      //     'Are you sure want to delete this member from this group?',
+                                      //     'Confirm',
+                                      //     'Cancel');
                                     },
                                     icon: const Icon(
                                       EvaIcons.trash2,
