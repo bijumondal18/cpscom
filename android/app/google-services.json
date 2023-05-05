@@ -1,0 +1,118 @@
+{
+  "project_info": {
+    "project_number": "316305474905",
+    "project_id": "cps-com-c90aa",
+    "storage_bucket": "cps-com-c90aa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316305474905:android:89e4ff2f0f0110710c7848",
+        "android_client_info": {
+          "package_name": "com.app.cpscom_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316305474905-mmsjokg32sn8nta2v85d5dnd9d3v9kjr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5nrJfZuiJtwLXQLGs5CkRdWuF4SZ8yZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316305474905-mmsjokg32sn8nta2v85d5dnd9d3v9kjr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.cpscomAdmin"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316305474905:android:9f7124ba06a38c830c7848",
+        "android_client_info": {
+          "package_name": "us.csic.cpscom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316305474905-mmsjokg32sn8nta2v85d5dnd9d3v9kjr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5nrJfZuiJtwLXQLGs5CkRdWuF4SZ8yZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316305474905-mmsjokg32sn8nta2v85d5dnd9d3v9kjr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.cpscomAdmin"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316305474905:android:c1596f0c6036038d0c7848",
+        "android_client_info": {
+          "package_name": "us.csic.cpscom_admin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316305474905-mmsjokg32sn8nta2v85d5dnd9d3v9kjr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5nrJfZuiJtwLXQLGs5CkRdWuF4SZ8yZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316305474905-mmsjokg32sn8nta2v85d5dnd9d3v9kjr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.cpscomAdmin"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
