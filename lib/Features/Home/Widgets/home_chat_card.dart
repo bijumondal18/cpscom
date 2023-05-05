@@ -153,7 +153,7 @@ class MembersStackOnGroup extends StatelessWidget {
                                         radius: 12,
                                         backgroundColor: AppColors.shimmer,
                                         backgroundImage: NetworkImage(
-                                          membersList[index]['profile_picture'],
+                                          "${AppStrings.imagePath}${membersList[index]['profile_picture']}",
                                         ),
                                       ),
                                     ));

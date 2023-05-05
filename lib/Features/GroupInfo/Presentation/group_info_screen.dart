@@ -298,7 +298,7 @@ class ParticipantsCard extends StatelessWidget {
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: AppColors.lightGrey,
-                          foregroundImage: NetworkImage(membersList[index]['profile_picture']),
+                          foregroundImage: NetworkImage("${AppStrings.imagePath}${membersList[index]['profile_picture']}"),
                         ),
                         title: Text(
                           "${membersList[index]['name']}",
