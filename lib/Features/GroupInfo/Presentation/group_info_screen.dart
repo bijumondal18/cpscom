@@ -404,26 +404,42 @@ class ParticipantsCard extends StatelessWidget {
                                   : isAdmin == true
                                       ? IconButton(
                                           onPressed: () {
-                                            FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(FirebaseAuth
-                                                    .instance.currentUser!.uid)
-                                                .collection('groups')
-                                                .doc(groupId)
-                                                .update({
-                                              'members': FieldValue.arrayRemove(
-                                                  [membersList[index]])
-                                            }).then((value) => customSnackBar(
-                                                    context,
-                                                    'Member Deleted Successfully',
-                                                    AppColors
-                                                        .successSnackBarBackground));
-                                            // ViewDialogs.confirmationDialog(
-                                            //     context,
-                                            //     'Delete Member?',
-                                            //     'Are you sure want to delete this member from this group?',
-                                            //     'Confirm',
-                                            //     'Cancel');
+                                            showDialog(
+                                                context: context,
+                                                barrierDismissible: false,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return ConfirmationDialog(
+                                                    title: 'Delete Member?',
+                                                    body:
+                                                        'Are you sure want to delete this member from this group?',
+                                                    onPressedPositiveButton:
+                                                        () {
+                                                      FirebaseFirestore.instance
+                                                          .collection('users')
+                                                          .doc(FirebaseAuth
+                                                              .instance
+                                                              .currentUser!
+                                                              .uid)
+                                                          .collection('groups')
+                                                          .doc(groupId)
+                                                          .update({
+                                                        'members': FieldValue
+                                                            .arrayRemove([
+                                                          membersList[index]
+                                                        ])
+                                                      }).then((value) => customSnackBar(
+                                                              context,
+                                                              'Member Deleted Successfully',
+                                                              AppColors
+                                                                  .successSnackBarBackground));
+                                                      context.pop(
+                                                          GroupInfoScreen(
+                                                              groupId:
+                                                                  groupId));
+                                                    },
+                                                  );
+                                                });
                                           },
                                           icon: const Icon(
                                             EvaIcons.trash2,
