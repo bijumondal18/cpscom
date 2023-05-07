@@ -41,6 +41,7 @@ dependencies:
   firebase_core: ^2.8.0
   cloud_firestore: ^4.1.0
 
+  uuid: ^3.0.7
   flutter_svg: ^2.0.5
   intl: ^0.18.1
   bloc: ^8.1.1

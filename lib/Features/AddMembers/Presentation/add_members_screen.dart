@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_images.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/CreateNewGroup/Presentation/create_new_group_screen.dart';
@@ -26,12 +27,11 @@ class AddMembersScreen extends StatefulWidget {
 }
 
 class _AddMembersScreenState extends State<AddMembersScreen> {
-  bool cbMembers = false;
+  //bool cbMembers = false;
   var selectedIndex = [];
   List<dynamic> existingMembersList = [];
-  var stream = FirebaseFirestore.instance.collection('users').snapshots();
 
-  bool isChecked = false;
+ // bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -40,15 +40,13 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
         title: 'Add Participants',
       ),
       body: StreamBuilder(
-          stream: stream,
+          stream: FirebaseProvider.getAllUsers(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
               default:
                 if (snapshot.hasData) {
-                  //existingMembersList = snap.data?['members'];
-                  //print(existingMembersList);
                   if (snapshot.data!.docs.isEmpty) {
                     return Center(
                       child: Text(
@@ -91,9 +89,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                 return Container();
             }
           }),
-      floatingActionButton: isChecked == true
+      floatingActionButton: selectedIndex.isNotEmpty
           ? CustomFloatingActionButton(
               onPressed: () {
+                for(var i = 0;i<selectedIndex.length;i++){
+                  print(selectedIndex[i]);
+                }
                 if (widget.isCameFromHomeScreen == true) {
                   context.push(const CreateNewGroupScreen());
                 } else {
@@ -173,9 +174,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
             }),
         const Padding(
           padding: EdgeInsets.only(left: 64),
-          child: CustomDivider(
-            height: 10,
-          ),
+          child: CustomDivider(),
         )
       ],
     );

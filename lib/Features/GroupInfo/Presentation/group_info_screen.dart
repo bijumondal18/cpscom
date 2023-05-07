@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupDescription/Presentation/chnage_group_description.dart';
@@ -66,12 +67,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
         ),
         body: SingleChildScrollView(
           child: StreamBuilder(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
-                  .collection('groups')
-                  .doc(widget.groupId)
-                  .snapshots(),
+              stream: FirebaseProvider.getGroupDetails(widget.groupId),
               builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:
@@ -316,17 +312,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     shrinkWrap: true,
                                     padding: EdgeInsets.zero,
                                     itemBuilder: (context, index) {
-                                      // if (membersList[index]['uid'] ==
-                                      //     FirebaseAuth
-                                      //         .instance.currentUser!.uid) {
-                                      //   indx = membersList.indexWhere(
-                                      //       (element) =>
-                                      //           element['uid'] ==
-                                      //           FirebaseAuth
-                                      //               .instance.currentUser!.uid);
-                                      //   widget.isAdmin =
-                                      //       membersList[indx]['isAdmin'];
-                                      // }
                                       return ListTile(
                                         dense: true,
                                         contentPadding: EdgeInsets.zero,
@@ -409,30 +394,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                                   'Are you sure want to delete this member from this group?',
                                                               onPressedPositiveButton:
                                                                   () {
-                                                                FirebaseFirestore
-                                                                    .instance
-                                                                    .collection(
-                                                                        'users')
-                                                                    .doc(FirebaseAuth
-                                                                        .instance
-                                                                        .currentUser!
-                                                                        .uid)
-                                                                    .collection(
-                                                                        'groups')
-                                                                    .doc(widget
-                                                                        .groupId)
-                                                                    .update({
-                                                                  'members':
-                                                                      FieldValue
-                                                                          .arrayRemove([
-                                                                    membersList[
-                                                                        index]
-                                                                  ])
-                                                                }).then((value) => customSnackBar(
-                                                                        context,
-                                                                        'Member Deleted Successfully',
-                                                                        AppColors
-                                                                            .successSnackBarBackground));
+                                                                FirebaseProvider
+                                                                    .deleteMember(
+                                                                        widget
+                                                                            .groupId,
+                                                                        membersList,
+                                                                        index);
                                                                 context.pop(
                                                                     GroupInfoScreen(
                                                                   groupId: widget

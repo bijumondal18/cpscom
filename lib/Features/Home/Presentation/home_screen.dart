@@ -1,13 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cpscom_admin/Commons/app_images.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
-import 'package:cpscom_admin/Features/Home/Widgets/home_appbar.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_chat_card.dart';
-import 'package:cpscom_admin/Features/Home/Widgets/home_search_bar.dart';
 import 'package:cpscom_admin/Features/Login/Presentation/login_screen.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
-import 'package:cpscom_admin/Utils/app_preference.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
 import 'package:cpscom_admin/Widgets/custom_loader.dart';
@@ -15,12 +12,10 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../Api/firebase_provider.dart';
 import '../../../Utils/custom_snack_bar.dart';
 import '../../../Widgets/custom_confirmation_dialog.dart';
 import '../../../Widgets/custom_text_field.dart';
 import '../../Chat/Presentation/chat_screen.dart';
-import '../../CreateNewGroup/Presentation/create_new_group_screen.dart';
 import '../../MyProfile/Presentation/my_profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -141,14 +136,6 @@ class BuildChatList extends StatefulWidget {
 
 class _BuildChatListState extends State<BuildChatList> {
   final TextEditingController searchController = TextEditingController();
-
-  var stream = FirebaseFirestore.instance
-      .collection('users')
-      .doc(FirebaseAuth.instance.currentUser!.uid)
-      .collection('groups')
-      .orderBy('created_at', descending: true)
-      .snapshots();
-
   var groupName = '';
 
   @override
@@ -199,7 +186,7 @@ class _BuildChatListState extends State<BuildChatList> {
         ),
         Expanded(
           child: StreamBuilder(
-              stream: stream,
+              stream: FirebaseProvider.getAllGroups(),
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:

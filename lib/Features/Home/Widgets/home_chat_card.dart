@@ -90,19 +90,42 @@ class HomeChatCard extends StatelessWidget {
                           ],
                         ),
                         groupDesc != ''
-                            ? Text(
-                                '$groupDesc',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodyText2,
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '$groupDesc',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          Theme.of(context).textTheme.bodyText2,
+                                    ),
+                                  ),
+                                  // unseenMsgCount != null
+                                  //?
+                                  CircleAvatar(
+                                    radius: 10,
+                                    backgroundColor: AppColors.primary,
+                                    child: FittedBox(
+                                      child: Text(
+                                        '4',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .caption!
+                                            .copyWith(color: AppColors.white),
+                                      ),
+                                    ),
+                                  )
+                                  // : const SizedBox()
+                                ],
                               )
                             : const SizedBox(),
                         const SizedBox(
                           height: AppSizes.kDefaultPadding / 2,
                         ),
-                        MembersStackOnGroup(
-                          groupId: groupId,
-                        )
+                        // MembersStackOnGroup(
+                        //   groupId: groupId,
+                        // )
                       ],
                     ),
                   ),
@@ -119,139 +142,185 @@ class HomeChatCard extends StatelessWidget {
     );
   }
 }
-
-class MembersStackOnGroup extends StatelessWidget {
-  final String groupId;
-
-  const MembersStackOnGroup({Key? key, required this.groupId})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    var stream = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('groups')
-        .doc(groupId)
-        .snapshots();
-
-    List<dynamic> membersList = [];
-    int membersCount;
-
-    return SizedBox(
-      height: 30,
-      child: StreamBuilder(
-          stream: stream,
-          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.none:
-              case ConnectionState.waiting:
-              default:
-                if (snapshot.hasData) {
-                  membersList = snapshot.data!['members'];
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ListView.builder(
-                              itemCount: membersList.length,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index) {
-                                membersCount = membersList.length;
-                                return Align(
-                                  widthFactor: 0.3,
-                                  child: CircleAvatar(
-                                    radius: 32,
-                                    backgroundColor: AppColors.white,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          AppSizes.cardCornerRadius * 10),
-                                      child: CachedNetworkImage(
-                                        width: 26,
-                                        height: 26,
-                                        fit: BoxFit.cover,
-                                        imageUrl:
-                                            '${AppStrings.imagePath}${membersList[index]['profile_picture']}',
-                                        placeholder: (context, url) =>
-                                            const CircleAvatar(
-                                          radius: 26,
-                                          backgroundColor: AppColors.shimmer,
-                                        ),
-                                        errorWidget: (context, url, error) =>
-                                            CircleAvatar(
-                                          radius: 26,
-                                          backgroundColor: AppColors.shimmer,
-                                          child: Text(
-                                            snapshot.data!['members']['name']
-                                                .substring(0, 1),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyText1!
-                                                .copyWith(
-                                                    fontWeight:
-                                                        FontWeight.w600),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  // CircleAvatar(
-                                  //   radius: 20,
-                                  //   backgroundColor: AppColors.white,
-                                  //   child: CircleAvatar(
-                                  //     radius: 12,
-                                  //     backgroundColor: AppColors.shimmer,
-                                  //     backgroundImage: NetworkImage(
-                                  //       "${AppStrings.imagePath}${membersList[index]['profile_picture']}",
-                                  //     ),
-                                  //   ),
-                                  // )
-                                );
-                              }),
-                          // Align(
-                          //   widthFactor: 0.5,
-                          //   child: CircleAvatar(
-                          //     radius: 14,
-                          //     backgroundColor: AppColors.white,
-                          //     child: CircleAvatar(
-                          //       radius: 12,
-                          //       backgroundColor: AppColors.lightGrey,
-                          //       child: Text(
-                          //         membersCount > 3
-                          //             ? '+${membersCount - 3}'
-                          //             : '',
-                          //         style: Theme.of(context).textTheme.caption,
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
-                        ],
-                      ),
-                      // unseenMsgCount != null
-                      //     ? CircleAvatar(
-                      //         radius: 10,
-                      //         backgroundColor: AppColors.primary,
-                      //         child: Text(
-                      //           '$unseenMsgCount',
-                      //           style: Theme.of(context)
-                      //               .textTheme
-                      //               .caption!
-                      //               .copyWith(color: AppColors.white),
-                      //         ),
-                      //       )
-                      //     : Container()
-                    ],
-                  );
-                }
-            }
-            return const SizedBox();
-          }),
-    );
-  }
-}
+//
+// class MembersStackOnGroup extends StatelessWidget {
+//   final String groupId;
+//
+//   const MembersStackOnGroup({Key? key, required this.groupId})
+//       : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     var indx;
+//     var stream = FirebaseFirestore.instance
+//         .collection('users')
+//         .doc(FirebaseAuth.instance.currentUser!.uid)
+//         .collection('groups')
+//         .doc(groupId)
+//         .snapshots();
+//
+//     List<dynamic> membersList = [];
+//
+//     return SizedBox(
+//       height: 30,
+//       child: StreamBuilder(
+//           stream: stream,
+//           builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+//             switch (snapshot.connectionState) {
+//               case ConnectionState.none:
+//               case ConnectionState.waiting:
+//               default:
+//                 if (snapshot.hasData) {
+//                   membersList = snapshot.data!['members'];
+//                   return Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     crossAxisAlignment: CrossAxisAlignment.center,
+//                     children: [
+//                       Row(
+//                         mainAxisAlignment: MainAxisAlignment.start,
+//                         crossAxisAlignment: CrossAxisAlignment.center,
+//                         children: [
+//                           ListView.builder(
+//                               itemCount: membersList.length,
+//                               shrinkWrap: true,
+//                               physics: const NeverScrollableScrollPhysics(),
+//                               scrollDirection: Axis.horizontal,
+//                               itemBuilder: (context, index) {
+//                                 indx = membersList.length;
+//                                 //membersCount = membersList.length;
+//                                 if (indx > 3) {
+//                                   return Row(
+//                                     children: [
+//                                       Align(
+//                                         widthFactor: 0.3,
+//                                         child: CircleAvatar(
+//                                           radius: 32,
+//                                           backgroundColor: AppColors.white,
+//                                           child: ClipRRect(
+//                                             borderRadius: BorderRadius.circular(
+//                                                 AppSizes.cardCornerRadius * 10),
+//                                             child: CachedNetworkImage(
+//                                               width: 26,
+//                                               height: 26,
+//                                               fit: BoxFit.cover,
+//                                               imageUrl:
+//                                                   '${AppStrings.imagePath}${membersList[index]['profile_picture']}',
+//                                               placeholder: (context, url) =>
+//                                                   const CircleAvatar(
+//                                                 radius: 26,
+//                                                 backgroundColor:
+//                                                     AppColors.shimmer,
+//                                               ),
+//                                               errorWidget:
+//                                                   (context, url, error) =>
+//                                                       CircleAvatar(
+//                                                 radius: 26,
+//                                                 backgroundColor:
+//                                                     AppColors.shimmer,
+//                                                 child: Text(
+//                                                   membersList[index]
+//                                                           ['name']
+//                                                       .substring(0, 1),
+//                                                   style: Theme.of(context)
+//                                                       .textTheme
+//                                                       .bodyText1!
+//                                                       .copyWith(
+//                                                           fontWeight:
+//                                                               FontWeight.w600),
+//                                                 ),
+//                                               ),
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ),
+//                                      indx== membersList.length-1?Align(
+//                                         widthFactor: 0.5,
+//                                         child: CircleAvatar(
+//                                           radius: 14,
+//                                           backgroundColor: AppColors.white,
+//                                           child: CircleAvatar(
+//                                             radius: 12,
+//                                             backgroundColor:
+//                                                 AppColors.lightGrey,
+//                                             child: Text(
+//                                               membersList.length > 3
+//                                                   ? '+${membersList.length - 3}'
+//                                                   : '',
+//                                               style: Theme.of(context)
+//                                                   .textTheme
+//                                                   .caption,
+//                                             ),
+//                                           ),
+//                                         ),
+//                                       ): const SizedBox(),
+//                                     ],
+//                                   );
+//                                 }else{
+//                                   Align(
+//                                     widthFactor: 0.3,
+//                                     child: CircleAvatar(
+//                                       radius: 32,
+//                                       backgroundColor: AppColors.white,
+//                                       child: ClipRRect(
+//                                         borderRadius: BorderRadius.circular(
+//                                             AppSizes.cardCornerRadius * 10),
+//                                         child: CachedNetworkImage(
+//                                           width: 26,
+//                                           height: 26,
+//                                           fit: BoxFit.cover,
+//                                           imageUrl:
+//                                           '${AppStrings.imagePath}${membersList[index]['profile_picture']}',
+//                                           placeholder: (context, url) =>
+//                                           const CircleAvatar(
+//                                             radius: 26,
+//                                             backgroundColor:
+//                                             AppColors.shimmer,
+//                                           ),
+//                                           errorWidget:
+//                                               (context, url, error) =>
+//                                               CircleAvatar(
+//                                                 radius: 26,
+//                                                 backgroundColor:
+//                                                 AppColors.shimmer,
+//                                                 child: Text(
+//                                                   snapshot.data!['members']
+//                                                   ['name']
+//                                                       .substring(0, 1),
+//                                                   style: Theme.of(context)
+//                                                       .textTheme
+//                                                       .bodyText1!
+//                                                       .copyWith(
+//                                                       fontWeight:
+//                                                       FontWeight.w600),
+//                                                 ),
+//                                               ),
+//                                         ),
+//                                       ),
+//                                     ),
+//                                   );
+//                                 }
+//                               }),
+//                         ],
+//                       ),
+//                       // unseenMsgCount != null
+//                       //     ? CircleAvatar(
+//                       //         radius: 10,
+//                       //         backgroundColor: AppColors.primary,
+//                       //         child: Text(
+//                       //           '$unseenMsgCount',
+//                       //           style: Theme.of(context)
+//                       //               .textTheme
+//                       //               .caption!
+//                       //               .copyWith(color: AppColors.white),
+//                       //         ),
+//                       //       )
+//                       //     : Container()
+//                     ],
+//                   );
+//                 }
+//             }
+//             return const SizedBox();
+//           }),
+//     );
+//   }
+// }

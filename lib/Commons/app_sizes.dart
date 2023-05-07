@@ -32,13 +32,13 @@ class AppSizes {
   static const double elevation8 = 8.0;
 
   static const double headline1 = 30.0;
-  static const double headline2 = 26.0;
-  static const double headline3 = 24.0;
-  static const double headline4 = 22.0;
-  static const double headline5 = 20.0;
-  static const double headline6 = 18.0;
-  static const double bodyText1 = 16.0;
-  static const double bodyText2 = 14.0;
-  static const double caption = 12.0;
+  static const double headline2 = 28.0;
+  static const double headline3 = 26.0;
+  static const double headline4 = 24.0;
+  static const double headline5 = 22.0;
+  static const double headline6 = 20.0;
+  static const double bodyText1 = 18.0;
+  static const double bodyText2 = 16.0;
+  static const double caption = 14.0;
   static const double button = 16.0;
 }
