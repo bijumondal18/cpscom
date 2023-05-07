@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
@@ -27,8 +28,6 @@ class GroupInfoScreen extends StatefulWidget {
 
 class _GroupInfoScreenState extends State<GroupInfoScreen> {
   List<dynamic> membersList = [];
-  //var indx;
-
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +137,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   style: Theme.of(context).textTheme.headline6,
                                 ),
                                 Text(
-                                  'Group',
+                                  'Group \u2022 ${membersList.length} People',
                                   style: Theme.of(context).textTheme.caption,
                                 ),
                               ],
@@ -286,6 +285,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                               onTap: () {
                                                 context.push(AddMembersScreen(
                                                   groupId: widget.groupId,
+                                                  isCameFromHomeScreen: false,
                                                 ));
                                               },
                                               child: Container(
@@ -331,11 +331,39 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                         dense: true,
                                         contentPadding: EdgeInsets.zero,
                                         horizontalTitleGap: 0,
-                                        leading: CircleAvatar(
-                                          radius: 16,
-                                          backgroundColor: AppColors.lightGrey,
-                                          foregroundImage: NetworkImage(
-                                              "${AppStrings.imagePath}${membersList[index]['profile_picture']}"),
+                                        leading: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                              AppSizes.cardCornerRadius * 10),
+                                          child: CachedNetworkImage(
+                                            width: 30,
+                                            height: 30,
+                                            fit: BoxFit.cover,
+                                            imageUrl:
+                                                '${AppStrings.imagePath}${membersList[index]['profile_picture']}',
+                                            placeholder: (context, url) =>
+                                                const CircleAvatar(
+                                              radius: 30,
+                                              backgroundColor:
+                                                  AppColors.shimmer,
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    CircleAvatar(
+                                              radius: 30,
+                                              backgroundColor:
+                                                  AppColors.shimmer,
+                                              child: Text(
+                                                membersList[index]['name']
+                                                    .substring(0, 1),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyText1!
+                                                    .copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w600),
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                         title: Text(
                                           "${membersList[index]['name']}",
@@ -352,76 +380,76 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                               .textTheme
                                               .caption,
                                         ),
-                                        trailing: membersList[index]['isAdmin'] ==
-                                            true
+                                        trailing: membersList[index]
+                                                    ['isAdmin'] ==
+                                                true
                                             ? Text(
-                                          'Admin',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .caption!
-                                              .copyWith(
-                                              color:
-                                              AppColors.black,
-                                              fontWeight:
-                                              FontWeight
-                                                  .w500),
-                                        ): widget.isAdmin == true
-                                            ? IconButton(
-                                                onPressed: () {
-                                                  showDialog(
-                                                      context: context,
-                                                      barrierDismissible: false,
-                                                      builder: (BuildContext
-                                                          context) {
-                                                        return ConfirmationDialog(
-                                                          title:
-                                                              'Delete Member?',
-                                                          body:
-                                                              'Are you sure want to delete this member from this group?',
-                                                          onPressedPositiveButton:
-                                                              () {
-                                                            FirebaseFirestore
-                                                                .instance
-                                                                .collection(
-                                                                    'users')
-                                                                .doc(FirebaseAuth
+                                                'Admin',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .caption!
+                                                    .copyWith(
+                                                        color: AppColors.black,
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                              )
+                                            : widget.isAdmin == true
+                                                ? IconButton(
+                                                    onPressed: () {
+                                                      showDialog(
+                                                          context: context,
+                                                          barrierDismissible:
+                                                              false,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return ConfirmationDialog(
+                                                              title:
+                                                                  'Delete Member?',
+                                                              body:
+                                                                  'Are you sure want to delete this member from this group?',
+                                                              onPressedPositiveButton:
+                                                                  () {
+                                                                FirebaseFirestore
                                                                     .instance
-                                                                    .currentUser!
-                                                                    .uid)
-                                                                .collection(
-                                                                    'groups')
-                                                                .doc(widget
-                                                                    .groupId)
-                                                                .update({
-                                                              'members': FieldValue
-                                                                  .arrayRemove([
-                                                                membersList[
-                                                                    index]
-                                                              ])
-                                                            }).then((value) =>
-                                                                    customSnackBar(
+                                                                    .collection(
+                                                                        'users')
+                                                                    .doc(FirebaseAuth
+                                                                        .instance
+                                                                        .currentUser!
+                                                                        .uid)
+                                                                    .collection(
+                                                                        'groups')
+                                                                    .doc(widget
+                                                                        .groupId)
+                                                                    .update({
+                                                                  'members':
+                                                                      FieldValue
+                                                                          .arrayRemove([
+                                                                    membersList[
+                                                                        index]
+                                                                  ])
+                                                                }).then((value) => customSnackBar(
                                                                         context,
                                                                         'Member Deleted Successfully',
                                                                         AppColors
                                                                             .successSnackBarBackground));
-                                                            context.pop(
-                                                                GroupInfoScreen(
-                                                              groupId: widget
-                                                                  .groupId,
-                                                              isAdmin: widget
-                                                                  .isAdmin,
-                                                            ));
-                                                          },
-                                                        );
-                                                      });
-                                                },
-                                                icon: const Icon(
-                                                  EvaIcons.trash2,
-                                                  color: AppColors.grey,
-                                                  size: 16,
-                                                ),
-                                              )
-
+                                                                context.pop(
+                                                                    GroupInfoScreen(
+                                                                  groupId: widget
+                                                                      .groupId,
+                                                                  isAdmin: widget
+                                                                      .isAdmin,
+                                                                ));
+                                                              },
+                                                            );
+                                                          });
+                                                    },
+                                                    icon: const Icon(
+                                                      EvaIcons.trash2,
+                                                      color: AppColors.grey,
+                                                      size: 16,
+                                                    ),
+                                                  )
                                                 : const SizedBox(),
                                       );
                                     })

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/app_images.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
+import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_appbar.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_chat_card.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_search_bar.dart';
@@ -112,7 +113,10 @@ class HomeScreen extends StatelessWidget {
                     floatingActionButton: isAdmin == true
                         ? CustomFloatingActionButton(
                             onPressed: () {
-                              context.push(const CreateNewGroupScreen());
+                              context.push(const AddMembersScreen(
+                                isCameFromHomeScreen: true,
+                              ));
+                              //context.push(const CreateNewGroupScreen());
                             },
                             iconData: EvaIcons.plus,
                           )
@@ -230,7 +234,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                     groupName: snapshot.data!.docs[index]
                                         ['name'],
                                     //this will be last sent message by the user
-                                    //groupDesc: snapshot.data!.docs[index]['group_description'],
+                                    groupDesc: snapshot.data!.docs[index]['group_description'],
                                     sentTime: AppHelper.getDateFromString(
                                         snapshot.data!.docs[index]
                                             ['created_at']),

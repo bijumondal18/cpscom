@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
@@ -37,10 +38,30 @@ class HomeChatCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: AppColors.shimmer,
-                  foregroundImage: NetworkImage(imageUrl ?? ''),
+                ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.cardCornerRadius * 10),
+                  child: CachedNetworkImage(
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    imageUrl: '$imageUrl',
+                    placeholder: (context, url) => const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.shimmer,
+                    ),
+                    errorWidget: (context, url, error) => CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.shimmer,
+                      child: Text(
+                        groupName.substring(0, 1),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText1!
+                            .copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: Padding(
@@ -107,7 +128,6 @@ class MembersStackOnGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     var stream = FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -145,18 +165,54 @@ class MembersStackOnGroup extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 membersCount = membersList.length;
                                 return Align(
-                                    widthFactor: 0.5,
-                                    child: CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor: AppColors.white,
-                                      child: CircleAvatar(
-                                        radius: 12,
-                                        backgroundColor: AppColors.shimmer,
-                                        backgroundImage: NetworkImage(
-                                          "${AppStrings.imagePath}${membersList[index]['profile_picture']}",
+                                  widthFactor: 0.3,
+                                  child: CircleAvatar(
+                                    radius: 32,
+                                    backgroundColor: AppColors.white,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                          AppSizes.cardCornerRadius * 10),
+                                      child: CachedNetworkImage(
+                                        width: 26,
+                                        height: 26,
+                                        fit: BoxFit.cover,
+                                        imageUrl:
+                                            '${AppStrings.imagePath}${membersList[index]['profile_picture']}',
+                                        placeholder: (context, url) =>
+                                            const CircleAvatar(
+                                          radius: 26,
+                                          backgroundColor: AppColors.shimmer,
+                                        ),
+                                        errorWidget: (context, url, error) =>
+                                            CircleAvatar(
+                                          radius: 26,
+                                          backgroundColor: AppColors.shimmer,
+                                          child: Text(
+                                            snapshot.data!['members']['name']
+                                                .substring(0, 1),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyText1!
+                                                .copyWith(
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                          ),
                                         ),
                                       ),
-                                    ));
+                                    ),
+                                  ),
+                                  // CircleAvatar(
+                                  //   radius: 20,
+                                  //   backgroundColor: AppColors.white,
+                                  //   child: CircleAvatar(
+                                  //     radius: 12,
+                                  //     backgroundColor: AppColors.shimmer,
+                                  //     backgroundImage: NetworkImage(
+                                  //       "${AppStrings.imagePath}${membersList[index]['profile_picture']}",
+                                  //     ),
+                                  //   ),
+                                  // )
+                                );
                               }),
                           // Align(
                           //   widthFactor: 0.5,
