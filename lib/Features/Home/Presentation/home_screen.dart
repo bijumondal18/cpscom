@@ -4,6 +4,7 @@ import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_appbar.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_chat_card.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_search_bar.dart';
+import 'package:cpscom_admin/Features/Login/Presentation/login_screen.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Utils/app_preference.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
@@ -13,6 +14,8 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../Api/firebase_provider.dart';
+import '../../../Utils/custom_snack_bar.dart';
 import '../../../Widgets/custom_confirmation_dialog.dart';
 import '../../../Widgets/custom_text_field.dart';
 import '../../Chat/Presentation/chat_screen.dart';
@@ -79,15 +82,26 @@ class HomeScreen extends StatelessWidget {
                                   context.push(const MyProfileScreen());
                                   break;
                                 case 2:
-                                  ViewDialogs.confirmationDialog(
-                                      context,
-                                      'Logout?',
-                                      'Are you sure you want to logout?',
-                                      'Logout',
-                                      'Cancel');
-                                  //FirebaseProvider().logout();
-                                  // context.pushReplacement(const LoginScreen());
-                                  break;
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return ConfirmationDialog(
+                                            title: 'Logout?',
+                                            body:
+                                                'Are you sure you want to logout?',
+                                            positiveButtonLabel: 'Logout',
+                                            negativeButtonLabel: 'Cancel',
+                                            onPressedPositiveButton: () {
+                                              try {
+                                                //FirebaseProvider().logout();
+                                                context
+                                                    .pop(const LoginScreen());
+                                              } catch (e) {
+                                                customSnackBar(context, '$e',
+                                                    AppColors.error);
+                                              }
+                                            });
+                                      });
                               }
                             },
                           ),
@@ -209,13 +223,13 @@ class _BuildChatListState extends State<BuildChatList> {
                                     groupId: snapshot.data!.docs[index].id,
                                     onPressed: () {
                                       context.push(ChatScreen(
-                                        groupId:
-                                        snapshot.data!.docs[index].id,
+                                        groupId: snapshot.data!.docs[index].id,
                                         isAdmin: widget.isAdmin,
                                       ));
                                     },
                                     groupName: snapshot.data!.docs[index]
                                         ['name'],
+                                    //this will be last sent message by the user
                                     //groupDesc: snapshot.data!.docs[index]['group_description'],
                                     sentTime: AppHelper.getDateFromString(
                                         snapshot.data!.docs[index]
@@ -234,8 +248,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                     groupId: snapshot.data!.docs[index].id,
                                     onPressed: () {
                                       context.push(ChatScreen(
-                                        groupId:
-                                            snapshot.data!.docs[index].id,
+                                        groupId: snapshot.data!.docs[index].id,
                                         isAdmin: widget.isAdmin,
                                       ));
                                     },

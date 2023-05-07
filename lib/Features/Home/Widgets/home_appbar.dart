@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
+import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
 import 'package:cpscom_admin/Features/MyProfile/Presentation/my_profile_screen.dart';
+import 'package:cpscom_admin/Utils/custom_snack_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_confirmation_dialog.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../Api/firebase_provider.dart';
 import '../../../Commons/app_icons.dart';
 
 class HomeAppBar extends StatelessWidget {
@@ -91,13 +94,28 @@ class HomeAppBar extends StatelessWidget {
                                     context.push(const MyProfileScreen());
                                     break;
                                   case 2:
-                                    ViewDialogs.confirmationDialog(
-                                        context,
-                                        'Logout?',
-                                        'Are you sure you want to logout?',
-                                        'Logout',
-                                        'Cancel');
-                                    //FirebaseProvider().logout();
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return ConfirmationDialog(
+                                              title: 'Logout?',
+                                              body:
+                                              'Are you sure you want to logout?',
+                                              positiveButtonLabel: 'Logout',
+                                              negativeButtonLabel: 'Cancel',
+                                              onPressedPositiveButton: () {
+                                                try {
+                                                  FirebaseProvider().logout();
+                                                  context.pop(
+                                                      const HomeScreen());
+                                                } catch (e) {
+                                                  customSnackBar(context, '$e',
+                                                      AppColors.error);
+                                                }
+                                              });
+                                        });
+
+                                    //
                                     // context.pushReplacement(const LoginScreen());
                                     break;
                                 }
