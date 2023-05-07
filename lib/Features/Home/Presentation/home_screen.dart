@@ -209,8 +209,8 @@ class _BuildChatListState extends State<BuildChatList> {
                                     groupId: snapshot.data!.docs[index].id,
                                     onPressed: () {
                                       context.push(ChatScreen(
-                                        groupDetails:
-                                            snapshot.data!.docs[index],
+                                        groupId:
+                                        snapshot.data!.docs[index].id,
                                         isAdmin: widget.isAdmin,
                                       ));
                                     },
@@ -234,8 +234,8 @@ class _BuildChatListState extends State<BuildChatList> {
                                     groupId: snapshot.data!.docs[index].id,
                                     onPressed: () {
                                       context.push(ChatScreen(
-                                        groupDetails:
-                                            snapshot.data!.docs[index],
+                                        groupId:
+                                            snapshot.data!.docs[index].id,
                                         isAdmin: widget.isAdmin,
                                       ));
                                     },

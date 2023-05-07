@@ -11,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final int? minLines;
   final int? maxLines;
   final bool? readOnly;
+  final bool? autoFocus;
   final bool? obscureText;
   final Widget? suffixIcon;
   final TextInputType? keyboardType;
@@ -31,6 +32,7 @@ class CustomTextField extends StatelessWidget {
     this.obscureText,
     this.suffixIcon,
     this.onChanged,
+    this.autoFocus = false,
   }) : super(key: key);
 
   @override
@@ -46,6 +48,7 @@ class CustomTextField extends StatelessWidget {
       cursorColor: AppColors.primary,
       controller: controller,
       onChanged: onChanged,
+      autofocus: autoFocus!,
       decoration: InputDecoration(
           suffixIcon: suffixIcon,
           enabledBorder: const UnderlineInputBorder(

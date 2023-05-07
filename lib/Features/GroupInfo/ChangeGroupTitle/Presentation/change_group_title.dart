@@ -12,11 +12,11 @@ import '../../../../Widgets/custom_text_field.dart';
 import '../../../../Widgets/full_button.dart';
 
 class ChangeGroupTitle extends StatefulWidget {
-  final QueryDocumentSnapshot groupDetails;
+  final String groupId;
 
   const ChangeGroupTitle({
     Key? key,
-    required this.groupDetails,
+    required this.groupId,
   }) : super(key: key);
 
   @override
@@ -29,7 +29,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
 
   @override
   void initState() {
-    titleController.text = widget.groupDetails['name'];
+    //titleController.text = widget.groupId['name'];
     super.initState();
   }
 
@@ -61,16 +61,36 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                   const SizedBox(
                     height: AppSizes.kDefaultPadding,
                   ),
-                  CustomTextField(
-                    controller: titleController,
-                    hintText: 'Business Group 1',
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Group title can't be empty";
-                      }
-                      return null;
-                    },
-                  )
+                  StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .collection('groups')
+                          .doc(widget.groupId)
+                          .snapshots(),
+                      builder:
+                          (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.none:
+                          case ConnectionState.waiting:
+                          default:
+                            if (snapshot.hasData) {
+                              titleController.text = snapshot.data!['name'];
+                              return CustomTextField(
+                                controller: titleController,
+                                hintText: 'Group Title',
+                                autoFocus: true,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Group title can't be empty";
+                                  }
+                                  return null;
+                                },
+                              );
+                            }
+                        }
+                        return const SizedBox();
+                      })
                 ],
               ),
             ),
@@ -88,15 +108,15 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                                 .collection('users')
                                 .doc(FirebaseAuth.instance.currentUser!.uid)
                                 .collection('groups')
-                                .doc(widget.groupDetails.id)
+                                .doc(widget.groupId)
                                 .update({"name": titleController.text}).then(
                                     (value) {
                               customSnackBar(
                                   context,
                                   'Group Title Updated Successfully',
                                   AppColors.successSnackBarBackground);
-                              context.pop(GroupInfoScreen(
-                                  groupDetails: widget.groupDetails));
+                              context.pop(
+                                  GroupInfoScreen(groupId: widget.groupId));
                             });
                           }
                         }),
@@ -108,7 +128,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                                   const Size.fromHeight(AppSizes.buttonHeight)),
                           onPressed: () {
                             context.pop(GroupInfoScreen(
-                              groupDetails: widget.groupDetails,
+                              groupId: widget.groupId,
                             ));
                           },
                           child: Text(

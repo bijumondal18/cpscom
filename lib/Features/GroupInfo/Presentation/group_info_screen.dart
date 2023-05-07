@@ -16,10 +16,10 @@ import 'package:flutter/material.dart';
 import '../../../Commons/app_images.dart';
 
 class GroupInfoScreen extends StatefulWidget {
-  final QueryDocumentSnapshot groupDetails;
+  final String groupId;
   final bool? isAdmin;
 
-  const GroupInfoScreen({Key? key, required this.groupDetails, this.isAdmin})
+  const GroupInfoScreen({Key? key, required this.groupId, this.isAdmin})
       : super(key: key);
 
   @override
@@ -27,14 +27,13 @@ class GroupInfoScreen extends StatefulWidget {
 }
 
 class _GroupInfoScreenState extends State<GroupInfoScreen> {
-  // var future = FirebaseFirestore.instance
-  //     .collection('groups')
-  //     .doc(widget.groupDetails.id)
-  //     .get(),
+  //String grpDesc = '';
+
   @override
   Widget build(BuildContext context) {
+    //grpDesc = widget.groupDetails['group_description'];
     return Scaffold(
-        backgroundColor: AppColors.shimmer,
+        backgroundColor: AppColors.bg,
         appBar: CustomAppBar(
           title: 'Group Info',
           actions: [
@@ -57,7 +56,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       switch (value) {
                         case 1:
                           context.push(ChangeGroupTitle(
-                            groupDetails: widget.groupDetails,
+                            groupId: widget.groupId,
                           ));
                           break;
                       }
@@ -67,166 +66,238 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           ],
         ),
         body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                color: AppColors.white,
-                padding: const EdgeInsets.all(AppSizes.kDefaultPadding * 2),
-                alignment: Alignment.center,
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 56,
-                          backgroundColor: AppColors.lightGrey,
-                          foregroundImage: NetworkImage(
-                              "${AppStrings.imagePath}${widget.groupDetails['profile_picture']}"),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: widget.isAdmin == true
-                              ? InkWell(
-                                  onTap: () {
-                                    const CustomImagePicker();
-                                  },
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    padding: const EdgeInsets.all(
-                                        AppSizes.kDefaultPadding / 1.3),
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            width: 1,
-                                            color: AppColors.lightGrey),
-                                        color: AppColors.white,
-                                        shape: BoxShape.circle),
-                                    child: Image.asset(
-                                      AppImages.cameraIcon,
-                                      width: 36,
-                                      height: 36,
-                                      fit: BoxFit.contain,
+          child: StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('groups')
+                  .doc(widget.groupId)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                  case ConnectionState.waiting:
+                  default:
+                    if (snapshot.hasData) {
+                      return Column(
+                        children: [
+                          Container(
+                            color: AppColors.white,
+                            padding: const EdgeInsets.all(
+                                AppSizes.kDefaultPadding * 2),
+                            alignment: Alignment.center,
+                            child: Column(
+                              children: [
+                                Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 56,
+                                      backgroundColor: AppColors.lightGrey,
+                                      foregroundImage: NetworkImage(
+                                          "${AppStrings.imagePath}${snapshot.data!['profile_picture']}"),
                                     ),
-                                  ),
-                                )
-                              : Container(),
-                        )
-                      ],
-                    ),
-                    const SizedBox(
-                      height: AppSizes.kDefaultPadding,
-                    ),
-                    Text(
-                      '${widget.groupDetails['name']}',
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
-                    Text(
-                      'Group',
-                      style: Theme.of(context).textTheme.caption,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              InkWell(
-                onTap: () {
-                  widget.isAdmin == true
-                      ? context.push(ChangeGroupDescription(
-                          groupDetails: widget.groupDetails,
-                        ))
-                      : null;
-                },
-                child: Container(
-                  color: AppColors.white,
-                  padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Group Description',
-                            style: Theme.of(context).textTheme.bodyText1,
-                          ),
-                          Text(
-                            'Created at: ${AppHelper.getDateFromString(widget.groupDetails['created_at'])}',
-                            style: Theme.of(context).textTheme.bodyText2,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: AppSizes.kDefaultPadding,
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.groupDetails['group_description'] != ''
-                                  ? '${widget.groupDetails['group_description']}:'
-                                  : 'Add group description here...',
-                              maxLines: 5,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText2!
-                                  .copyWith(color: AppColors.black),
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: widget.isAdmin == true
+                                          ? InkWell(
+                                              onTap: () {
+                                                const CustomImagePicker();
+                                              },
+                                              child: Container(
+                                                width: 40,
+                                                height: 40,
+                                                padding: const EdgeInsets.all(
+                                                    AppSizes.kDefaultPadding /
+                                                        1.3),
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        width: 1,
+                                                        color: AppColors
+                                                            .lightGrey),
+                                                    color: AppColors.white,
+                                                    shape: BoxShape.circle),
+                                                child: Image.asset(
+                                                  AppImages.cameraIcon,
+                                                  width: 36,
+                                                  height: 36,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                            )
+                                          : Container(),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: AppSizes.kDefaultPadding,
+                                ),
+                                Text(
+                                  '${snapshot.data!['name']}',
+                                  style: Theme.of(context).textTheme.headline6,
+                                ),
+                                Text(
+                                  'Group',
+                                  style: Theme.of(context).textTheme.caption,
+                                ),
+                              ],
                             ),
                           ),
-                          widget.isAdmin == true
-                              ? const Icon(
-                                  EvaIcons.arrowIosForward,
-                                  size: 24,
-                                  color: AppColors.grey,
-                                )
-                              : const SizedBox()
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding,
+                          ),
+                          (widget.isAdmin != true &&
+                                  snapshot.data!['group_description'] == '')
+                              ? const SizedBox()
+                              : (widget.isAdmin == true &&
+                                      snapshot.data!['group_description'] == '')
+                                  ? InkWell(
+                                      onTap: () => context.push(
+                                          ChangeGroupDescription(
+                                              groupId: widget.groupId)),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal:
+                                                AppSizes.kDefaultPadding),
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        decoration: const BoxDecoration(
+                                            color: AppColors.white),
+                                        height: AppSizes.buttonHeight,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                                child: Text(
+                                              'Add Group Description',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText2!
+                                                  .copyWith(
+                                                      color: AppColors.primary,
+                                                      fontWeight:
+                                                          FontWeight.w600),
+                                            )),
+                                            const Icon(
+                                              EvaIcons.arrowIosForward,
+                                              size: 24,
+                                              color: AppColors.grey,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  : InkWell(
+                                      onTap: () {
+                                        widget.isAdmin == true
+                                            ? context
+                                                .push(ChangeGroupDescription(
+                                                groupId: widget.groupId,
+                                              ))
+                                            : null;
+                                      },
+                                      child: Container(
+                                        color: AppColors.white,
+                                        padding: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'Group Description',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyText1,
+                                                ),
+                                                Text(
+                                                  'Created at: ${AppHelper.getDateFromString(snapshot.data!['created_at'])}',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyText2,
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(
+                                              height: AppSizes.kDefaultPadding,
+                                            ),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    snapshot.data![
+                                                        'group_description'],
+                                                    maxLines: 5,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyText2!
+                                                        .copyWith(
+                                                            color: AppColors
+                                                                .black),
+                                                  ),
+                                                ),
+                                                widget.isAdmin == true
+                                                    ? const Icon(
+                                                        EvaIcons
+                                                            .arrowIosForward,
+                                                        size: 24,
+                                                        color: AppColors.grey,
+                                                      )
+                                                    : const SizedBox()
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding,
+                          ),
+                          ParticipantsCard(
+                            groupId: widget.groupId,
+                            isAdmin: widget.isAdmin,
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding,
+                          ),
+                          // SafeArea(
+                          //   child: widget.isAdmin == true
+                          //       ? DeleteButton(
+                          //           label: 'Delete Group',
+                          //           onPressed: () {
+                          //             ViewDialogs.confirmationDialog(
+                          //                 context,
+                          //                 'Delete Group?',
+                          //                 'Are you sure want to delete this group?',
+                          //                 'Confirm',
+                          //                 'Cancel');
+                          //           },
+                          //         )
+                          //       : Container(),
+                          // )
                         ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              ParticipantsCard(
-                groupDetails: widget.groupDetails,
-                isAdmin: widget.isAdmin,
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              SafeArea(
-                child: widget.isAdmin == true
-                    ? DeleteButton(
-                        label: 'Delete Group',
-                        onPressed: () {
-                          ViewDialogs.confirmationDialog(
-                              context,
-                              'Delete Group?',
-                              'Are you sure want to delete this group?',
-                              'Confirm',
-                              'Cancel');
-                        },
-                      )
-                    : Container(),
-              )
-            ],
-          ),
+                      );
+                    }
+                }
+                return Container();
+              }),
         ));
   }
 }
 
 class ParticipantsCard extends StatelessWidget {
-  final QueryDocumentSnapshot groupDetails;
+  final String groupId;
   final bool? isAdmin;
 
   ParticipantsCard({
     Key? key,
-    required this.groupDetails,
+    required this.groupId,
     this.isAdmin,
   }) : super(key: key);
 
@@ -239,7 +310,7 @@ class ParticipantsCard extends StatelessWidget {
             .collection('users')
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .collection('groups')
-            .doc(groupDetails.id)
+            .doc(groupId)
             .snapshots(),
         builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           membersList = snapshot.data?['members'];
@@ -262,7 +333,7 @@ class ParticipantsCard extends StatelessWidget {
                           ? InkWell(
                               onTap: () {
                                 context.push(AddMembersScreen(
-                                  groupDetails: groupDetails,
+                                  groupId: groupId,
                                 ));
                               },
                               child: Container(
@@ -332,11 +403,10 @@ class ParticipantsCard extends StatelessWidget {
                                           .doc(FirebaseAuth
                                               .instance.currentUser!.uid)
                                           .collection('groups')
-                                          .doc(groupDetails.id)
+                                          .doc(groupId)
                                           .update({
-                                        'members':
-                                            FieldValue
-                                            .arrayRemove([membersList[index]])
+                                        'members': FieldValue.arrayRemove(
+                                            [membersList[index]])
                                       }).then((value) => customSnackBar(
                                               context,
                                               'Member Deleted Successfully',

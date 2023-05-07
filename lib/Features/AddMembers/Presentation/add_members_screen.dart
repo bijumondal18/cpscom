@@ -11,9 +11,9 @@ import 'package:flutter/material.dart';
 import '../../../Widgets/custom_loader.dart';
 
 class AddMembersScreen extends StatefulWidget {
-  final QueryDocumentSnapshot groupDetails;
+  final String groupId;
 
-  const AddMembersScreen({Key? key, required this.groupDetails})
+  const AddMembersScreen({Key? key, required this.groupId})
       : super(key: key);
 
   @override
@@ -123,7 +123,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
       floatingActionButton: CustomFloatingActionButton(
         onPressed: () {
           context.pop(GroupInfoScreen(
-            groupDetails: widget.groupDetails,
+            groupId: widget.groupId,
           ));
         },
         iconData: EvaIcons.arrowForwardOutline,

@@ -13,9 +13,9 @@ import '../../../Home/Model/response_groups_list.dart';
 import '../../Presentation/group_info_screen.dart';
 
 class ChangeGroupDescription extends StatefulWidget {
-  final QueryDocumentSnapshot groupDetails;
+  final String groupId;
 
-  const ChangeGroupDescription({Key? key, required this.groupDetails})
+  const ChangeGroupDescription({Key? key, required this.groupId})
       : super(key: key);
 
   @override
@@ -28,7 +28,7 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
 
   @override
   void initState() {
-    descController.text = widget.groupDetails['group_description'];
+    //descController.text = widget.groupId['group_description'];
     super.initState();
   }
 
@@ -71,18 +71,39 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                             AppSizes.cardCornerRadius / 2),
                         border:
                             Border.all(width: 1, color: AppColors.lightGrey)),
-                    child: CustomTextField(
-                      controller: descController,
-                      hintText: 'Enter Group Description Here...',
-                      minLines: 8,
-                      maxLines: 10,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "Group Desc can't be empty";
-                        }
-                        return null;
-                      },
-                    ),
+                    child: StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser!.uid)
+                            .collection('groups')
+                            .doc(widget.groupId)
+                            .snapshots(),
+                        builder: (context,
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
+                          switch (snapshot.connectionState) {
+                            case ConnectionState.none:
+                            case ConnectionState.waiting:
+                            default:
+                              if (snapshot.hasData) {
+                                descController.text =
+                                    snapshot.data!['group_description'];
+                                return CustomTextField(
+                                  controller: descController,
+                                  hintText: 'Enter Group Description Here...',
+                                  minLines: 8,
+                                  maxLines: 10,
+                                  autoFocus: true,
+                                  // validator: (value) {
+                                  //   if (value!.isEmpty) {
+                                  //     return "Group Desc can't be empty";
+                                  //   }
+                                  //   return null;
+                                  // },
+                                );
+                              }
+                          }
+                          return const SizedBox();
+                        }),
                   )
                 ],
               ),
@@ -96,23 +117,24 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                     FullButton(
                         label: 'Ok'.toUpperCase(),
                         onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .collection('groups')
-                                .doc(widget.groupDetails.id)
-                                .update({
-                              "group_description": descController.text
-                            }).then((value) {
-                              customSnackBar(
-                                  context,
-                                  'Group Description Updated Successfully',
-                                  AppColors.successSnackBarBackground);
-                              context.pop(GroupInfoScreen(
-                                  groupDetails: widget.groupDetails));
-                            });
-                          }
+                          // if (_formKey.currentState!.validate()) {
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid)
+                              .collection('groups')
+                              .doc(widget.groupId)
+                              .update({
+                            "group_description": descController.text
+                          }).then((value) {
+                            customSnackBar(
+                                context,
+                                'Group Description Updated Successfully',
+                                AppColors.successSnackBarBackground);
+                            context.pop(
+                                GroupInfoScreen(groupId: widget.groupId),
+                                descController.text);
+                          });
+                          //}
                         }),
                     Container(
                       alignment: Alignment.center,
@@ -122,7 +144,7 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                                   const Size.fromHeight(AppSizes.buttonHeight)),
                           onPressed: () {
                             context.pop(GroupInfoScreen(
-                              groupDetails: widget.groupDetails,
+                              groupId: widget.groupId,
                             ));
                           },
                           child: Text(
