@@ -313,124 +313,133 @@ class ParticipantsCard extends StatelessWidget {
             .doc(groupId)
             .snapshots(),
         builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          membersList = snapshot.data?['members'];
-          return Container(
-            padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
-            color: AppColors.white,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.kDefaultPadding / 1.5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+            default:
+              if (snapshot.hasData) {
+                membersList = snapshot.data?['members'];
+                return Container(
+                  padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
+                  color: AppColors.white,
+                  child: Column(
                     children: [
-                      Text(
-                        '${membersList.length} Participants',
-                        style: Theme.of(context).textTheme.bodyText2,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.kDefaultPadding / 1.5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${membersList.length} Participants',
+                              style: Theme.of(context).textTheme.bodyText2,
+                            ),
+                            isAdmin == true
+                                ? InkWell(
+                                    onTap: () {
+                                      context.push(AddMembersScreen(
+                                        groupId: groupId,
+                                      ));
+                                    },
+                                    child: Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient:
+                                              AppColors.buttonGradientColor),
+                                      child: const Icon(
+                                        EvaIcons.plus,
+                                        size: 18,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Container()
+                          ],
+                        ),
                       ),
-                      isAdmin == true
-                          ? InkWell(
-                              onTap: () {
-                                context.push(AddMembersScreen(
-                                  groupId: groupId,
-                                ));
-                              },
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: AppColors.buttonGradientColor),
-                                child: const Icon(
-                                  EvaIcons.plus,
-                                  size: 18,
-                                  color: AppColors.white,
-                                ),
+                      const SizedBox(
+                        height: AppSizes.kDefaultPadding,
+                      ),
+                      ListView.builder(
+                          itemCount: membersList.length,
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              horizontalTitleGap: 0,
+                              leading: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppColors.lightGrey,
+                                foregroundImage: NetworkImage(
+                                    "${AppStrings.imagePath}${membersList[index]['profile_picture']}"),
                               ),
-                            )
-                          : Container()
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: AppSizes.kDefaultPadding,
-                ),
-                ListView.builder(
-                    itemCount: membersList.length,
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        horizontalTitleGap: 0,
-                        leading: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: AppColors.lightGrey,
-                          foregroundImage: NetworkImage(
-                              "${AppStrings.imagePath}${membersList[index]['profile_picture']}"),
-                        ),
-                        title: Text(
-                          "${membersList[index]['name']}",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText2!
-                              .copyWith(
-                                  color: AppColors.black,
-                                  fontWeight: FontWeight.w500),
-                        ),
-                        subtitle: Text(
-                          "${membersList[index]['email']}",
-                          style: Theme.of(context).textTheme.caption,
-                        ),
-                        trailing: membersList[index]['isAdmin'] == true
-                            ? Text(
-                                'Admin',
+                              title: Text(
+                                "${membersList[index]['name']}",
                                 style: Theme.of(context)
                                     .textTheme
-                                    .caption!
+                                    .bodyText2!
                                     .copyWith(
                                         color: AppColors.black,
                                         fontWeight: FontWeight.w500),
-                              )
-                            : isAdmin == true
-                                ? IconButton(
-                                    onPressed: () {
-                                      FirebaseFirestore.instance
-                                          .collection('users')
-                                          .doc(FirebaseAuth
-                                              .instance.currentUser!.uid)
-                                          .collection('groups')
-                                          .doc(groupId)
-                                          .update({
-                                        'members': FieldValue.arrayRemove(
-                                            [membersList[index]])
-                                      }).then((value) => customSnackBar(
-                                              context,
-                                              'Member Deleted Successfully',
-                                              AppColors
-                                                  .successSnackBarBackground));
-                                      // ViewDialogs.confirmationDialog(
-                                      //     context,
-                                      //     'Delete Member?',
-                                      //     'Are you sure want to delete this member from this group?',
-                                      //     'Confirm',
-                                      //     'Cancel');
-                                    },
-                                    icon: const Icon(
-                                      EvaIcons.trash2,
-                                      color: AppColors.grey,
-                                      size: 16,
-                                    ),
-                                  )
-                                : const SizedBox(),
-                      );
-                    })
-              ],
-            ),
-          );
+                              ),
+                              subtitle: Text(
+                                "${membersList[index]['email']}",
+                                style: Theme.of(context).textTheme.caption,
+                              ),
+                              trailing: membersList[index]['isAdmin'] == true
+                                  ? Text(
+                                      'Admin',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .caption!
+                                          .copyWith(
+                                              color: AppColors.black,
+                                              fontWeight: FontWeight.w500),
+                                    )
+                                  : isAdmin == true
+                                      ? IconButton(
+                                          onPressed: () {
+                                            FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(FirebaseAuth
+                                                    .instance.currentUser!.uid)
+                                                .collection('groups')
+                                                .doc(groupId)
+                                                .update({
+                                              'members': FieldValue.arrayRemove(
+                                                  [membersList[index]])
+                                            }).then((value) => customSnackBar(
+                                                    context,
+                                                    'Member Deleted Successfully',
+                                                    AppColors
+                                                        .successSnackBarBackground));
+                                            // ViewDialogs.confirmationDialog(
+                                            //     context,
+                                            //     'Delete Member?',
+                                            //     'Are you sure want to delete this member from this group?',
+                                            //     'Confirm',
+                                            //     'Cancel');
+                                          },
+                                          icon: const Icon(
+                                            EvaIcons.trash2,
+                                            color: AppColors.grey,
+                                            size: 16,
+                                          ),
+                                        )
+                                      : const SizedBox(),
+                            );
+                          })
+                    ],
+                  ),
+                );
+              }
+          }
+          return const SizedBox();
         });
   }
 }
