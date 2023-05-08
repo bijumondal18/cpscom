@@ -1,6 +1,7 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:uuid/uuid.dart';
 
 class FirebaseProvider {
@@ -31,8 +32,9 @@ class FirebaseProvider {
     }
   }
 
+  //CREATE NEW GROUP to firebase firestore collection
   static Future<void> createGroup(String groupName, String groupDescription,
-      String profilePicture, List<dynamic> members) async {
+      String profilePicture, List<Map<String, dynamic>> members) async {
     var groupId = const Uuid().v1();
     await firestore
         .collection('users')
@@ -44,9 +46,11 @@ class FirebaseProvider {
       "name": groupName,
       "group_description": groupDescription,
       "profile_picture": profilePicture,
-      "created_at": FieldValue.serverTimestamp(),
+      "created_at": '${FieldValue.serverTimestamp()}',
       "members": members
     });
+
+    //add groups to all the members belongs to this group
     for (int i = 0; i < members.length; i++) {
       String uid = members[i]['uid'];
 
@@ -60,13 +64,18 @@ class FirebaseProvider {
         "group_description": groupDescription,
         "id": groupId,
         "profile_picture": profilePicture,
-        "created_at": FieldValue.serverTimestamp(),
+        "created_at": '${FieldValue.serverTimestamp()}',
         "members": members
       });
     }
-    //return createGroup;
+    //send initial message (XYZ Created this group) to newly created group chats
+    await firestore.collection('users').doc(groupId).collection('chats').add({
+      'message': '${auth.currentUser!.displayName} Created This Group',
+      'type': 'notify'
+    });
   }
 
+  //get all groups from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() {
     var allGroupsList = firestore
         .collection('users')
@@ -77,6 +86,7 @@ class FirebaseProvider {
     return allGroupsList;
   }
 
+  //get group details from firebase firestore collection
   static Stream<DocumentSnapshot<Map<String, dynamic>>> getGroupDetails(
       String groupId) {
     var groupDetails = firestore
@@ -88,11 +98,33 @@ class FirebaseProvider {
     return groupDetails;
   }
 
+  //get all users from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
     var allUsersList = firestore.collection('users').snapshots();
     return allUsersList;
   }
 
+  //get current user details from firebase firestore
+  static Future<void> getCurrentUserDetails(
+      List<Map<String, dynamic>> membersList) async {
+    var getUser = await firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .get()
+        .then((value) {
+      membersList.add({
+        'name': value['name'],
+        'email': value['email'],
+        'uid': value['uid'],
+        'isAdmin': value['isAdmin'],
+        'profile_picture': value['profile_picture'],
+      });
+    });
+
+    return getUser;
+  }
+
+  //DELETE user from a group firebase firestore collection
   static Future<void> deleteMember(
       String groupId, List<dynamic> membersList, int index) async {
     await firestore

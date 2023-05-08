@@ -1,12 +1,12 @@
 import 'dart:io';
 
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_images.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/CreateNewGroup/Bloc/create_group_bloc.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_search_bar.dart';
 import 'package:cpscom_admin/Utils/app_preference.dart';
-import 'package:cpscom_admin/Utils/custom_snack_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_card.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
@@ -19,7 +19,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../Widgets/custom_floating_action_button.dart';
 
 class CreateNewGroupScreen extends StatefulWidget {
-  const CreateNewGroupScreen({Key? key}) : super(key: key);
+  final List<Map<String, dynamic>>? membersList;
+
+  const CreateNewGroupScreen({Key? key, this.membersList}) : super(key: key);
 
   @override
   State<CreateNewGroupScreen> createState() => _CreateNewGroupScreenState();
@@ -30,7 +32,8 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
   final TextEditingController grpDescController = TextEditingController();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final AppPreference preference = AppPreference();
+
+  List<dynamic> membersList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -212,10 +215,16 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                 return CustomFloatingActionButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      BlocProvider.of<CreateGroupBloc>(context).add(
-                          CreateGroupSubmittedEvent(
-                              groupTitle: grpNameController.text,
-                              uid: await preference.getUserId()));
+                      FirebaseProvider.createGroup(grpNameController.text,
+                          grpDescController.text, '', widget.membersList!);
+
+                      Future.delayed(const Duration(seconds: 3),
+                          () => context.pop(const HomeScreen()));
+                      // context.pop(const HomeScreen());
+                      // BlocProvider.of<CreateGroupBloc>(context).add(
+                      //     CreateGroupSubmittedEvent(
+                      //         groupTitle: grpNameController.text,
+                      //         uid: await preference.getUserId()));
                     }
                     return;
                   },

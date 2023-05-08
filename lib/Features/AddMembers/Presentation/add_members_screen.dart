@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
-import 'package:cpscom_admin/Commons/app_images.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/CreateNewGroup/Presentation/create_new_group_screen.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
@@ -9,10 +8,9 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../Widgets/custom_loader.dart';
+import '../../../Widgets/custom_text_field.dart';
 
 class AddMembersScreen extends StatefulWidget {
   final String? groupId;
@@ -27,18 +25,16 @@ class AddMembersScreen extends StatefulWidget {
 }
 
 class _AddMembersScreenState extends State<AddMembersScreen> {
-  //bool cbMembers = false;
   var selectedIndex = [];
   List<dynamic> existingMembersList = [];
 
- // bool isChecked = false;
+  List<Map<String, dynamic>> members = [];
+  final TextEditingController searchController = TextEditingController();
+  var membersName = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Add Participants',
-      ),
       body: StreamBuilder(
           stream: FirebaseProvider.getAllUsers(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -55,33 +51,125 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                       ),
                     );
                   } else {
-                    return Scrollbar(
-                      child: ListView.builder(
-                        itemCount: snapshot.data?.docs.length,
-                        padding: const EdgeInsets.only(
-                            bottom: AppSizes.kDefaultPadding * 9),
-                        itemBuilder: (context, index) {
-                          // print('existing members list - ${existingMembersList[index]['uid']}');
-                          // print('all members - ${snapshot.data?.docs[index].id}');
-                          // if (existingMembersList[index]['uid'] ==
-                          //     snapshot.data!.docs[index].id) {
-                          //   print(existingMembersList.length);
-                          // }
-                          // var d = snapshot.data!.docs.firstWhere(
-                          //     (element) =>
-                          //         element.id ==
-                          //         existingMembersList[index]['uid']);
-                          //
-                          // print(d.id);
+                    return Scaffold(
+                      appBar: CustomAppBar(
+                        title: 'Add Participants',
+                        actions: [
+                          Padding(
+                            padding: const EdgeInsets.all(
+                                AppSizes.kDefaultPadding + 6),
+                            child: Text(
+                                '${selectedIndex.length} / ${snapshot.data!.docs.length}'),
+                          )
+                        ],
+                      ),
+                      body: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSizes.kDefaultPadding),
+                            margin:
+                                const EdgeInsets.all(AppSizes.kDefaultPadding),
+                            decoration: BoxDecoration(
+                                color: AppColors.white,
+                                boxShadow: const [
+                                  BoxShadow(
+                                      offset: Offset(7, 7),
+                                      color: AppColors.lightGrey,
+                                      blurRadius: 15),
+                                  BoxShadow(
+                                      offset: Offset(-7, -7),
+                                      color: AppColors.shimmer,
+                                      blurRadius: 15)
+                                ],
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.cardCornerRadius * 3)),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  EvaIcons.searchOutline,
+                                  size: 22,
+                                  color: AppColors.grey,
+                                ),
+                                const SizedBox(
+                                  width: AppSizes.kDefaultPadding,
+                                ),
+                                Expanded(
+                                  child: CustomTextField(
+                                    controller: searchController,
+                                    hintText: 'Search participants...',
+                                    onChanged: (value) {
+                                      setState(() {
+                                        membersName = value!;
+                                      });
+                                    },
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Scrollbar(
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                //physics: const NeverScrollableScrollPhysics(),
+                                itemCount: snapshot.data?.docs.length,
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSizes.kDefaultPadding * 9),
+                                itemBuilder: (context, index) {
+                                  //for search members
+                                  var data = snapshot.data!.docs[index].data()
+                                      as Map<String, dynamic>;
+                                  if (membersName.isEmpty) {
+                                    return _customCb(
+                                        context,
+                                        '${snapshot.data!.docs[index]['profile_picture']}',
+                                        snapshot.data!.docs[index]['name'],
+                                        snapshot.data!.docs[index]['email'],
+                                        selectedIndex.contains(index),
+                                        index);
+                                  } else if (data['name']
+                                      .toLowerCase()
+                                      .trim()
+                                      .toString()
+                                      .startsWith(membersName
+                                          .toLowerCase()
+                                          .trim()
+                                          .toString())) {
+                                    return _customCb(
+                                        context,
+                                        '${snapshot.data!.docs[index]['profile_picture']}',
+                                        snapshot.data!.docs[index]['name'],
+                                        snapshot.data!.docs[index]['email'],
+                                        selectedIndex.contains(index),
+                                        index);
+                                  }
+                                  return const SizedBox();
+                                  // print('existing members list - ${existingMembersList[index]['uid']}');
+                                  // print('all members - ${snapshot.data?.docs[index].id}');
+                                  // if (existingMembersList[index]['uid'] ==
+                                  //     snapshot.data!.docs[index].id) {
+                                  //   print(existingMembersList.length);
+                                  // }
+                                  // var d = snapshot.data!.docs.firstWhere(
+                                  //     (element) =>
+                                  //         element.id ==
+                                  //         existingMembersList[index]['uid']);
+                                  //
+                                  // print(d.id);
 
-                          return _customCb(
-                              context,
-                              '${snapshot.data!.docs[index]['profile_picture']}',
-                              snapshot.data!.docs[index]['name'],
-                              snapshot.data!.docs[index]['email'],
-                              selectedIndex.contains(index),
-                              index);
-                        },
+                                  // return _customCb(
+                                  //     context,
+                                  //     '${snapshot.data!.docs[index]['profile_picture']}',
+                                  //     snapshot.data!.docs[index]['name'],
+                                  //     snapshot.data!.docs[index]['email'],
+                                  //     selectedIndex.contains(index),
+                                  //     index);
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
@@ -92,11 +180,18 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
       floatingActionButton: selectedIndex.isNotEmpty
           ? CustomFloatingActionButton(
               onPressed: () {
-                for(var i = 0;i<selectedIndex.length;i++){
-                  print(selectedIndex[i]);
-                }
+                // for (var i = 0; i < selectedIndex.length; i++) {
+                //   members.add({
+                //     "name": members[i]['name'],
+                //     "id": members[i]['uid'],
+                //     "isAdmin": members[i]['isAdmin'],
+                //     "email": members[i]['email'],
+                //     "profile_picture": members[i]['profile_picture'],
+                //   });
+                //   print(members.length);
+                // }
                 if (widget.isCameFromHomeScreen == true) {
-                  context.push(const CreateNewGroupScreen());
+                  context.push(CreateNewGroupScreen(membersList: members));
                 } else {
                   context.pop(GroupInfoScreen(
                     groupId: widget.groupId!,
