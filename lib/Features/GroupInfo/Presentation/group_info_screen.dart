@@ -210,12 +210,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                       .textTheme
                                                       .bodyText1,
                                                 ),
-                                                Text(
-                                                  'Created at: ${AppHelper.getDateFromString(snapshot.data!['created_at'])}',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyText2,
-                                                ),
+                                                // Text(
+                                                //   'Created at: ${AppHelper.getDateFromString(snapshot.data!['created_at'])}',
+                                                //   style: Theme.of(context)
+                                                //       .textTheme
+                                                //       .bodyText2,
+                                                // ),
                                               ],
                                             ),
                                             const SizedBox(

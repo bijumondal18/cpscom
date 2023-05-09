@@ -51,12 +51,13 @@ class CustomTextField extends StatelessWidget {
       autofocus: autoFocus!,
       decoration: InputDecoration(
           suffixIcon: suffixIcon,
-          enabledBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: AppColors.lightGrey),
-          ),
-          focusedBorder: const UnderlineInputBorder(
-            borderSide: BorderSide(color: AppColors.lightGrey),
-          ),
+          border: InputBorder.none,
+          // enabledBorder: const UnderlineInputBorder(
+          //   borderSide: BorderSide(color: AppColors.lightGrey),
+          // ),
+          // focusedBorder: const UnderlineInputBorder(
+          //   borderSide: BorderSide(color: AppColors.lightGrey),
+          // ),
           hintText: hintText ?? '',
           hintStyle: Theme.of(context).textTheme.bodyText2,
           labelStyle: Theme.of(context).textTheme.bodyText2,

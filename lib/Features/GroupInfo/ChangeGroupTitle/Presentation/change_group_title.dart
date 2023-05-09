@@ -75,16 +75,25 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                           default:
                             if (snapshot.hasData) {
                               titleController.text = snapshot.data!['name'];
-                              return CustomTextField(
-                                controller: titleController,
-                                hintText: 'Group Title',
-                                autoFocus: true,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "Group title can't be empty";
-                                  }
-                                  return null;
-                                },
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSizes.kDefaultPadding),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(
+                                        AppSizes.cardCornerRadius / 2),
+                                    border: Border.all(
+                                        width: 1, color: AppColors.lightGrey)),
+                                child: CustomTextField(
+                                  controller: titleController,
+                                  hintText: 'Group Title',
+                                  autoFocus: true,
+                                  validator: (value) {
+                                    if (value!.isEmpty) {
+                                      return "Group title can't be empty";
+                                    }
+                                    return null;
+                                  },
+                                ),
                               );
                             }
                         }

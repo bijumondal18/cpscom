@@ -8,6 +8,7 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Widgets/custom_text_field.dart';
@@ -26,9 +27,9 @@ class AddMembersScreen extends StatefulWidget {
 
 class _AddMembersScreenState extends State<AddMembersScreen> {
   var selectedIndex = [];
-  List<dynamic> existingMembersList = [];
+  List<Map<String, dynamic>> existingMembersList = [];
 
-  List<Map<String, dynamic>> members = [];
+  List<QueryDocumentSnapshot> members = [];
   final TextEditingController searchController = TextEditingController();
   var membersName = '';
   Map<String, dynamic> data = {};
@@ -59,8 +60,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                           Padding(
                             padding: const EdgeInsets.all(
                                 AppSizes.kDefaultPadding + 6),
-                            child: Text(
-                                '${selectedIndex.length} / ${snapshot.data!.docs.length}'),
+                            child: Text('${selectedIndex.length} / ${snapshot.data!.docs.length}'),
                           )
                         ],
                       ),
@@ -117,15 +117,22 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                 padding: const EdgeInsets.only(
                                     bottom: AppSizes.kDefaultPadding * 9),
                                 itemBuilder: (context, index) {
+                                  members = snapshot.data!.docs;
+                                  members.removeWhere((element) {
+                                    return element['uid'] ==
+                                        FirebaseAuth.instance.currentUser!.uid && element['isSuperAdmin']==true;
+                                  });
+
                                   //for search members
-                                  data = snapshot.data!.docs[index].data()
+                                  data = members[index].data()
                                       as Map<String, dynamic>;
+
                                   if (membersName.isEmpty) {
                                     return _customCb(
                                         context,
-                                        '${snapshot.data!.docs[index]['profile_picture']}',
-                                        snapshot.data!.docs[index]['name'],
-                                        snapshot.data!.docs[index]['email'],
+                                        '${members[index]['profile_picture']}',
+                                        members[index]['name'],
+                                        members[index]['email'],
                                         selectedIndex.contains(index),
                                         index);
                                   } else if (data['name']
@@ -138,24 +145,13 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                           .toString())) {
                                     return _customCb(
                                         context,
-                                        '${snapshot.data!.docs[index]['profile_picture']}',
-                                        snapshot.data!.docs[index]['name'],
-                                        snapshot.data!.docs[index]['email'],
+                                        '${members[index]['profile_picture']}',
+                                        members[index]['name'],
+                                        members[index]['email'],
                                         selectedIndex.contains(index),
                                         index);
                                   }
                                   return const SizedBox();
-                                  // print('existing members list - ${existingMembersList[index]['uid']}');
-                                  // print('all members - ${snapshot.data?.docs[index].id}');
-                                  // if (existingMembersList[index]['uid'] ==
-                                  //     snapshot.data!.docs[index].id) {
-                                  //   print(existingMembersList.length);
-                                  // }
-                                  // var d = snapshot.data!.docs.firstWhere(
-                                  //     (element) =>
-                                  //         element.id ==
-                                  //         existingMembersList[index]['uid']);
-                                  //
                                 },
                               ),
                             ),
@@ -171,9 +167,9 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
       floatingActionButton: selectedIndex.isNotEmpty
           ? CustomFloatingActionButton(
               onPressed: () {
-                for(var i = 0; i < members.length; i++){
-                  members.add(data);
-                }
+                // for (var i = 0; i < members.length; i++) {
+                //   members.add(data);
+                // }
                 // for (var i = 0; i < selectedIndex.length; i++) {
                 //   members.add({
                 //     "name": members[i]['name'],
@@ -184,11 +180,22 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                 //   });
                 //   print(members.length);
                 // }
+                for (var i = 0; i < members.length; i++) {
+                  print(members[selectedIndex[i]]['name']);
+                  existingMembersList.add({
+                    'name': members[selectedIndex[i]]['name'],
+                    'email': members[selectedIndex[i]]['email'],
+                    'uid': members[selectedIndex[i]]['uid'],
+                    'status': members[selectedIndex[i]]['status'],
+                    'profile_picture': members[selectedIndex[i]]['profile_picture'],
+                    'isAdmin': false
+                  });
+                }
 
-                print(members);
                 if (widget.isCameFromHomeScreen == true) {
                   context.push(CreateNewGroupScreen(
-                      membersList: members));
+                   // membersList: existingMembersList,
+                  ));
                 } else {
                   context.pop(GroupInfoScreen(
                     groupId: widget.groupId!,

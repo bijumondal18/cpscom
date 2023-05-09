@@ -33,10 +33,11 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  List<dynamic> membersList = [];
+  //List<dynamic> membersList = [];
 
   @override
   Widget build(BuildContext context) {
+    print(widget.membersList);
     return Form(
       key: _formKey,
       child: Scaffold(

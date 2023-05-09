@@ -107,21 +107,33 @@ class FirebaseProvider {
   }
 
   //get current user details from firebase firestore
-  static Stream<DocumentSnapshot<Map<String, dynamic>>> getCurrentUserDetails() {
+  static Stream<DocumentSnapshot<Map<String, dynamic>>>
+      getCurrentUserDetails() {
     return FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .snapshots();
+  }
 
-    //     .then((value) {
-    //   membersList.add({
-    //     'name': value['name'],
-    //     'email': value['email'],
-    //     'uid': value['uid'],
-    //     'isAdmin': value['isAdmin'],
-    //     'profile_picture': value['profile_picture'],
-    //   });
-    // });
+  //add current user to group in firebase firestore for group creation
+  static Future<DocumentSnapshot<Map<String, dynamic>>> addCurrentUserToGroup(
+      List<Map<String, dynamic>> memberList) async {
+    var user = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get()
+        .then((value) {
+      memberList.add({
+        'name': value['name'],
+        'email': value['email'],
+        'uid': value['uid'],
+        'status': value['status'],
+        'isAdmin': true,
+        'isSuperAdmin': false,
+        'profile_picture': value['profile_picture'],
+      });
+    });
+    return user;
   }
 
   //get current user details from firebase firestore
