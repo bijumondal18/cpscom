@@ -37,7 +37,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
     return Form(
       key: _formKey,
       child: Scaffold(
-        backgroundColor: AppColors.shimmer,
+        backgroundColor: AppColors.bg,
         appBar: const CustomAppBar(
           title: 'Enter New Title',
         ),

@@ -5,8 +5,6 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../Commons/app_colors.dart';
-import '../../../Commons/app_sizes.dart';
 import '../../../Utils/custom_snack_bar.dart';
 import '../../../Widgets/custom_text_field.dart';
 import '../../../Widgets/full_button.dart';
@@ -27,6 +25,7 @@ class _UpdateUserStatusScreenState extends State<UpdateUserStatusScreen> {
     return Form(
       key: _formKey,
       child: Scaffold(
+        backgroundColor: AppColors.bg,
         appBar: const CustomAppBar(
           title: 'Enter New Status',
         ),
