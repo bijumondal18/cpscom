@@ -31,6 +31,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
   List<Map<String, dynamic>> members = [];
   final TextEditingController searchController = TextEditingController();
   var membersName = '';
+  Map<String, dynamic> data = {};
 
   @override
   Widget build(BuildContext context) {
@@ -112,13 +113,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             child: Scrollbar(
                               child: ListView.builder(
                                 shrinkWrap: true,
-                                //physics: const NeverScrollableScrollPhysics(),
                                 itemCount: snapshot.data?.docs.length,
                                 padding: const EdgeInsets.only(
                                     bottom: AppSizes.kDefaultPadding * 9),
                                 itemBuilder: (context, index) {
                                   //for search members
-                                  var data = snapshot.data!.docs[index].data()
+                                  data = snapshot.data!.docs[index].data()
                                       as Map<String, dynamic>;
                                   if (membersName.isEmpty) {
                                     return _customCb(
@@ -156,15 +156,6 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                   //         element.id ==
                                   //         existingMembersList[index]['uid']);
                                   //
-                                  // print(d.id);
-
-                                  // return _customCb(
-                                  //     context,
-                                  //     '${snapshot.data!.docs[index]['profile_picture']}',
-                                  //     snapshot.data!.docs[index]['name'],
-                                  //     snapshot.data!.docs[index]['email'],
-                                  //     selectedIndex.contains(index),
-                                  //     index);
                                 },
                               ),
                             ),
@@ -180,6 +171,9 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
       floatingActionButton: selectedIndex.isNotEmpty
           ? CustomFloatingActionButton(
               onPressed: () {
+                for(var i = 0; i < members.length; i++){
+                  members.add(data);
+                }
                 // for (var i = 0; i < selectedIndex.length; i++) {
                 //   members.add({
                 //     "name": members[i]['name'],
@@ -190,8 +184,11 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                 //   });
                 //   print(members.length);
                 // }
+
+                print(members);
                 if (widget.isCameFromHomeScreen == true) {
-                  context.push(CreateNewGroupScreen(membersList: members));
+                  context.push(CreateNewGroupScreen(
+                      membersList: members));
                 } else {
                   context.pop(GroupInfoScreen(
                     groupId: widget.groupId!,

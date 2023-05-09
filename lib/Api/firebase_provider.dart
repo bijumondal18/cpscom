@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart';
 import 'package:uuid/uuid.dart';
 
 class FirebaseProvider {
@@ -33,8 +34,8 @@ class FirebaseProvider {
   }
 
   //CREATE NEW GROUP to firebase firestore collection
-  static Future<void> createGroup(String groupName, String groupDescription,
-      String profilePicture, List<Map<String, dynamic>> members) async {
+  static Future<void> createGroup(String groupName, String? groupDescription,
+      String? profilePicture, List<Map<String, dynamic>> members) async {
     var groupId = const Uuid().v1();
     await firestore
         .collection('users')
@@ -105,23 +106,21 @@ class FirebaseProvider {
   }
 
   //get current user details from firebase firestore
-  static Future<void> getCurrentUserDetails(
-      List<Map<String, dynamic>> membersList) async {
-    var getUser = await firestore
+  static Future<DocumentSnapshot> getCurrentUserDetails() async {
+   return await FirebaseFirestore.instance
         .collection('users')
-        .doc(auth.currentUser!.uid)
-        .get()
-        .then((value) {
-      membersList.add({
-        'name': value['name'],
-        'email': value['email'],
-        'uid': value['uid'],
-        'isAdmin': value['isAdmin'],
-        'profile_picture': value['profile_picture'],
-      });
-    });
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .get();
 
-    return getUser;
+    //     .then((value) {
+    //   membersList.add({
+    //     'name': value['name'],
+    //     'email': value['email'],
+    //     'uid': value['uid'],
+    //     'isAdmin': value['isAdmin'],
+    //     'profile_picture': value['profile_picture'],
+    //   });
+    // });
   }
 
   //DELETE user from a group firebase firestore collection
@@ -135,6 +134,27 @@ class FirebaseProvider {
         .update({
       "members": FieldValue.arrayRemove([membersList[index]])
     }).then((value) => 'Member Deleted');
+  }
+
+  //ADD user to a group firebase firestore collection
+  static Future<void> addMemberToGroup(
+      String groupId, Map<String, dynamic> member) async {
+    await firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('groups')
+        .doc(groupId)
+        .update({'members': member});
+  }
+
+  Stream<QuerySnapshot> getChatsMessages(String groupId, int limit) {
+    return firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('chats')
+        .orderBy(FieldValue.serverTimestamp(), descending: true)
+        .limit(limit)
+        .snapshots();
   }
 
 // Future<List<ResponseGroupsList?>> getAllGroups() async {

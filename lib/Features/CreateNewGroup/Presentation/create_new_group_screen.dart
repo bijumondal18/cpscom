@@ -147,7 +147,7 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                 width: 1, color: AppColors.lightGrey)),
                         child: CustomTextField(
                           controller: grpDescController,
-                          hintText: 'Add Group Description',
+                          hintText: 'Add Group Description (optional)',
                           minLines: 5,
                           maxLines: 5,
                         )),
@@ -155,32 +155,42 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                 ),
               ),
               const SizedBox(
-                height: AppSizes.kDefaultPadding * 2,
+                height: AppSizes.kDefaultPadding,
               ),
-              const Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
-                child: HomeSearchBar(
-                  searchHint: 'Search members...',
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 2,
-              ),
-              CustomCard(
-                padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
+              Container(
+                height: 130,
+                width: MediaQuery.of(context).size.width,
+                decoration: const BoxDecoration(color: AppColors.white),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Suggested',
-                      style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                          fontWeight: FontWeight.w600, color: AppColors.grey),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          AppSizes.kDefaultPadding,
+                          AppSizes.kDefaultPadding,
+                          AppSizes.kDefaultPadding,
+                          0),
+                      child: Text(
+                        '5 Participants',
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
                     ),
-                    const CustomDivider(
-                      height: 15,
+                    Expanded(
+                      child: ListView.builder(
+                          itemCount: 5, //membersList.length,
+                          shrinkWrap: true,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CircleAvatar(
+                                radius: 26,
+                                backgroundColor:
+                                    AppColors.grey.withOpacity(0.5),
+                              ),
+                            );
+                          }),
                     ),
-                    const BuildSuggestedMembersList()
                   ],
                 ),
               ),
@@ -190,50 +200,18 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
             ],
           ),
         ),
-        floatingActionButton: BlocProvider(
-          create: (context) => CreateGroupBloc(),
-          child: BlocConsumer<CreateGroupBloc, CreateGroupState>(
-            listener: (context, state) {
-              if (state is CreateGroupStateLoaded) {
-                context.pushReplacement(const HomeScreen());
-                // customSnackBar(
-                //     context,
-                //     state.responseCreateGroup.message.toString(),
-                //     AppColors.successSnackBarBackground);
-              }
-              if (state is CreateGroupStateFailed) {
-                //customSnackBar(context, state.msg, AppColors.error);
-              }
-            },
-            builder: (context, state) {
-              if (state is CreateGroupStateLoading) {
-                return Platform.isAndroid
-                    ? const CircularProgressIndicator()
-                    : const CupertinoActivityIndicator();
-              }
-              if (state is CreateGroupStateInitial) {
-                return CustomFloatingActionButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      FirebaseProvider.createGroup(grpNameController.text,
-                          grpDescController.text, '', widget.membersList!);
+        floatingActionButton: CustomFloatingActionButton(
+          onPressed: () async {
+            if (_formKey.currentState!.validate()) {
+              FirebaseProvider.createGroup(grpNameController.text,
+                  grpDescController.text, '', widget.membersList!);
 
-                      Future.delayed(const Duration(seconds: 3),
-                          () => context.pop(const HomeScreen()));
-                      // context.pop(const HomeScreen());
-                      // BlocProvider.of<CreateGroupBloc>(context).add(
-                      //     CreateGroupSubmittedEvent(
-                      //         groupTitle: grpNameController.text,
-                      //         uid: await preference.getUserId()));
-                    }
-                    return;
-                  },
-                  iconData: EvaIcons.arrowForwardOutline,
-                );
-              }
-              return Container();
-            },
-          ),
+              Future.delayed(const Duration(seconds: 3),
+                  () => context.pop(const HomeScreen()));
+            }
+            return;
+          },
+          iconData: EvaIcons.arrowForwardOutline,
         ),
       ),
     );
