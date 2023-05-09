@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:uuid/uuid.dart';
 
@@ -106,11 +107,11 @@ class FirebaseProvider {
   }
 
   //get current user details from firebase firestore
-  static Future<DocumentSnapshot> getCurrentUserDetails() async {
-   return await FirebaseFirestore.instance
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> getCurrentUserDetails() {
+    return FirebaseFirestore.instance
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
-        .get();
+        .snapshots();
 
     //     .then((value) {
     //   membersList.add({
@@ -121,6 +122,15 @@ class FirebaseProvider {
     //     'profile_picture': value['profile_picture'],
     //   });
     // });
+  }
+
+  //get current user details from firebase firestore
+  static Future<String> updateUserStatus(String status) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .update({'status': status}).then(
+            (value) => 'Status Updated Successfully');
   }
 
   //DELETE user from a group firebase firestore collection

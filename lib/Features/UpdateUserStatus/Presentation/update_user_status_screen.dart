@@ -1,45 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cpscom_admin/Commons/route.dart';
-import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
+import 'package:cpscom_admin/Commons/commons.dart';
+import 'package:cpscom_admin/Features/MyProfile/Presentation/my_profile_screen.dart';
+import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../Commons/app_colors.dart';
-import '../../../../Commons/app_sizes.dart';
-import '../../../../Utils/custom_snack_bar.dart';
-import '../../../../Widgets/custom_app_bar.dart';
-import '../../../../Widgets/custom_text_field.dart';
-import '../../../../Widgets/full_button.dart';
+import '../../../Commons/app_colors.dart';
+import '../../../Commons/app_sizes.dart';
+import '../../../Utils/custom_snack_bar.dart';
+import '../../../Widgets/custom_text_field.dart';
+import '../../../Widgets/full_button.dart';
 
-class ChangeGroupTitle extends StatefulWidget {
-  final String groupId;
-
-  const ChangeGroupTitle({
-    Key? key,
-    required this.groupId,
-  }) : super(key: key);
+class UpdateUserStatusScreen extends StatefulWidget {
+  const UpdateUserStatusScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChangeGroupTitle> createState() => _ChangeGroupTitleState();
+  State<UpdateUserStatusScreen> createState() => _UpdateUserStatusScreenState();
 }
 
-class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
-  final TextEditingController titleController = TextEditingController();
+class _UpdateUserStatusScreenState extends State<UpdateUserStatusScreen> {
+  final TextEditingController statusController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
       child: Scaffold(
-        backgroundColor: AppColors.shimmer,
         appBar: const CustomAppBar(
-          title: 'Enter New Title',
+          title: 'Enter New Status',
         ),
         body: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -51,7 +40,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Add Group Title',
+                    'Add Status',
                     style: Theme.of(context)
                         .textTheme
                         .bodyText2!
@@ -64,8 +53,6 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                       stream: FirebaseFirestore.instance
                           .collection('users')
                           .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .collection('groups')
-                          .doc(widget.groupId)
                           .snapshots(),
                       builder:
                           (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -74,17 +61,11 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                           case ConnectionState.waiting:
                           default:
                             if (snapshot.hasData) {
-                              titleController.text = snapshot.data!['name'];
+                              statusController.text = snapshot.data!['status'];
                               return CustomTextField(
-                                controller: titleController,
-                                hintText: 'Group Title',
+                                controller: statusController,
+                                hintText: 'Add Status',
                                 autoFocus: true,
-                                validator: (value) {
-                                  if (value!.isEmpty) {
-                                    return "Group title can't be empty";
-                                  }
-                                  return null;
-                                },
                               );
                             }
                         }
@@ -106,16 +87,13 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                             FirebaseFirestore.instance
                                 .collection('users')
                                 .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .collection('groups')
-                                .doc(widget.groupId)
-                                .update({"name": titleController.text}).then(
+                                .update({"status": statusController.text}).then(
                                     (value) {
                               customSnackBar(
                                   context,
-                                  'Group Title Updated Successfully',
+                                  'Status Updated Successfully',
                                   AppColors.successSnackBarBackground);
-                              context.pop(
-                                  GroupInfoScreen(groupId: widget.groupId));
+                              context.pop(const MyProfileScreen());
                             });
                           }
                         }),
@@ -126,9 +104,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                               maximumSize:
                                   const Size.fromHeight(AppSizes.buttonHeight)),
                           onPressed: () {
-                            context.pop(GroupInfoScreen(
-                              groupId: widget.groupId,
-                            ));
+                            context.pop(const MyProfileScreen());
                           },
                           child: Text(
                             'Cancel',

@@ -3,6 +3,8 @@ import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_colors.dart';
 import 'package:cpscom_admin/Commons/app_sizes.dart';
 import 'package:cpscom_admin/Commons/app_strings.dart';
+import 'package:cpscom_admin/Commons/route.dart';
+import 'package:cpscom_admin/Features/UpdateUserStatus/Presentation/update_user_status_screen.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_loader.dart';
@@ -29,8 +31,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       appBar: const CustomAppBar(
         title: 'My Profile',
       ),
-      body: FutureBuilder(
-          future: FirebaseProvider.getCurrentUserDetails(),
+      body: StreamBuilder(
+          stream: FirebaseProvider.getCurrentUserDetails(),
           builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
@@ -124,7 +126,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           ),
                         ),
                         ListTile(
-                          onTap: () {},
+                          onTap: () {
+                            context.push(const UpdateUserStatusScreen());
+                          },
                           dense: true,
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: AppSizes.kDefaultPadding),
