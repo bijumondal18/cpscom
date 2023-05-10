@@ -1,10 +1,17 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cpscom_admin/Features/Home/Model/groups_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+
+import '../Features/Home/Model/groups_model.dart';
+import '../Features/Home/Model/groups_model.dart';
+import '../Features/Home/Model/groups_model.dart';
+import '../Features/Home/Model/response_groups_list.dart';
 
 class FirebaseProvider {
   static final FirebaseAuth auth = FirebaseAuth.instance;
@@ -35,8 +42,12 @@ class FirebaseProvider {
   }
 
   //CREATE NEW GROUP to firebase firestore collection
-  static Future<void> createGroup(String groupName, String? groupDescription,
-      String? profilePicture, List<Map<String, dynamic>> members) async {
+  static Future<void> createGroup(
+      String groupName,
+      String? groupDescription,
+      String? profilePicture,
+      List<Map<String, dynamic>> members,
+      String createdTime) async {
     var groupId = const Uuid().v1();
     await firestore
         .collection('users')
@@ -48,7 +59,7 @@ class FirebaseProvider {
       "name": groupName,
       "group_description": groupDescription,
       "profile_picture": profilePicture,
-      "created_at": '${FieldValue.serverTimestamp()}',
+      "created_at": createdTime,
       "members": members
     });
 
@@ -169,20 +180,52 @@ class FirebaseProvider {
         .update({'members': member});
   }
 
-  Stream<QuerySnapshot> getChatsMessages(String groupId, int limit) {
+  //GET ALL CHAT Messages in a group firebase firestore collection
+  static Stream<QuerySnapshot> getChatsMessages(
+    String groupId,
+    //int limit,
+  ) {
     return firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
         .collection('groups')
         .doc(groupId)
         .collection('chats')
         .orderBy(FieldValue.serverTimestamp(), descending: true)
-        .limit(limit)
+        // .limit(limit)
         .snapshots();
   }
 
-// Future<List<ResponseGroupsList?>> getAllGroups() async {
-//   QuerySnapshot querySnapshot = await _firestore.collection("groups").get();
-//   final allGroupsList = querySnapshot.docs.map((doc) => doc.data()).toList();
-//   print(allGroupsList);
-//   return querySnapshot.docs.toList();
-// }
+  static onSendMessages(
+    String groupId,
+    String msg,
+  ) async {
+    if (msg.trim().isNotEmpty) {
+      Map<String, dynamic> chatData = {
+        'send_by': auth.currentUser!.displayName,
+        'message': msg,
+        'type': 'text',
+        'sent_time': FieldValue.serverTimestamp(),
+      };
+      await firestore
+          .collection('users')
+          .doc(auth.currentUser!.uid)
+          .collection('groups')
+          .doc(groupId)
+          .collection('chats')
+          .add(chatData);
+    }
+  }
+
+  // static Future<List<GroupsModel>> fetchAllGroups() async {
+  //   QuerySnapshot<Map<String, dynamic>> querySnapshot = await firestore
+  //       .collection('users')
+  //       .doc(auth.currentUser!.uid)
+  //       .collection('groups')
+  //       .orderBy('created_at', descending: true)
+  //       .get();
+  //   return querySnapshot.docs
+  //       .map((doc) => GroupsModel.fromSnapshot(doc))
+  //       .toList();
+  // }
 }

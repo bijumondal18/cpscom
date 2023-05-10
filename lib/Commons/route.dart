@@ -30,8 +30,14 @@ extension CustomNavigator on BuildContext {
     Navigator.push(this, MaterialPageRoute(builder: (_) => page));
   }
 
+  //clear current navigation stack
   Future<dynamic> pushReplacement(Widget page) async {
     Navigator.pushReplacement(this, MaterialPageRoute(builder: (_) => page));
+  }
+
+  //clear all the navigation history stack
+  Future<dynamic> pushAndRemoveUntil(Widget page) async {
+    Navigator.pushAndRemoveUntil(this, MaterialPageRoute(builder: (_) => page,),(route)=> false);
   }
 
   void pop(Widget page, [result]) async {

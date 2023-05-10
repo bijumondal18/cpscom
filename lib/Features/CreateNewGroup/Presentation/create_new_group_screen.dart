@@ -15,6 +15,7 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../Widgets/custom_floating_action_button.dart';
 
@@ -104,15 +105,25 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                     const SizedBox(
                       height: AppSizes.kDefaultPadding,
                     ),
-                    CustomTextField(
-                      controller: grpNameController,
-                      hintText: 'Group Name',
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Invalid Group Title';
-                        }
-                        return null;
-                      },
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.kDefaultPadding,
+                      ),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                              AppSizes.cardCornerRadius / 2),
+                          border:
+                              Border.all(width: 1, color: AppColors.lightGrey)),
+                      child: CustomTextField(
+                        controller: grpNameController,
+                        hintText: 'Group Name',
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Invalid Group Title';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -136,11 +147,9 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                       height: AppSizes.kDefaultPadding,
                     ),
                     Container(
-                        padding: const EdgeInsets.fromLTRB(
-                            AppSizes.kDefaultPadding / 2,
-                            AppSizes.kDefaultPadding / 2,
-                            AppSizes.kDefaultPadding / 2,
-                            0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.kDefaultPadding,
+                        ),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(
                                 AppSizes.cardCornerRadius / 2),
@@ -158,10 +167,10 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
               const SizedBox(
                 height: AppSizes.kDefaultPadding,
               ),
-              Container(
+              SizedBox(
                 height: 130,
                 width: MediaQuery.of(context).size.width,
-                decoration: const BoxDecoration(color: AppColors.white),
+                //decoration: const BoxDecoration(color: AppColors.white),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -172,13 +181,13 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                           AppSizes.kDefaultPadding,
                           0),
                       child: Text(
-                        '5 Participants',
+                        '${widget.membersList!.length} Participants',
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ),
                     Expanded(
                       child: ListView.builder(
-                          itemCount: 5, //membersList.length,
+                          itemCount: widget.membersList!.length,
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
@@ -188,6 +197,8 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                 radius: 26,
                                 backgroundColor:
                                     AppColors.grey.withOpacity(0.5),
+                                foregroundImage: NetworkImage(
+                                    '${AppStrings.imagePath}${widget.membersList![index]['profile_picture']}'),
                               ),
                             );
                           }),
@@ -204,11 +215,15 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
         floatingActionButton: CustomFloatingActionButton(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
-              FirebaseProvider.createGroup(grpNameController.text,
-                  grpDescController.text, '', widget.membersList!);
+              FirebaseProvider.createGroup(
+                  grpNameController.text,
+                  grpDescController.text,
+                  '',
+                  widget.membersList!,
+                  DateFormat('yyyy-mm-dd kk:mm:ss').format(DateTime.now()));
 
               Future.delayed(const Duration(seconds: 3),
-                  () => context.pop(const HomeScreen()));
+                  () => context.pushAndRemoveUntil(const HomeScreen()));
             }
             return;
           },
@@ -216,49 +231,5 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
         ),
       ),
     );
-  }
-}
-
-class BuildSuggestedMembersList extends StatefulWidget {
-  const BuildSuggestedMembersList({Key? key}) : super(key: key);
-
-  @override
-  State<BuildSuggestedMembersList> createState() =>
-      _BuildSuggestedMembersListState();
-}
-
-class _BuildSuggestedMembersListState extends State<BuildSuggestedMembersList> {
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-        shrinkWrap: true,
-        itemCount: 3,
-        padding: EdgeInsets.zero,
-        physics: const NeverScrollableScrollPhysics(),
-        itemBuilder: (context, index) {
-          return ListTile(
-            dense: true,
-            horizontalTitleGap: AppSizes.kDefaultPadding / 2,
-            leading: const CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.lightGrey,
-            ),
-            title: Text(
-              'joe@abcd.com',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText2!
-                  .copyWith(color: AppColors.black),
-            ),
-            trailing: IconButton(
-              icon: const Icon(
-                EvaIcons.plusCircleOutline,
-                size: 24,
-                color: AppColors.grey,
-              ),
-              onPressed: () {},
-            ),
-          );
-        });
   }
 }

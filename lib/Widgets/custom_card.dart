@@ -24,9 +24,9 @@ class CustomCard extends StatelessWidget {
       child: Container(
         width: MediaQuery.of(context).size.width,
         padding: padding ?? EdgeInsets.zero,
-        margin: margin ?? EdgeInsets.zero,
+        margin: margin ?? const EdgeInsets.all(AppSizes.kDefaultPadding),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+            borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius),
             border: Border.all(color: AppColors.shimmer, width: 1),
             color: AppColors.white,
             boxShadow: const [

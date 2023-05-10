@@ -181,20 +181,20 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                 //   print(members.length);
                 // }
                 for (var i = 0; i < members.length; i++) {
-                  print(members[selectedIndex[i]]['name']);
+                  print(members[i]['name']);
                   existingMembersList.add({
-                    'name': members[selectedIndex[i]]['name'],
-                    'email': members[selectedIndex[i]]['email'],
-                    'uid': members[selectedIndex[i]]['uid'],
-                    'status': members[selectedIndex[i]]['status'],
-                    'profile_picture': members[selectedIndex[i]]['profile_picture'],
+                    'name': members[i]['name'],
+                    'email': members[i]['email'],
+                    'uid': members[i]['uid'],
+                    'status': members[i]['status'],
+                    'profile_picture': members[i]['profile_picture'],
                     'isAdmin': false
                   });
                 }
 
                 if (widget.isCameFromHomeScreen == true) {
                   context.push(CreateNewGroupScreen(
-                   // membersList: existingMembersList,
+                   membersList: existingMembersList,
                   ));
                 } else {
                   context.pop(GroupInfoScreen(

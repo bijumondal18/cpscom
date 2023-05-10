@@ -222,9 +222,10 @@ class _BuildChatListState extends State<BuildChatList> {
                                         ['name'],
                                     //this will be last sent message by the user
                                     groupDesc: snapshot.data!.docs[index]['group_description'],
-                                    sentTime: AppHelper.getDateFromString(
+                                    sentTime:snapshot.data!.docs[index]
+                                    ['created_at'] != null?  AppHelper.getDateFromString(
                                         snapshot.data!.docs[index]
-                                            ['created_at']),
+                                            ['created_at']):'',
                                     imageUrl:
                                         '${AppStrings.imagePath}${snapshot.data!.docs[index]['profile_picture']}');
                               } else if (data['name']
