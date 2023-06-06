@@ -28,7 +28,7 @@ class AppColors {
   static const buttonGradientColor = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [secondary, primary]);
+      colors: [primary, secondary]);
 
   static MaterialColor generateMaterialColor(Color color) {
     return MaterialColor(color.value, {

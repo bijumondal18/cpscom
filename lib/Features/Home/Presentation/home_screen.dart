@@ -53,7 +53,6 @@ class _BuildChatListState extends State<BuildChatList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Responsive.isMobile(context) ? const HomeHeader() : const SizedBox(),
         Container(
           padding:
               const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),

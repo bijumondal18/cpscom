@@ -38,134 +38,153 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildMobileView(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Image.asset(
-              AppIcons.appLogo,
-              width: 24,
-              height: 24,
-              fit: BoxFit.cover,
-            ),
-            const SizedBox(
-              width: AppSizes.kDefaultPadding / 2,
-            ),
-            Text(
-              AppStrings.appName,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ],
-        ),
-      ),
+      backgroundColor: AppColors.bg,
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.kDefaultPadding * 2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              Text(
-                'Welcome Back!',
-                style: Theme.of(context).textTheme.displayMedium!.copyWith(
-                    color: AppColors.black, fontWeight: FontWeight.w700),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding / 2,
-              ),
-              Text(
-                'Sign in to continue',
-                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: AppColors.black, fontWeight: FontWeight.w400),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 6,
-              ),
-              CustomTextField(
-                controller: emailController,
-                hintText: 'Email Address',
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Invalid Email Address';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 2,
-              ),
-              CustomTextField(
-                controller: passwordController,
-                hintText: 'Password',
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Invalid Password';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 6,
-              ),
-              BlocProvider(
-                create: (context) => LoginBloc(),
-                child: BlocConsumer<LoginBloc, LoginState>(
-                  listener: (context, state) {
-                    if (state is LoginStateLoaded) {
-                      context.pushAndRemoveUntil(const HomeScreen());
-                    }
-                    if (state is LoginStateFailed) {
-                      customSnackBar(
-                        context,
-                        state.errorMsg,
-                      );
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is LoginStateLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator.adaptive(),
-                      );
-                    }
-                    if (state is LoginStateInitial) {
-                      return FullButton(
-                          label: 'Login',
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              BlocProvider.of<LoginBloc>(context).add(
-                                  LoginSubmittedEvent(
-                                      email: emailController.text.trim(),
-                                      password:
-                                          passwordController.text.trim()));
-                            }
-                            return null;
-                          });
-                    }
-                    return Container();
-                  },
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              TextButton(
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              alignment: Alignment.center,
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    AppIcons.appLogo,
+                    width: 92,
+                    height: 92,
+                    fit: BoxFit.cover,
                   ),
-                  onPressed: () {},
-                  child: Text(
-                    'Forgot Password?',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ))
-            ],
-          ),
+                  const SizedBox(
+                    height: AppSizes.kDefaultPadding,
+                  ),
+                  Text(
+                    AppStrings.appName,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.5,
+              padding: const EdgeInsets.all(AppSizes.kDefaultPadding * 2),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: AppColors.lightGrey, width: 1.0),
+                  boxShadow: const [
+                    BoxShadow(
+                        offset: Offset(-8, -8),
+                        blurRadius: 15,
+                        color: AppColors.lightGrey)
+                  ],
+                  borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(AppSizes.cardCornerRadius * 2),
+                      topLeft: Radius.circular(AppSizes.cardCornerRadius * 2))),
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: AppSizes.kDefaultPadding * 2,
+                  ),
+                  Text(
+                    'Welcome again!',
+                    style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                        color: AppColors.black, fontWeight: FontWeight.w600),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(
+                    height: AppSizes.kDefaultPadding * 5,
+                  ),
+                  CustomTextField(
+                    controller: emailController,
+                    hintText: 'Email Address',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Invalid Email Address';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(
+                    height: AppSizes.kDefaultPadding,
+                  ),
+                  CustomTextField(
+                    controller: passwordController,
+                    hintText: 'Password',
+                    obscureText: true,
+                    // suffixIcon: const Icon(
+                    //   Icons.visibility_off,
+                    //   size: 18,
+                    //   color: AppColors.grey,
+                    // ),
+                    keyboardType: TextInputType.visiblePassword,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Invalid Password';
+                      }
+                      return null;
+                    },
+                  ),
+                  const Spacer(),
+                  BlocProvider(
+                    create: (context) => LoginBloc(),
+                    child: BlocConsumer<LoginBloc, LoginState>(
+                      listener: (context, state) {
+                        if (state is LoginStateLoaded) {
+                          context.pushAndRemoveUntil(const HomeScreen());
+                        }
+                        if (state is LoginStateFailed) {
+                          customSnackBar(
+                            context,
+                            state.errorMsg,
+                          );
+                        }
+                      },
+                      builder: (context, state) {
+                        if (state is LoginStateLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          );
+                        }
+                        if (state is LoginStateInitial) {
+                          return FullButton(
+                              label: 'Login',
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  BlocProvider.of<LoginBloc>(context).add(
+                                      LoginSubmittedEvent(
+                                          email: emailController.text.trim(),
+                                          password:
+                                              passwordController.text.trim()));
+                                }
+                                return null;
+                              });
+                        }
+                        return Container();
+                      },
+                    ),
+                  ),
+                  const SizedBox(
+                    height: AppSizes.kDefaultPadding,
+                  ),
+                  TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize:
+                            const Size.fromHeight(AppSizes.buttonHeight),
+                      ),
+                      onPressed: () {},
+                      child: Text(
+                        'Forgot Password?',
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600),
+                      ))
+                ],
+              ),
+            )
+          ],
         ),
       ),
     );
