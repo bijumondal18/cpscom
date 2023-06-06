@@ -2,8 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
+import 'package:cpscom_admin/Features/AddMembers/Widgets/member_card_widget.dart';
 import 'package:cpscom_admin/Features/CreateNewGroup/Presentation/create_new_group_screen.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
+import 'package:cpscom_admin/Models/member_model.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
@@ -35,6 +37,10 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
   var membersEmail = '';
   Map<String, dynamic> data = {};
 
+  ////-new modified
+  List<MembersModel> membersList = [];
+  List<MembersModel> groupMembersList = [];
+
   var indx;
 
   @override
@@ -51,9 +57,16 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-              default:
+              case ConnectionState.active:
+              case ConnectionState.done:
                 if (snapshot.hasData) {
-                  if (snapshot.data!.docs.isEmpty) {
+                  var data = snapshot.data?.docs;
+                  membersList = data
+                          ?.map((e) => MembersModel.fromJson(
+                              e.data() as Map<String, dynamic>))
+                          .toList() ??
+                      [];
+                  if (membersList.isEmpty) {
                     return Center(
                       child: Text(
                         'No Participants Found',
@@ -69,7 +82,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             padding: const EdgeInsets.all(
                                 AppSizes.kDefaultPadding + 6),
                             child: Text(
-                                '${selectedIndex.length} / ${snapshot.data!.docs.length}'),
+                                '${groupMembersList.length} / ${membersList.length}'),
                           )
                         ],
                       ),
@@ -135,45 +148,10 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                 itemBuilder: (context, index) {
                                   members = snapshot.data!.docs;
                                   indx = index;
-                                  //for search members
-                                  data = members[index].data()
-                                      as Map<String, dynamic>;
-
-                                  if (membersName.isEmpty) {
-                                    return _customCb(
-                                      context,
-                                      '${data['profile_picture']}',
-                                      data['name'],
-                                      data['email'],
-                                      selectedIndex.contains(index),
-                                      index,
-                                    );
-                                  } else if (data['name']
-                                          .toLowerCase()
-                                          .trim()
-                                          .toString()
-                                          .contains(membersName
-                                              .toLowerCase()
-                                              .trim()
-                                              .toString()) ||
-                                      data['email']
-                                          .toLowerCase()
-                                          .trim()
-                                          .toString()
-                                          .contains(membersEmail
-                                              .toLowerCase()
-                                              .trim()
-                                              .toString())) {
-                                    return _customCb(
-                                      context,
-                                      '${data['profile_picture']}',
-                                      data['name'],
-                                      data['email'],
-                                      selectedIndex.contains(index),
-                                      index,
-                                    );
-                                  }
-                                  return const SizedBox();
+                                  return MemberCardWidget(
+                                    member: membersList[index],
+                                    index: index,
+                                  );
                                 },
                               ),
                             ),
@@ -209,8 +187,8 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
     );
   }
 
-  Widget _customCb(BuildContext context, String imageUrl, String name,
-      String email, bool isSelected, int index) {
+  Widget member_card_widget(
+      BuildContext context, MembersModel member, int index) {
     return Column(
       children: [
         CheckboxListTile(
@@ -223,7 +201,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                     width: 30,
                     height: 30,
                     fit: BoxFit.cover,
-                    imageUrl: imageUrl,
+                    imageUrl: member.profilePicture ?? '',
                     placeholder: (context, url) => const CircleAvatar(
                       radius: 16,
                       backgroundColor: AppColors.shimmer,
@@ -232,7 +210,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                       radius: 16,
                       backgroundColor: AppColors.shimmer,
                       child: Text(
-                        name.substring(0, 1),
+                        member.name?.substring(0, 1) ?? '',
                         style: Theme.of(context)
                             .textTheme
                             .bodyText1!
@@ -248,11 +226,11 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      member.name ?? '',
                       style: Theme.of(context).textTheme.bodyText1,
                     ),
                     Text(
-                      email,
+                      member.email ?? '',
                       style: Theme.of(context).textTheme.bodyText2,
                     ),
                   ],

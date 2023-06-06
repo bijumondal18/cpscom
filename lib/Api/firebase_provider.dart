@@ -12,20 +12,23 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:uuid/uuid.dart';
 
 class FirebaseProvider {
+  // for authentication
   static final FirebaseAuth auth = FirebaseAuth.instance;
+
+  // for accessing cloud firestore database
   static final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  // for accessing firebase storage
   static final FirebaseStorage storage = FirebaseStorage.instance;
+
+  // for accessing firebase cloud messaging (push notification)
   static final FirebaseMessaging messaging = FirebaseMessaging.instance;
-  static final CollectionReference membersCollectionReference =
-      FirebaseFirestore.instance.collection('users');
-  static final CollectionReference groupsCollectionReference =
-      FirebaseFirestore.instance.collection('groups');
-  static final CollectionReference chatsCollectionReference =
-      FirebaseFirestore.instance.collection('chats');
+
   final AppPreference preference = AppPreference();
 
   Future<User?> login(String email, String password) async {
@@ -128,7 +131,8 @@ class FirebaseProvider {
 
   //get all groups from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
-    var allGroupsList = membersCollectionReference
+    var allGroupsList = firestore
+        .collection('users')
         .doc(auth.currentUser!.uid)
         .collection('groups')
         .orderBy('created_at', descending: true)
@@ -153,12 +157,6 @@ class FirebaseProvider {
     var allUsersList = firestore.collection('users').snapshots();
     yield* allUsersList;
   }
-
-  // //get all users from firebase firestore collection
-  // static Stream<QuerySnapshot<MembersModel>> getAllUser() async* {
-  //   var allUsersList = firestore.collection('users').snapshots();
-  //   yield* allUsersList;
-  // }
 
   //get current user details from firebase firestore
   Stream<DocumentSnapshot<Map<String, dynamic>>>
