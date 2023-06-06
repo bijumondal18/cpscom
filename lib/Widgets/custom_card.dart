@@ -24,21 +24,21 @@ class CustomCard extends StatelessWidget {
       child: Container(
         width: MediaQuery.of(context).size.width,
         padding: padding ?? EdgeInsets.zero,
-        margin: margin ?? const EdgeInsets.all(AppSizes.kDefaultPadding),
+        margin: margin ?? const EdgeInsets.only(bottom:AppSizes.kDefaultPadding),
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius),
-            border: Border.all(color: AppColors.shimmer, width: 1),
+            border: Border.all(color: AppColors.bg, width: 1),
             color: AppColors.white,
-            boxShadow: const [
+            boxShadow:  [
               BoxShadow(
-                offset: Offset(-3, -3),
-                blurRadius: 10,
-                color: AppColors.shimmer,
+                offset: const Offset(-2, -2),
+                blurRadius: 2,
+                color: AppColors.lightGrey.withOpacity(0.2),
               ),
               BoxShadow(
-                offset: Offset(3, 3),
-                blurRadius: 10,
-                color: AppColors.shimmer,
+                offset: const Offset(2, 2),
+                blurRadius: 2,
+                color: AppColors.lightGrey.withOpacity(0.2),
               ),
             ]),
         child: child,

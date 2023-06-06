@@ -6,7 +6,7 @@ class AppColors {
   static const secondary = Color(0xFF00C0FF);
   static const white = Color(0xFFFFFFFF);
   static const scaffold = Color(0xFFFFFFFF);
-  static const bg = Color(0xFFF2F2F3);
+  static const bg = Color(0xFFF0F2F5);
   static const black = Color(0xFF000000);
   static const darkGrey = Color(0xFF464646);
   static const lightGrey = Color(0xFFE3E5E7);
@@ -25,7 +25,10 @@ class AppColors {
   static const youtube = Color(0xFFc4302b);
   static const statusBackground = Color(0xffd9fad4);
   static const successSnackBarBackground = Color(0xff6c9d67);
-  static const buttonGradientColor = LinearGradient(colors: [primary, secondary]);
+  static const buttonGradientColor = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [secondary, primary]);
 
   static MaterialColor generateMaterialColor(Color color) {
     return MaterialColor(color.value, {

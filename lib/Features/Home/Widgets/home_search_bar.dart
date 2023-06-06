@@ -17,6 +17,7 @@ class HomeSearchBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
       decoration: BoxDecoration(
           color: AppColors.white,
+          border: Border.all(width: 1, color: AppColors.lightGrey),
           boxShadow: const [
             BoxShadow(
                 offset: Offset(7, 7),

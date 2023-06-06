@@ -1,28 +1,32 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_images.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
-import 'package:cpscom_admin/Features/CreateNewGroup/Bloc/create_group_bloc.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
-import 'package:cpscom_admin/Features/Home/Widgets/home_search_bar.dart';
-import 'package:cpscom_admin/Utils/app_preference.dart';
+import 'package:cpscom_admin/Utils/custom_snack_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_card.dart';
-import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_text_field.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../Utils/custom_bottom_modal_sheet.dart';
 import '../../../Widgets/custom_floating_action_button.dart';
+import '../../GroupInfo/Model/image_picker_model.dart';
 
 class CreateNewGroupScreen extends StatefulWidget {
-  final List<Map<String, dynamic>>? membersList;
+  final List<Map<String, dynamic>> membersList;
 
-  const CreateNewGroupScreen({Key? key, this.membersList}) : super(key: key);
+  const CreateNewGroupScreen({Key? key, required this.membersList})
+      : super(key: key);
 
   @override
   State<CreateNewGroupScreen> createState() => _CreateNewGroupScreenState();
@@ -32,17 +36,91 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
   final TextEditingController grpNameController = TextEditingController();
   final TextEditingController grpDescController = TextEditingController();
 
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  //List<dynamic> membersList = [];
+  //List<Members> selectedMembersList = [];
+
+  File? image;
+  String imageUrl = "";
+
+  Future pickImageFromGallery() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.gallery,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      // if (kDebugMode) {
+      //   print(imageTemp);
+      // }
+      setState(() => this.image = imageTemp);
+      //uploadImage();
+      //uploadFile(imageTemp, DateTime.now().millisecondsSinceEpoch.toString());
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  Future pickImageFromCamera() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      // if (kDebugMode) {
+      //   print(imageTemp);
+      // }
+      setState(() => this.image = imageTemp);
+      //await uploadImage();
+      //uploadFile(imageTemp, DateTime.now().millisecondsSinceEpoch.toString());
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  UploadTask uploadFile(File image, String fileName) {
+    Reference reference = FirebaseProvider.storage.ref().child('group_profile_pictures/$fileName');
+    UploadTask uploadTask = reference.putFile(image);
+    return uploadTask;
+  }
+  //
+  // Future uploadImage() async {
+  //   String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+  //   UploadTask uploadTask = uploadFile(image!, fileName);
+  //   try {
+  //     TaskSnapshot snapshot = await uploadTask;
+  //     imageUrl = await snapshot.ref.getDownloadURL();
+  //     await FirebaseProvider.firestore
+  //         .collection('users')
+  //         .doc(FirebaseProvider.auth.currentUser!.uid)
+  //         .collection('groups')
+  //         .doc(widget.groupId)
+  //         .update({'profile_picture': imageUrl});
+  //     await FirebaseProvider.firestore
+  //         .collection('groups')
+  //         .doc(widget.groupId)
+  //         .update({'profile_picture': imageUrl});
+  //     //print('image url - ----------- $imageUrl');
+  //   } on FirebaseException catch (e) {}
+  // }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.membersList);
     return Form(
       key: _formKey,
       child: Scaffold(
-        backgroundColor: AppColors.shimmer,
+        backgroundColor: AppColors.bg,
         appBar: const CustomAppBar(
           title: 'Create New Group',
         ),
@@ -56,31 +134,104 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
               Center(
                 child: Stack(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 56,
                       backgroundColor: AppColors.lightGrey,
-                      backgroundImage: AssetImage(
-                        AppImages.groupAvatar,
-                      ),
+                      child: image != null
+                          ?
+                          ClipRRect(
+                              borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius*10),
+                              child: Image.file(File(image!.path), fit: BoxFit.cover,width: 150,height: 150,))
+                          : Image.asset(
+                              AppImages.groupAvatar,
+                              fit: BoxFit.contain,
+                              width: 50,
+                              height: 50,
+                            ),
                     ),
                     Positioned(
                       right: 0,
                       bottom: 0,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        padding: const EdgeInsets.all(
-                            AppSizes.kDefaultPadding / 1.3),
-                        decoration: BoxDecoration(
-                            border: Border.all(
-                                width: 1, color: AppColors.lightGrey),
-                            color: AppColors.white,
-                            shape: BoxShape.circle),
-                        child: Image.asset(
-                          AppImages.cameraIcon,
-                          width: 36,
-                          height: 36,
-                          fit: BoxFit.contain,
+                      child: GestureDetector(
+                        onTap: () {
+                          showCustomBottomSheet(
+                              context,
+                              '',
+                              SizedBox(
+                                height: 150,
+                                child: ListView.builder(
+                                    shrinkWrap: true,
+                                    padding: const EdgeInsets.all(
+                                        AppSizes.kDefaultPadding),
+                                    itemCount: pickerList.length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemBuilder: (context, index) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          switch (index) {
+                                            case 0:
+                                              pickImageFromGallery();
+                                              break;
+                                            case 1:
+                                              pickImageFromCamera();
+                                              break;
+                                          }
+                                          Navigator.pop(context);
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              left:
+                                                  AppSizes.kDefaultPadding * 2),
+                                          child: Column(
+                                            children: [
+                                              Container(
+                                                width: 60,
+                                                height: 60,
+                                                padding: const EdgeInsets.all(
+                                                    AppSizes.kDefaultPadding),
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        width: 1,
+                                                        color: AppColors
+                                                            .lightGrey),
+                                                    color: AppColors.white,
+                                                    shape: BoxShape.circle),
+                                                child: pickerList[index].icon,
+                                              ),
+                                              const SizedBox(
+                                                height:
+                                                    AppSizes.kDefaultPadding /
+                                                        2,
+                                              ),
+                                              Text(
+                                                '${pickerList[index].title}',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                              ));
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          padding: const EdgeInsets.all(
+                              AppSizes.kDefaultPadding / 1.3),
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  width: 1, color: AppColors.lightGrey),
+                              color: AppColors.white,
+                              shape: BoxShape.circle),
+                          child: Image.asset(
+                            AppImages.cameraIcon,
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     )
@@ -88,9 +239,11 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                 ),
               ),
               const SizedBox(
-                height: AppSizes.kDefaultPadding,
+                height: AppSizes.kDefaultPadding * 2,
               ),
               CustomCard(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.kDefaultPadding),
                 padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,28 +255,15 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                           .bodyText2!
                           .copyWith(color: AppColors.black),
                     ),
-                    const SizedBox(
-                      height: AppSizes.kDefaultPadding,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.kDefaultPadding,
-                      ),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                              AppSizes.cardCornerRadius / 2),
-                          border:
-                              Border.all(width: 1, color: AppColors.lightGrey)),
-                      child: CustomTextField(
-                        controller: grpNameController,
-                        hintText: 'Group Name',
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Invalid Group Title';
-                          }
-                          return null;
-                        },
-                      ),
+                    CustomTextField(
+                      controller: grpNameController,
+                      hintText: 'Group Name',
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Group name can\'t be empty';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
@@ -132,6 +272,8 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                 height: AppSizes.kDefaultPadding,
               ),
               CustomCard(
+                margin: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.kDefaultPadding),
                 padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,40 +307,86 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                 ),
               ),
               const SizedBox(
-                height: AppSizes.kDefaultPadding,
+                height: AppSizes.kDefaultPadding * 2,
               ),
               SizedBox(
-                height: 130,
+                height: 150,
                 width: MediaQuery.of(context).size.width,
-                //decoration: const BoxDecoration(color: AppColors.white),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          AppSizes.kDefaultPadding,
-                          AppSizes.kDefaultPadding,
-                          AppSizes.kDefaultPadding,
-                          0),
+                      padding: const EdgeInsets.all(
+                        AppSizes.kDefaultPadding,
+                      ),
                       child: Text(
-                        '${widget.membersList!.length} Participants',
+                        '${widget.membersList.length} Participants',
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ),
                     Expanded(
                       child: ListView.builder(
-                          itemCount: widget.membersList!.length,
+                          itemCount: widget.membersList.length,
                           shrinkWrap: true,
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
                             return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CircleAvatar(
-                                radius: 26,
-                                backgroundColor:
-                                    AppColors.grey.withOpacity(0.5),
-                                foregroundImage: NetworkImage(
-                                    '${AppStrings.imagePath}${widget.membersList![index]['profile_picture']}'),
+                              padding: const EdgeInsets.only(
+                                  left: AppSizes.kDefaultPadding),
+                              child: SizedBox(
+                                width: 60,
+                                child: Column(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                          AppSizes.cardCornerRadius * 10),
+                                      child: CachedNetworkImage(
+                                          width: 56,
+                                          height: 56,
+                                          fit: BoxFit.cover,
+                                          imageUrl:
+                                              '${widget.membersList[index]['profile_picture']}',
+                                          placeholder: (context, url) =>
+                                              const CircleAvatar(
+                                                radius: 40,
+                                                backgroundColor:
+                                                    AppColors.lightGrey,
+                                              ),
+                                          errorWidget: (context, url, error) =>
+                                              CircleAvatar(
+                                                radius: 40,
+                                                backgroundColor:
+                                                    AppColors.lightGrey,
+                                                child: Text(
+                                                  widget.membersList[index]
+                                                          ['name']
+                                                      .substring(0, 1)
+                                                      .toString()
+                                                      .toUpperCase(),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyText1!
+                                                      .copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w600),
+                                                ),
+                                              )),
+                                    ),
+                                    const SizedBox(
+                                      height: AppSizes.kDefaultPadding / 2,
+                                    ),
+                                    Text(
+                                      widget.membersList[index]['name'],
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall!
+                                          .copyWith(color: AppColors.black),
+                                    )
+                                  ],
+                                ),
                               ),
                             );
                           }),
@@ -215,19 +403,22 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
         floatingActionButton: CustomFloatingActionButton(
           onPressed: () async {
             if (_formKey.currentState!.validate()) {
-              FirebaseProvider.createGroup(
+              try {
+                FirebaseProvider.createGroup(
                   grpNameController.text,
                   grpDescController.text,
-                  '',
-                  widget.membersList!,
-                  DateFormat('yyyy-mm-dd kk:mm:ss').format(DateTime.now()));
-
-              Future.delayed(const Duration(seconds: 3),
-                  () => context.pushAndRemoveUntil(const HomeScreen()));
+                  imageUrl,
+                  widget.membersList,
+                );
+                customSnackBar(context, 'Group Created Successfully');
+                context.pushAndRemoveUntil(const HomeScreen());
+              } catch (e) {
+                return;
+              }
             }
             return;
           },
-          iconData: EvaIcons.arrowForwardOutline,
+          iconData: EvaIcons.checkmark,
         ),
       ),
     );

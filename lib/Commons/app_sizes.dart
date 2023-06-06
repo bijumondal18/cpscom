@@ -6,7 +6,7 @@ class AppSizes {
   static const double largeButtonHeight = 56.0;
   static const double smallButtonHeight = 40.0;
 
-  static const double cardCornerRadius = 12.0;
+  static const double cardCornerRadius = 10.0;
 
   static const double kDefaultPadding = 12.0;
 

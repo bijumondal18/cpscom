@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -75,25 +76,16 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                           default:
                             if (snapshot.hasData) {
                               titleController.text = snapshot.data!['name'];
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSizes.kDefaultPadding),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(
-                                        AppSizes.cardCornerRadius / 2),
-                                    border: Border.all(
-                                        width: 1, color: AppColors.lightGrey)),
-                                child: CustomTextField(
-                                  controller: titleController,
-                                  hintText: 'Group Title',
-                                  autoFocus: true,
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "Group title can't be empty";
-                                    }
-                                    return null;
-                                  },
-                                ),
+                              return CustomTextField(
+                                controller: titleController,
+                                hintText: 'Group Title',
+                                autoFocus: true,
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Group title can't be empty";
+                                  }
+                                  return null;
+                                },
                               );
                             }
                         }
@@ -112,20 +104,14 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                         label: 'Ok'.toUpperCase(),
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(FirebaseAuth.instance.currentUser!.uid)
-                                .collection('groups')
-                                .doc(widget.groupId)
-                                .update({"name": titleController.text}).then(
-                                    (value) {
-                              customSnackBar(
-                                  context,
-                                  'Group Title Updated Successfully',
-                                  AppColors.successSnackBarBackground);
+                            FirebaseProvider.updateGroupTitle(
+                                widget.groupId, titleController.text);
                               context.pop(
                                   GroupInfoScreen(groupId: widget.groupId));
-                            });
+                              customSnackBar(
+                                context,
+                                'Group Title Updated Successfully',
+                              );
                           }
                         }),
                     Container(

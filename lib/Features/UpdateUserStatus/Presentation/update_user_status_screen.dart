@@ -89,9 +89,9 @@ class _UpdateUserStatusScreenState extends State<UpdateUserStatusScreen> {
                                 .update({"status": statusController.text}).then(
                                     (value) {
                               customSnackBar(
-                                  context,
-                                  'Status Updated Successfully',
-                                  AppColors.successSnackBarBackground);
+                                context,
+                                'Status Updated Successfully',
+                              );
                               context.pop(const MyProfileScreen());
                             });
                           }

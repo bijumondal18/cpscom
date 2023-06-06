@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:flutter/material.dart';
 
@@ -28,11 +29,13 @@ class _GroupMediaScreenState extends State<GroupMediaScreen> {
               return ClipRRect(
                 borderRadius:
                     BorderRadius.circular(AppSizes.cardCornerRadius / 2),
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.45,
-                  height: MediaQuery.of(context).size.width * 0.45,
-                  decoration: const BoxDecoration(color: AppColors.lightGrey),
-                ),
+                child: CachedNetworkImage(
+                    width: 30,
+                    height: 30,
+                    fit: BoxFit.cover,
+                    imageUrl: '',
+                    placeholder: (context, url) =>  Container(),
+                    errorWidget: (context, url, error) => Container()),
               );
             }));
   }

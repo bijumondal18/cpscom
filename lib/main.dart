@@ -1,6 +1,7 @@
 import 'package:cpscom_admin/global_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,6 +11,15 @@ import 'firebase_options.dart';
 
 late final FirebaseApp firebaseApp;
 //late final FirebaseAuth firebaseAuth;
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  await Firebase.initializeApp();
+
+  print("Handling a background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +31,8 @@ void main() async {
   firebaseApp = await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  //firebaseApp = FirebaseAuth.instanceFor(app: firebaseApp);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
   runApp(const MyApp());
 }
 
@@ -34,7 +45,7 @@ class MyApp extends StatelessWidget {
     return GlobalBloc(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'CPSCOM Admin',
+        title: 'CPSCOM',
         theme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
         home: const SplashScreen(),

@@ -1,5 +1,5 @@
 name: cpscom_admin
-description: A new Flutter project.
+description: Modern Group Chat Application.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -15,77 +15,140 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.1+9
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
 
-
-  #Icons packages
+  linkable: ^3.0.1
+  url_launcher: ^6.0.9
+  # IOS Icons packages
   cupertino_icons: ^1.0.2
+
+  # Font Awesome Icon Package
   font_awesome_flutter: ^10.1.0
+
+  # Eva Icon Package
   eva_icons_flutter: ^3.1.0
 
-  # Firebase Auth package for authentication
+  # Firebase Packages for Authentication
   firebase_auth: ^4.0.1
+
+  # Firebase Packages for Firebase Core Functionalities
   firebase_core: ^2.8.0
+
+  # Firebase Packages for Firestore Database
   cloud_firestore: ^4.1.0
 
+  # Firebase Packages for Storage
+  firebase_storage: ^11.2.0
+
+  # Firebase Packages for Messaging
+  firebase_messaging: ^14.6.1
+
+  # Chat Bubble Custom Clipper Package
+  flutter_chat_bubble: ^2.0.2
+
   uuid: ^3.0.7
+
+  # Flutter SVG Package for SVG Images
   flutter_svg: ^2.0.5
+
+  # PDF Viewer Package
+  syncfusion_flutter_pdfviewer: ^20.3.49
+
+  # This Package is for Date and Time
   intl: ^0.18.1
+
+  # BLOC Package for State Management
   bloc: ^8.1.1
+
+  # Flutter BLOC Package for State Management
   flutter_bloc: ^8.1.2
+
   equatable: ^2.0.0
   rxdart: ^0.27.4
+
+  # DIO is for Network Calling Pacakge
   dio: ^5.1.1
+
+  # HTTP Package for API call
   http: ^0.13.4
+
+  # Shared Preference for Store Small Amount of Data Locally
   shared_preferences: ^2.0.11
-  webview_flutter: ^4.2.0
+
+  # Image Picker is for Pick Gallery Image or Camera Image to Upload
   image_picker: ^0.8.4+11
+
+  # File Picker is for Pick any Type of File (eg. PDF, DOC, TXT, JPG, PNG etc...)
+  file_picker: ^5.2.7
+
+  # Cached Network Image is for Network Image Library
   cached_network_image: ^3.2.3
-  package_info_plus: ^3.1.2
+
+  # Pull Down To Refresh Package
   pull_to_refresh: ^2.0.0
-  path_provider: ^2.0.7
-  readmore: ^2.1.0
-  social_share: ^2.2.1
+
+  #zooming feature
+
+  photo_view: ^0.14.0
+
+  # Collection Package for groupBy Function to separate Chats by Date
+  collection: ^1.17.0
+  overlay_support: ^2.1.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
+  # Flutter Lints Package for Coding Guidelines
   flutter_lints: ^2.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+  # Launcher Icons for the Application
+  flutter_launcher_icons: ^0.13.1
 
-# The following section is specific to Flutter packages.
+  # Package to Change App Package Name
+  change_app_package_name: ^1.1.0
+
+  
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icons/app-logo.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/icons/app-logo.png"
+    background_color: "#FFFFFF"
+    theme_color: "#5558FF"
+  windows:
+    generate: true
+    image_path: "assets/icons/app-logo.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/icons/app-logo.png"
+
+
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
+  # Material Design Package to Use Material Components
   uses-material-design: true
 
+  # Assets Location for the Application
   assets:
     - assets/images/
     - assets/icons/
 
+  # Fonts Location for the Application
   fonts:
     - family: Poppins-Regular
       fonts:
@@ -97,6 +160,9 @@ flutter:
         - asset: assets/fonts/Poppins-Regular.ttf
         - asset: assets/fonts/Poppins-SemiBold.ttf
         - asset: assets/fonts/Poppins-Thin.ttf
+
+  # Add More Custom Fonts Here Like Below
+
   # fonts:
   #   - family: Schyler
   #     fonts:

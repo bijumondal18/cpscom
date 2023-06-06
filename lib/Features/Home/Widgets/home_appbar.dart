@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 import '../../../Api/firebase_provider.dart';
 import '../../../Commons/app_icons.dart';
+import '../../Login/Presentation/login_screen.dart';
 
 class HomeAppBar extends StatelessWidget {
   bool? isAdmin;
@@ -22,6 +23,7 @@ class HomeAppBar extends StatelessWidget {
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .get();
+    final FirebaseAuth _auth = FirebaseAuth.instance;
 
     return Column(
       children: [
@@ -42,10 +44,7 @@ class HomeAppBar extends StatelessWidget {
                 ),
                 Text(
                   AppStrings.appName,
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodyText1,
+                  style: Theme.of(context).textTheme.bodyText1,
                 ),
                 FutureBuilder(
                     future: future,
@@ -62,17 +61,14 @@ class HomeAppBar extends StatelessWidget {
                                 radius: 24,
                                 backgroundColor: AppColors.lightGrey,
                                 foregroundImage: NetworkImage(
-                                    '${AppStrings.imagePath}${snapshot
-                                        .data?['profile_picture']}'),
+                                    '${AppStrings.imagePath}${snapshot.data?['profile_picture']}'),
                               ),
-                              itemBuilder: (context) =>
-                              [
+                              itemBuilder: (context) => [
                                 PopupMenuItem(
                                     value: 1,
                                     child: Text(
                                       'My Profile',
-                                      style: Theme
-                                          .of(context)
+                                      style: Theme.of(context)
                                           .textTheme
                                           .bodyText2!
                                           .copyWith(color: AppColors.black),
@@ -81,8 +77,7 @@ class HomeAppBar extends StatelessWidget {
                                     value: 2,
                                     child: Text(
                                       'Logout',
-                                      style: Theme
-                                          .of(context)
+                                      style: Theme.of(context)
                                           .textTheme
                                           .bodyText2!
                                           .copyWith(color: AppColors.black),
@@ -96,27 +91,20 @@ class HomeAppBar extends StatelessWidget {
                                   case 2:
                                     showDialog(
                                         context: context,
+                                        barrierDismissible: false,
                                         builder: (context) {
                                           return ConfirmationDialog(
                                               title: 'Logout?',
                                               body:
-                                              'Are you sure you want to logout?',
+                                                  'Are you sure you want to logout?',
                                               positiveButtonLabel: 'Logout',
                                               negativeButtonLabel: 'Cancel',
-                                              onPressedPositiveButton: () {
-                                                try {
-                                                  FirebaseProvider().logout();
-                                                  context.pop(
-                                                      const HomeScreen());
-                                                } catch (e) {
-                                                  customSnackBar(context, '$e',
-                                                      AppColors.error);
-                                                }
+                                              onPressedPositiveButton: () async{
+                                                await FirebaseProvider.logout();
+                                                context.pushAndRemoveUntil(
+                                                    const LoginScreen());
                                               });
                                         });
-
-                                    //
-                                    // context.pushReplacement(const LoginScreen());
                                     break;
                                 }
                               },

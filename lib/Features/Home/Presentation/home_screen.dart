@@ -1,127 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
-import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
+import 'package:cpscom_admin/Features/Home/Presentation/build_desktop_view.dart';
+import 'package:cpscom_admin/Features/Home/Presentation/build_mobile_view.dart';
+import 'package:cpscom_admin/Features/Home/Presentation/build_tablet_view.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_chat_card.dart';
-import 'package:cpscom_admin/Features/Login/Presentation/login_screen.dart';
+import 'package:cpscom_admin/Features/Home/Widgets/home_header.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
-import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
-import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
-import 'package:cpscom_admin/Widgets/custom_loader.dart';
+import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../Utils/custom_snack_bar.dart';
-import '../../../Widgets/custom_confirmation_dialog.dart';
 import '../../../Widgets/custom_text_field.dart';
+import '../../../Widgets/responsive.dart';
 import '../../Chat/Presentation/chat_screen.dart';
-import '../../MyProfile/Presentation/my_profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var future = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .get();
-
-    bool? isAdmin;
-    return Container(
-      color: AppColors.white,
-      child: FutureBuilder(
-          future: future,
-          builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.none:
-              case ConnectionState.waiting:
-              default:
-                if (snapshot.hasData) {
-                  isAdmin = snapshot.data?['isAdmin'];
-                  return Scaffold(
-                    appBar: CustomAppBar(
-                        autoImplyLeading: false,
-                        title: AppStrings.appName,
-                        actions: [
-                          PopupMenuButton(
-                            icon: CircleAvatar(
-                              radius: 24,
-                              backgroundColor: AppColors.lightGrey,
-                              foregroundImage: NetworkImage(
-                                  '${AppStrings.imagePath}${snapshot.data?['profile_picture']}'),
-                            ),
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                  value: 1,
-                                  child: Text(
-                                    'My Profile',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2!
-                                        .copyWith(color: AppColors.black),
-                                  )),
-                              PopupMenuItem(
-                                  value: 2,
-                                  child: Text(
-                                    'Logout',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2!
-                                        .copyWith(color: AppColors.black),
-                                  ))
-                            ],
-                            onSelected: (value) {
-                              switch (value) {
-                                case 1:
-                                  context.push(const MyProfileScreen());
-                                  break;
-                                case 2:
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return ConfirmationDialog(
-                                            title: 'Logout?',
-                                            body:
-                                                'Are you sure you want to logout?',
-                                            positiveButtonLabel: 'Logout',
-                                            negativeButtonLabel: 'Cancel',
-                                            onPressedPositiveButton: () {
-                                              try {
-                                                //FirebaseProvider().logout();
-                                                context
-                                                    .pop(const LoginScreen());
-                                              } catch (e) {
-                                                customSnackBar(context, '$e',
-                                                    AppColors.error);
-                                              }
-                                            });
-                                      });
-                              }
-                            },
-                          ),
-                        ]),
-                    body: BuildChatList(
-                      isAdmin: isAdmin!,
-                    ),
-                    floatingActionButton: isAdmin == true
-                        ? CustomFloatingActionButton(
-                            onPressed: () {
-                              context.push(const AddMembersScreen(
-                                isCameFromHomeScreen: true,
-                              ));
-                              //context.push(const CreateNewGroupScreen());
-                            },
-                            iconData: EvaIcons.plus,
-                          )
-                        : Container(),
-                  );
-                }
-            }
-            return Container();
-          }),
-    );
+    return Responsive.isMobile(context)
+        ? const BuildMobileView()
+        : Responsive.isTablet(context)
+            ? const BuildTabletView()
+            : const BuildDesktopView();
   }
 }
 
@@ -136,30 +39,29 @@ class BuildChatList extends StatefulWidget {
 
 class _BuildChatListState extends State<BuildChatList> {
   final TextEditingController searchController = TextEditingController();
-  var groupName = '';
+  String groupName = '';
+  String groupDesc = '';
+  String sentTime = '';
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Responsive.isMobile(context) ? const HomeHeader() : const SizedBox(),
         Container(
           padding:
               const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
           margin: const EdgeInsets.all(AppSizes.kDefaultPadding),
           decoration: BoxDecoration(
-              color: AppColors.white,
-              boxShadow: const [
-                BoxShadow(
-                    offset: Offset(7, 7),
-                    color: AppColors.lightGrey,
-                    blurRadius: 15),
-                BoxShadow(
-                    offset: Offset(-7, -7),
-                    color: AppColors.shimmer,
-                    blurRadius: 15)
-              ],
-              borderRadius:
-                  BorderRadius.circular(AppSizes.cardCornerRadius * 3)),
+              color: AppColors.bg,
+              border: Border.all(width: 1, color: AppColors.bg),
+              borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius)),
           child: Row(
             children: [
               const Icon(
@@ -174,92 +76,121 @@ class _BuildChatListState extends State<BuildChatList> {
                 child: CustomTextField(
                   controller: searchController,
                   hintText: 'Search groups...',
+                  minLines: 1,
+                  maxLines: 1,
                   onChanged: (value) {
                     setState(() {
                       groupName = value!;
+                      groupDesc = value;
                     });
+                    return null;
                   },
+                  isBorder: false,
                 ),
               )
             ],
           ),
         ),
+        Responsive.isMobile(context) ? const SizedBox() : const CustomDivider(),
         Expanded(
-          child: StreamBuilder(
-              stream: FirebaseProvider.getAllGroups(),
-              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                switch (snapshot.connectionState) {
-                  case ConnectionState.none:
-                  case ConnectionState.waiting:
-                    return const CustomLoader();
-                  default:
-                    if (snapshot.hasData) {
-                      if (snapshot.data!.docs.isEmpty) {
-                        return Center(
-                          child: Text(
-                            'No Groups Found',
-                            style: Theme.of(context).textTheme.bodyText2,
-                          ),
-                        );
-                      } else {
-                        return ListView.builder(
-                            itemCount: snapshot.data!.docs.length,
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              //for search groups
-                              var data = snapshot.data!.docs[index].data()
-                                  as Map<String, dynamic>;
-                              if (groupName.isEmpty) {
-                                return HomeChatCard(
-                                    groupId: snapshot.data!.docs[index].id,
-                                    onPressed: () {
-                                      context.push(ChatScreen(
+          child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).requestFocus(FocusNode());
+            },
+            child: StreamBuilder(
+                stream: FirebaseProvider.getAllGroups(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return const Center(
+                          child: CircularProgressIndicator.adaptive());
+                    default:
+                      if (snapshot.hasData) {
+                        if (snapshot.data!.docs.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No Groups Found',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText2!
+                                  .copyWith(fontWeight: FontWeight.w400),
+                            ),
+                          );
+                        } else {
+                          return Scrollbar(
+                            child: ListView.builder(
+                                itemCount: snapshot.data!.docs.length,
+                                shrinkWrap: true,
+                                padding: const EdgeInsets.only(
+                                    top: AppSizes.kDefaultPadding),
+                                itemBuilder: (context, index) {
+                                  //for search groups
+                                  var data = snapshot.data!.docs[index].data()
+                                      as Map<String, dynamic>;
+                                  sentTime =
+                                      AppHelper.getStringTimeFromTimestamp(
+                                          data['created_at']);
+                                  if (groupName.isEmpty && groupDesc.isEmpty) {
+                                    return HomeChatCard(
                                         groupId: snapshot.data!.docs[index].id,
-                                        isAdmin: widget.isAdmin,
-                                      ));
-                                    },
-                                    groupName: snapshot.data!.docs[index]
-                                        ['name'],
-                                    //this will be last sent message by the user
-                                    groupDesc: snapshot.data!.docs[index]['group_description'],
-                                    sentTime:snapshot.data!.docs[index]
-                                    ['created_at'] != null?  AppHelper.getDateFromString(
-                                        snapshot.data!.docs[index]
-                                            ['created_at']):'',
-                                    imageUrl:
-                                        '${AppStrings.imagePath}${snapshot.data!.docs[index]['profile_picture']}');
-                              } else if (data['name']
-                                  .toLowerCase()
-                                  .trim()
-                                  .toString()
-                                  .startsWith(groupName
-                                      .toLowerCase()
-                                      .trim()
-                                      .toString())) {
-                                return HomeChatCard(
-                                    groupId: snapshot.data!.docs[index].id,
-                                    onPressed: () {
-                                      context.push(ChatScreen(
+                                        onPressed: () {
+                                          context.push(ChatScreen(
+                                            groupId:
+                                                snapshot.data!.docs[index].id,
+                                            isAdmin: widget.isAdmin,
+                                          ));
+                                        },
+                                        groupName: snapshot.data!.docs[index]
+                                            ['name'],
+                                        groupDesc: snapshot.data!.docs[index]
+                                            ['group_description'],
+                                        sentTime: sentTime,
+                                        imageUrl:
+                                            '${snapshot.data!.docs[index]['profile_picture']}');
+                                  } else if (data['name']
+                                          .toLowerCase()
+                                          .trim()
+                                          .toString()
+                                          .contains(groupName
+                                              .toLowerCase()
+                                              .trim()
+                                              .toString()) ||
+                                      data['group_description']
+                                          .toLowerCase()
+                                          .trim()
+                                          .toString()
+                                          .contains(groupName
+                                              .toLowerCase()
+                                              .trim()
+                                              .toString())) {
+                                    return
+                                      HomeChatCard(
                                         groupId: snapshot.data!.docs[index].id,
-                                        isAdmin: widget.isAdmin,
-                                      ));
-                                    },
-                                    groupName: snapshot.data!.docs[index]
-                                        ['name'],
-                                    // groupDesc: snapshot.data!.docs[index]['group_description'],
-                                    sentTime: AppHelper.getDateFromString(
-                                        snapshot.data!.docs[index]
-                                            ['created_at']),
-                                    imageUrl:
-                                        '${AppStrings.imagePath}${snapshot.data!.docs[index]['profile_picture']}');
-                              }
-                              return Container();
-                            });
+                                        onPressed: () {
+                                          context.push(ChatScreen(
+                                            groupId:
+                                                snapshot.data!.docs[index].id,
+                                            isAdmin: widget.isAdmin,
+                                          ));
+                                        },
+                                        groupName: snapshot.data!.docs[index]
+                                            ['name'],
+                                        groupDesc: snapshot.data!.docs[index]
+                                            ['group_description'],
+                                        sentTime: sentTime,
+                                        imageUrl:
+                                            '${snapshot.data!.docs[index]['profile_picture']}');
+                                  }
+                                  return const SizedBox();
+                                }),
+                          );
+                        }
                       }
-                    }
-                    return Container();
-                }
-              }),
+                      return const SizedBox();
+                  }
+                }),
+          ),
         ),
       ],
     );

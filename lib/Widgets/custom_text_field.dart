@@ -12,6 +12,7 @@ class CustomTextField extends StatelessWidget {
   final int? maxLines;
   final bool? readOnly;
   final bool? autoFocus;
+  final bool? isBorder;
   final bool? obscureText;
   final Widget? suffixIcon;
   final TextInputType? keyboardType;
@@ -33,6 +34,7 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.onChanged,
     this.autoFocus = false,
+    this.isBorder = true,
   }) : super(key: key);
 
   @override
@@ -49,19 +51,35 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       autofocus: autoFocus!,
-      decoration: InputDecoration(
-          suffixIcon: suffixIcon,
-          border: InputBorder.none,
-          // enabledBorder: const UnderlineInputBorder(
-          //   borderSide: BorderSide(color: AppColors.lightGrey),
-          // ),
-          // focusedBorder: const UnderlineInputBorder(
-          //   borderSide: BorderSide(color: AppColors.lightGrey),
-          // ),
-          hintText: hintText ?? '',
-          hintStyle: Theme.of(context).textTheme.bodyText2,
-          labelStyle: Theme.of(context).textTheme.bodyText2,
-          errorText: controller.text == "" ? errorText : null),
+      decoration: isBorder!
+          ? InputDecoration(
+              suffixIcon: suffixIcon,
+          contentPadding: EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
+          //border: InputBorder.none,
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.lightGrey),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.lightGrey),
+              ),
+              hintText: hintText ?? '',
+              hintStyle: Theme.of(context).textTheme.bodyText2,
+              labelStyle: Theme.of(context).textTheme.bodyText2,
+              errorText: controller.text == "" ? errorText : null)
+          : InputDecoration(
+              suffixIcon: suffixIcon,
+              border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
+              // enabledBorder: const UnderlineInputBorder(
+              //   borderSide: BorderSide(color: AppColors.lightGrey),
+              // ),
+              // focusedBorder: const UnderlineInputBorder(
+              //   borderSide: BorderSide(color: AppColors.lightGrey),
+              // ),
+              hintText: hintText ?? '',
+              hintStyle: Theme.of(context).textTheme.bodyText2,
+              labelStyle: Theme.of(context).textTheme.bodyText2,
+              errorText: controller.text == "" ? errorText : null),
     );
   }
 }
