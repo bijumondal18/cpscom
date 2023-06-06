@@ -24,9 +24,7 @@ class _BuildMobileViewState extends State<BuildMobileView> {
       .collection('users')
       .doc(FirebaseProvider.auth.currentUser!.uid)
       .get();
-
   bool? isAdmin;
-
   final FirebaseProvider firebaseProvider = FirebaseProvider();
 
   @override
@@ -39,7 +37,9 @@ class _BuildMobileViewState extends State<BuildMobileView> {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-              default:
+                return const CircularProgressIndicator.adaptive();
+              case ConnectionState.active:
+              case ConnectionState.done:
                 if (snapshot.hasData) {
                   isAdmin = snapshot.data?['isAdmin'];
                   return Scaffold(
@@ -72,7 +72,8 @@ class _BuildMobileViewState extends State<BuildMobileView> {
                                 case ConnectionState.waiting:
                                   return const CircularProgressIndicator
                                       .adaptive();
-                                default:
+                                case ConnectionState.active:
+                                case ConnectionState.done:
                                   if (snapshot.hasData) {
                                     return GestureDetector(
                                         onTap: () => context

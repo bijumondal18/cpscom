@@ -58,9 +58,20 @@ class _BuildChatListState extends State<BuildChatList> {
               const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
           margin: const EdgeInsets.all(AppSizes.kDefaultPadding),
           decoration: BoxDecoration(
-              color: AppColors.bg,
+              color: AppColors.white,
+              boxShadow: [
+                BoxShadow(
+                    offset: const Offset(5, 5),
+                    color: AppColors.lightGrey.withOpacity(0.5),
+                    blurRadius: 10),
+                BoxShadow(
+                    offset: const Offset(-5, -5),
+                    color: AppColors.lightGrey.withOpacity(0.5),
+                    blurRadius: 10)
+              ],
               border: Border.all(width: 1, color: AppColors.bg),
-              borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius)),
+              borderRadius:
+                  BorderRadius.circular(AppSizes.cardCornerRadius * 5)),
           child: Row(
             children: [
               const Icon(
@@ -104,7 +115,8 @@ class _BuildChatListState extends State<BuildChatList> {
                     case ConnectionState.waiting:
                       return const Center(
                           child: CircularProgressIndicator.adaptive());
-                    default:
+                    case ConnectionState.active:
+                    case ConnectionState.done:
                       if (snapshot.hasData) {
                         if (snapshot.data!.docs.isEmpty) {
                           return Center(
@@ -163,8 +175,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                               .toLowerCase()
                                               .trim()
                                               .toString())) {
-                                    return
-                                      HomeChatCard(
+                                    return HomeChatCard(
                                         groupId: snapshot.data!.docs[index].id,
                                         onPressed: () {
                                           context.push(ChatScreen(

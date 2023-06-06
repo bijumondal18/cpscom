@@ -169,18 +169,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(
                     height: AppSizes.kDefaultPadding,
                   ),
-                  TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize:
-                            const Size.fromHeight(AppSizes.buttonHeight),
-                      ),
-                      onPressed: () {},
-                      child: Text(
-                        'Forgot Password?',
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600),
-                      ))
+                  // TextButton(
+                  //     style: TextButton.styleFrom(
+                  //       minimumSize:
+                  //           const Size.fromHeight(AppSizes.buttonHeight),
+                  //     ),
+                  //     onPressed: () {},
+                  //     child: Text(
+                  //       'Forgot Password?',
+                  //       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  //           color: AppColors.primary,
+                  //           fontWeight: FontWeight.w600),
+                  //     ))
                 ],
               ),
             )

@@ -271,10 +271,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                             return GestureDetector(
                                                               onTap: () {
                                                                 switch (index) {
-                                                                  case 0:
+                                                                  case 1:
                                                                     pickImageFromGallery();
                                                                     break;
-                                                                  case 1:
+                                                                  case 2:
                                                                     pickImageFromCamera();
                                                                     break;
                                                                 }

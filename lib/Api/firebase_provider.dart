@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/urls.dart';
+import 'package:cpscom_admin/Models/member_model.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Utils/app_preference.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +20,12 @@ class FirebaseProvider {
   static final FirebaseFirestore firestore = FirebaseFirestore.instance;
   static final FirebaseStorage storage = FirebaseStorage.instance;
   static final FirebaseMessaging messaging = FirebaseMessaging.instance;
+  static final CollectionReference membersCollectionReference =
+      FirebaseFirestore.instance.collection('users');
+  static final CollectionReference groupsCollectionReference =
+      FirebaseFirestore.instance.collection('groups');
+  static final CollectionReference chatsCollectionReference =
+      FirebaseFirestore.instance.collection('chats');
   final AppPreference preference = AppPreference();
 
   Future<User?> login(String email, String password) async {
@@ -26,7 +33,6 @@ class FirebaseProvider {
       User? user = (await auth.signInWithEmailAndPassword(
               email: email, password: password))
           .user;
-
       if (user != null) {
         await preference.setIsLoggedIn(true);
         return user;
@@ -122,8 +128,7 @@ class FirebaseProvider {
 
   //get all groups from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
-    var allGroupsList = firestore
-        .collection('users')
+    var allGroupsList = membersCollectionReference
         .doc(auth.currentUser!.uid)
         .collection('groups')
         .orderBy('created_at', descending: true)
@@ -148,6 +153,12 @@ class FirebaseProvider {
     var allUsersList = firestore.collection('users').snapshots();
     yield* allUsersList;
   }
+
+  // //get all users from firebase firestore collection
+  // static Stream<QuerySnapshot<MembersModel>> getAllUser() async* {
+  //   var allUsersList = firestore.collection('users').snapshots();
+  //   yield* allUsersList;
+  // }
 
   //get current user details from firebase firestore
   Stream<DocumentSnapshot<Map<String, dynamic>>>

@@ -81,19 +81,23 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             margin:
                                 const EdgeInsets.all(AppSizes.kDefaultPadding),
                             decoration: BoxDecoration(
-                                color: AppColors.bg,
-                                // boxShadow: const [
-                                //   BoxShadow(
-                                //       offset: Offset(2, 2),
-                                //       color: AppColors.shimmer,
-                                //       blurRadius: 10),
-                                //   BoxShadow(
-                                //       offset: Offset(-2, -2),
-                                //       color: AppColors.shimmer,
-                                //       blurRadius: 10)
-                                // ],
+                                color: AppColors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                      offset: const Offset(5, 5),
+                                      color:
+                                          AppColors.lightGrey.withOpacity(0.5),
+                                      blurRadius: 10),
+                                  BoxShadow(
+                                      offset: const Offset(-5, -5),
+                                      color:
+                                          AppColors.lightGrey.withOpacity(0.5),
+                                      blurRadius: 10)
+                                ],
+                                border:
+                                    Border.all(width: 1, color: AppColors.bg),
                                 borderRadius: BorderRadius.circular(
-                                    AppSizes.cardCornerRadius)),
+                                    AppSizes.cardCornerRadius * 5)),
                             child: Row(
                               children: [
                                 const Icon(

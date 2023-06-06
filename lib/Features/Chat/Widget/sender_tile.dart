@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Features/Chat/Presentation/chat_screen.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:photo_view/photo_view.dart';
@@ -26,7 +27,6 @@ class SenderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("pdf--> $message");
     return messageType == 'notify'
         ? Container(
             margin:
@@ -50,12 +50,22 @@ class SenderTile extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: Text(
-                    sentTime,
-                    style: Theme.of(context)
-                        .textTheme
-                        .caption!
-                        .copyWith(fontSize: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        sentTime,
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption!
+                            .copyWith(fontSize: 12),
+                      ),
+                      const Icon(
+                        EvaIcons.checkmark,
+                        size: 16,
+                        color: AppColors.grey,
+                      )
+                    ],
                   ),
                 ),
                 ChatBubble(
