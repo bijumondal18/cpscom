@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../../../Commons/app_colors.dart';
 import '../../../Commons/app_sizes.dart';
-import '../../../Models/member_model.dart';
+import '../../../Models/user.dart';
 import '../../../Widgets/custom_divider.dart';
 
 class MemberCardWidget extends StatefulWidget {
-  final MembersModel member;
+  final User member;
   final int index;
 
   const MemberCardWidget(
@@ -76,12 +76,8 @@ class _MemberCardWidgetState extends State<MemberCardWidget> {
               setState(() {
                 if (selectedIndex.contains(widget.index)) {
                   selectedIndex.remove(widget.index);
-                  //selectedMembers.unique((x) => x['uid']);
                 } else {
                   selectedIndex.add(widget.index);
-                  // selectedMembers
-                  //     .add(members[index].data() as Map<String, dynamic>);
-                  // selectedMembers.unique((x) => x['uid']);
                 }
               });
             }),

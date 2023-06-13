@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/group_list_item.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../Api/firebase_provider.dart';
 import '../../../Models/group.dart';
 import '../../../Widgets/custom_text_field.dart';
 import '../../Chat/Presentation/chat_screen.dart';
@@ -17,11 +17,15 @@ class BuildGroupList extends StatefulWidget {
 }
 
 class BuildGroupListState extends State<BuildGroupList> {
+  //Variable Declarations
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
   final TextEditingController searchController = TextEditingController();
 
   List<Group> groupsList = [];
   List<Group> searchedGroupList = [];
 
+  // Search groups by name or last message
   List<Group> searchGroups(String query) {
     setState(() {
       searchedGroupList = groupsList
@@ -32,6 +36,17 @@ class BuildGroupListState extends State<BuildGroupList> {
           .toList();
     });
     return searchedGroupList;
+  }
+
+  //Get Groups List
+  Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
+    var allGroupsList = firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('groups')
+        .orderBy('created_at', descending: true)
+        .snapshots();
+    yield* allGroupsList;
   }
 
   @override
@@ -83,7 +98,7 @@ class BuildGroupListState extends State<BuildGroupList> {
           ),
         ),
         StreamBuilder(
-            stream: FirebaseProvider.getAllGroups(),
+            stream: getAllGroups(),
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.none:
@@ -99,7 +114,6 @@ class BuildGroupListState extends State<BuildGroupList> {
                                 element.data() as Map<String, dynamic>))
                             .toList() ??
                         [];
-                    searchedGroupList = groupsList;
                     if (searchedGroupList.isNotEmpty) {
                       return Expanded(
                         child: ListView.builder(
@@ -113,6 +127,22 @@ class BuildGroupListState extends State<BuildGroupList> {
                                   },
                                   child: GroupListItem(
                                     groupsModel: searchedGroupList[index],
+                                  ));
+                            }),
+                      );
+                    } else if (groupsList.isNotEmpty) {
+                      return Expanded(
+                        child: ListView.builder(
+                            itemCount: groupsList.length,
+                            shrinkWrap: false,
+                            itemBuilder: (context, index) {
+                              return InkWell(
+                                  onTap: () {
+                                    context.push(
+                                        ChatScreen(group: groupsList[index]));
+                                  },
+                                  child: GroupListItem(
+                                    groupsModel: groupsList[index],
                                   ));
                             }),
                       );
