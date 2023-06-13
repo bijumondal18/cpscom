@@ -82,8 +82,8 @@ class _FullButtonState extends State<FullButton>
           child: Center(
             child: Text(
               widget.label,
-              style: Theme.of(context).textTheme.button!.copyWith(
-                  color: AppColors.white, fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                  color: AppColors.white, fontWeight: FontWeight.w500),
             ),
           ),
         ),
