@@ -1,23 +1,32 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
+import 'package:cpscom_admin/Commons/app_icons.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
+import 'package:cpscom_admin/Features/GroupInfo/Bloc/image_upload_bloc.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupDescription/Presentation/chnage_group_description.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupTitle/Presentation/change_group_title.dart';
-import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Utils/custom_snack_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_card.dart';
 import 'package:cpscom_admin/Widgets/custom_confirmation_dialog.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_image_picker.dart';
+import 'package:cpscom_admin/Widgets/participants_card.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../Commons/app_images.dart';
-import '../../../Widgets/delete_button.dart';
+import '../../../Utils/custom_bottom_modal_sheet.dart';
+import '../Model/image_picker_model.dart';
 
 class GroupInfoScreen extends StatefulWidget {
   final String groupId;
@@ -32,9 +41,85 @@ class GroupInfoScreen extends StatefulWidget {
 
 class _GroupInfoScreenState extends State<GroupInfoScreen> {
   List<dynamic> membersList = [];
+  List<Map<String, dynamic>> memberList = [];
+  int? indx;
+
+  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+  File? image;
+  String imageUrl = "";
+
+  Future pickImageFromGallery() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.gallery,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      setState(() => this.image = imageTemp);
+      uploadImage();
+      //uploadFile(imageTemp, DateTime.now().millisecondsSinceEpoch.toString());
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  Future pickImageFromCamera() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      setState(() => this.image = imageTemp);
+      await uploadImage();
+      //uploadFile(imageTemp, DateTime.now().millisecondsSinceEpoch.toString());
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  UploadTask uploadFile(File image, String fileName) {
+    Reference reference = firebaseStorage.ref().child('group_profile_pictures/$fileName');
+    UploadTask uploadTask = reference.putFile(image);
+    return uploadTask;
+  }
+
+  Future uploadImage() async {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    UploadTask uploadTask = uploadFile(image!, fileName);
+    try {
+      TaskSnapshot snapshot = await uploadTask;
+      imageUrl = await snapshot.ref.getDownloadURL();
+      await FirebaseProvider.firestore
+          .collection('users')
+          .doc(FirebaseProvider.auth.currentUser!.uid)
+          .collection('groups')
+          .doc(widget.groupId)
+          .update({'profile_picture': imageUrl});
+      await FirebaseProvider.firestore
+          .collection('groups')
+          .doc(widget.groupId)
+          .update({'profile_picture': imageUrl});
+
+      // for (var i = 0; i<memberList.length;i++){
+      //
+      // }
+      customSnackBar(context, 'Group Image Updated Successfully');
+      //print('image url - ----------- $imageUrl');
+    } on FirebaseException catch (e) {}
+  }
 
   @override
   Widget build(BuildContext context) {
+    print(FirebaseProvider.auth.currentUser!.uid);
     return Scaffold(
         backgroundColor: AppColors.bg,
         appBar: CustomAppBar(
@@ -81,7 +166,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       return Column(
                         children: [
                           Container(
-                            //color: AppColors.white,
                             padding: const EdgeInsets.all(
                                 AppSizes.kDefaultPadding * 2),
                             alignment: Alignment.center,
@@ -89,19 +173,162 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               children: [
                                 Stack(
                                   children: [
-                                    CircleAvatar(
-                                      radius: 56,
-                                      backgroundColor: AppColors.lightGrey,
-                                      foregroundImage: NetworkImage(
-                                          "${AppStrings.imagePath}${snapshot.data!['profile_picture']}"),
-                                    ),
+                                    imageUrl != ''
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                AppSizes.cardCornerRadius * 10),
+                                            child: CachedNetworkImage(
+                                                width: 106,
+                                                height: 106,
+                                                fit: BoxFit.cover,
+                                                imageUrl: imageUrl,
+                                                placeholder: (context, url) =>
+                                                    const CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                    ),
+                                                errorWidget: (context, url,
+                                                        error) =>
+                                                    CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                      child: Text(
+                                                        snapshot.data!['name']
+                                                            .substring(0, 1)
+                                                            .toString()
+                                                            .toUpperCase(),
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .headlineLarge!
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600),
+                                                      ),
+                                                    )),
+                                          )
+                                        : ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                AppSizes.cardCornerRadius * 10),
+                                            child: CachedNetworkImage(
+                                                width: 106,
+                                                height: 106,
+                                                fit: BoxFit.cover,
+                                                imageUrl:
+                                                    '${snapshot.data!['profile_picture']}',
+                                                placeholder: (context, url) =>
+                                                    const CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                    ),
+                                                errorWidget: (context, url,
+                                                        error) =>
+                                                    CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                      child: Text(
+                                                        snapshot.data!['name']
+                                                            .substring(0, 1)
+                                                            .toString()
+                                                            .toUpperCase(),
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .headlineLarge!
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600),
+                                                      ),
+                                                    )),
+                                          ),
                                     Positioned(
                                       right: 0,
                                       bottom: 0,
                                       child: widget.isAdmin == true
-                                          ? InkWell(
+                                          ? GestureDetector(
                                               onTap: () {
-                                                const CustomImagePicker();
+                                                showCustomBottomSheet(
+                                                    context,
+                                                    '',
+                                                    SizedBox(
+                                                      height: 150,
+                                                      child: ListView.builder(
+                                                          shrinkWrap: true,
+                                                          padding: const EdgeInsets
+                                                                  .all(
+                                                              AppSizes
+                                                                  .kDefaultPadding),
+                                                          itemCount:
+                                                              pickerList.length,
+                                                          scrollDirection:
+                                                              Axis.horizontal,
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            return GestureDetector(
+                                                              onTap: () {
+                                                                switch (index) {
+                                                                  case 0:
+                                                                    pickImageFromGallery();
+                                                                    break;
+                                                                  case 1:
+                                                                    pickImageFromCamera();
+                                                                    break;
+                                                                }
+                                                                Navigator.pop(
+                                                                    context);
+                                                              },
+                                                              child: Padding(
+                                                                padding: const EdgeInsets
+                                                                        .only(
+                                                                    left: AppSizes
+                                                                            .kDefaultPadding *
+                                                                        2),
+                                                                child: Column(
+                                                                  children: [
+                                                                    Container(
+                                                                      width: 60,
+                                                                      height:
+                                                                          60,
+                                                                      padding: const EdgeInsets
+                                                                              .all(
+                                                                          AppSizes
+                                                                              .kDefaultPadding),
+                                                                      decoration: BoxDecoration(
+                                                                          border: Border.all(
+                                                                              width:
+                                                                                  1,
+                                                                              color: AppColors
+                                                                                  .lightGrey),
+                                                                          color: AppColors
+                                                                              .white,
+                                                                          shape:
+                                                                              BoxShape.circle),
+                                                                      child: pickerList[
+                                                                              index]
+                                                                          .icon,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      height:
+                                                                          AppSizes.kDefaultPadding /
+                                                                              2,
+                                                                    ),
+                                                                    Text(
+                                                                      '${pickerList[index].title}',
+                                                                      style: Theme.of(
+                                                                              context)
+                                                                          .textTheme
+                                                                          .bodyMedium,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }),
+                                                    ));
                                               },
                                               child: Container(
                                                 width: 40,
@@ -135,6 +362,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   '${snapshot.data!['name']}',
                                   style: Theme.of(context).textTheme.headline6,
                                 ),
+                                const SizedBox(
+                                  height: AppSizes.kDefaultPadding / 2,
+                                ),
                                 Text(
                                   'Group \u2022 ${membersList.length} People',
                                   style: Theme.of(context).textTheme.caption,
@@ -142,19 +372,18 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(
-                            height: AppSizes.kDefaultPadding,
-                          ),
                           (widget.isAdmin != true &&
                                   snapshot.data!['group_description'] == '')
                               ? const SizedBox()
                               : (widget.isAdmin == true &&
                                       snapshot.data!['group_description'] == '')
-                                  ? InkWell(
+                                  ? GestureDetector(
                                       onTap: () => context.push(
                                           ChangeGroupDescription(
                                               groupId: widget.groupId)),
                                       child: CustomCard(
+                                        margin: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
                                         padding: const EdgeInsets.all(
                                             AppSizes.kDefaultPadding),
                                         child: Text(
@@ -168,7 +397,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                         ),
                                       ),
                                     )
-                                  : InkWell(
+                                  : GestureDetector(
                                       onTap: () {
                                         widget.isAdmin == true
                                             ? context
@@ -178,30 +407,19 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                             : null;
                                       },
                                       child: CustomCard(
+                                        margin: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
                                         padding: const EdgeInsets.all(
                                             AppSizes.kDefaultPadding),
                                         child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  'Group Description',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyText1,
-                                                ),
-                                                // Text(
-                                                //   'Created at: ${AppHelper.getDateFromString(snapshot.data!['created_at'])}',
-                                                //   style: Theme.of(context)
-                                                //       .textTheme
-                                                //       .bodyText2,
-                                                // ),
-                                              ],
+                                            Text(
+                                              'Group Description',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText1,
                                             ),
                                             const SizedBox(
                                               height: AppSizes.kDefaultPadding,
@@ -237,15 +455,12 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                         ),
                                       ),
                                     ),
-                          const SizedBox(
-                            height: AppSizes.kDefaultPadding,
-                          ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSizes.kDefaultPadding),
+                                padding: const EdgeInsets.all(
+                                    AppSizes.kDefaultPadding),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -282,147 +497,62 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 ),
                               ),
                               CustomCard(
+                                margin: const EdgeInsets.all(
+                                    AppSizes.kDefaultPadding),
                                 padding: const EdgeInsets.all(
                                     AppSizes.kDefaultPadding),
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal:
-                                              AppSizes.kDefaultPadding / 1.5),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [],
-                                      ),
-                                    ),
-                                    ListView.separated(
-                                      itemCount: membersList.length,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      padding: EdgeInsets.zero,
-                                      itemBuilder: (context, index) {
-                                        return ListTile(
-                                          dense: true,
-                                          contentPadding: EdgeInsets.zero,
-                                          horizontalTitleGap: 0,
-                                          leading: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                                AppSizes.cardCornerRadius * 10),
-                                            child: CachedNetworkImage(
-                                              width: 30,
-                                              height: 30,
-                                              fit: BoxFit.cover,
-                                              imageUrl:
-                                                  '${AppStrings.imagePath}${membersList[index]['profile_picture']}',
-                                              placeholder: (context, url) =>
-                                                  const CircleAvatar(
-                                                radius: 30,
-                                                backgroundColor:
-                                                    AppColors.shimmer,
-                                              ),
-                                              errorWidget:
-                                                  (context, url, error) =>
-                                                      CircleAvatar(
-                                                radius: 30,
-                                                backgroundColor:
-                                                    AppColors.shimmer,
-                                                child: Text(
-                                                  membersList[index]['name']
-                                                      .substring(0, 1),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyText1!
-                                                      .copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w600),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          title: Text(
-                                            "${membersList[index]['name']}",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyText2!
-                                                .copyWith(
-                                                    color: AppColors.black,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                          ),
-                                          subtitle: Text(
-                                            "${membersList[index]['email']}",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .caption,
-                                          ),
-                                          trailing: membersList[index]
-                                                      ['isAdmin'] ==
-                                                  true
-                                              ? Text(
-                                                  'Admin',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .caption!
-                                                      .copyWith(
-                                                          color:
-                                                              AppColors.black,
-                                                          fontWeight:
-                                                              FontWeight.w500),
-                                                )
-                                              : widget.isAdmin == true
-                                                  ? IconButton(
-                                                      onPressed: () {
-                                                        showDialog(
-                                                            context: context,
-                                                            barrierDismissible:
-                                                                false,
-                                                            builder:
-                                                                (BuildContext
-                                                                    context) {
-                                                              return ConfirmationDialog(
-                                                                title:
-                                                                    'Delete Member?',
-                                                                body:
-                                                                    'Are you sure want to delete this member from this group?',
-                                                                onPressedPositiveButton:
-                                                                    () {
-                                                                  FirebaseProvider
-                                                                      .deleteMember(
-                                                                          widget
-                                                                              .groupId,
-                                                                          membersList,
-                                                                          index);
-                                                                  context.pop(
-                                                                      GroupInfoScreen(
-                                                                    groupId: widget
-                                                                        .groupId,
-                                                                    isAdmin: widget
-                                                                        .isAdmin,
-                                                                  ));
-                                                                },
-                                                              );
-                                                            });
+                                child: ListView.separated(
+                                  itemCount: membersList.length,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  padding: EdgeInsets.zero,
+                                  itemBuilder: (context, index) {
+                                    indx = index;
+                                    return ParticipantsCardWidget(
+                                        profilePicture: membersList[index]
+                                            ['profile_picture'],
+                                        name: membersList[index]['name'],
+                                        email: membersList[index]['email'],
+                                        isAdmin: membersList[index]['isAdmin'],
+                                        isUserAdmin: widget.isAdmin,
+                                        onDeleteButtonPressed: () {
+                                          widget.isAdmin == true
+                                              ? showDialog(
+                                                  context: context,
+                                                  barrierDismissible: false,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return ConfirmationDialog(
+                                                      title: 'Delete Member?',
+                                                      body:
+                                                          'Are you sure want to delete this member from this group?',
+                                                      onPressedPositiveButton:
+                                                          () {
+                                                        FirebaseProvider
+                                                            .deleteMember(
+                                                                widget.groupId,
+                                                                membersList,
+                                                                index);
+                                                        context.pop(
+                                                            GroupInfoScreen(
+                                                          groupId:
+                                                              widget.groupId,
+                                                          isAdmin:
+                                                              widget.isAdmin,
+                                                        ));
                                                       },
-                                                      icon: const Icon(
-                                                        EvaIcons.trash2,
-                                                        color: AppColors.grey,
-                                                        size: 16,
-                                                      ),
-                                                    )
-                                                  : const SizedBox(),
-                                        );
-                                      },
-                                      separatorBuilder:
-                                          (BuildContext context, int index) {
-                                        return const Padding(
-                                          padding: EdgeInsets.only(left: 42),
-                                          child: CustomDivider(),
-                                        );
-                                      },
-                                    )
-                                  ],
+                                                    );
+                                                  })
+                                              : const SizedBox();
+                                        });
+                                  },
+                                  separatorBuilder:
+                                      (BuildContext context, int index) {
+                                    return const Padding(
+                                      padding: EdgeInsets.only(left: 42),
+                                      child: CustomDivider(),
+                                    );
+                                  },
                                 ),
                               ),
                             ],
@@ -430,53 +560,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                           const SizedBox(
                             height: AppSizes.kDefaultPadding,
                           ),
-                          SafeArea(
-                            child: widget.isAdmin == true
-                                ? CustomCard(
-                                    padding: const EdgeInsets.all(
-                                        AppSizes.kDefaultPadding),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(
-                                          AppSizes.kDefaultPadding / 2),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          InkWell(
-                                            onTap: () {},
-                                            child: Text(
-                                              'Clear Chat',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyText2!
-                                                  .copyWith(
-                                                      color: AppColors.red,
-                                                      fontWeight:
-                                                          FontWeight.w500),
-                                            ),
-                                          ),
-                                          const CustomDivider(
-                                            height: 20,
-                                          ),
-                                          InkWell(
-                                            onTap: () {},
-                                            child: Text(
-                                              'Exit Group',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyText2!
-                                                  .copyWith(
-                                                      color: AppColors.red,
-                                                      fontWeight:
-                                                          FontWeight.w500),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : Container(),
-                          )
                         ],
                       );
                     }

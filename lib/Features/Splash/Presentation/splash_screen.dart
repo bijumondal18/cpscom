@@ -28,6 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: BlocConsumer<GetStartedBloc, GetStartedState>(
         listener: (context, state) async {
           if (state is GetStartedStateLoaded) {

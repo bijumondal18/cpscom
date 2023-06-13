@@ -61,6 +61,17 @@ class AppPreference {
     return firstName;
   }
 
+  Future<void> setPushToken(String pushToken) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('pushToken', pushToken);
+  }
+
+  Future<String> getPushToken() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String pushToken = prefs.getString('pushToken') ?? '';
+    return pushToken;
+  }
+
   Future<void> setLastName(String lastName) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('last_name', lastName);

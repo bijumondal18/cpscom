@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_colors.dart';
 import 'package:cpscom_admin/Commons/app_sizes.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
@@ -72,12 +73,8 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                         border:
                             Border.all(width: 1, color: AppColors.lightGrey)),
                     child: StreamBuilder(
-                        stream: FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(FirebaseAuth.instance.currentUser!.uid)
-                            .collection('groups')
-                            .doc(widget.groupId)
-                            .snapshots(),
+                        stream: FirebaseProvider.getGroupDescription(
+                            widget.groupId),
                         builder: (context,
                             AsyncSnapshot<DocumentSnapshot> snapshot) {
                           switch (snapshot.connectionState) {
@@ -93,12 +90,7 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                                   minLines: 8,
                                   maxLines: 10,
                                   autoFocus: true,
-                                  // validator: (value) {
-                                  //   if (value!.isEmpty) {
-                                  //     return "Group Desc can't be empty";
-                                  //   }
-                                  //   return null;
-                                  // },
+                                  isBorder: false,
                                 );
                               }
                           }
@@ -117,23 +109,39 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                     FullButton(
                         label: 'Ok'.toUpperCase(),
                         onPressed: () {
-                          // if (_formKey.currentState!.validate()) {
-                          FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(FirebaseAuth.instance.currentUser!.uid)
-                              .collection('groups')
-                              .doc(widget.groupId)
-                              .update({
-                            "group_description": descController.text
-                          }).then((value) {
+                          FirebaseProvider.updateGroupDescription(
+                              widget.groupId, descController.text);
                             customSnackBar(
-                                context,
-                                'Group Description Updated Successfully',
-                                AppColors.successSnackBarBackground);
+                              context,
+                              'Group Description Updated Successfully',
+                            );
                             context.pop(
                                 GroupInfoScreen(groupId: widget.groupId),
                                 descController.text);
-                          });
+
+                          // if (_formKey.currentState!.validate()) {
+                          // FirebaseFirestore.instance
+                          //     .collection('users')
+                          //     .doc(FirebaseAuth.instance.currentUser!.uid)
+                          //     .collection('groups')
+                          //     .doc(widget.groupId)
+                          //     .update({
+                          //   "group_description": descController.text
+                          // }).then((value) {
+                          //   customSnackBar(
+                          //     context,
+                          //     'Group Description Updated Successfully',
+                          //   );
+                          //   context.pop(
+                          //       GroupInfoScreen(groupId: widget.groupId),
+                          //       descController.text);
+                          // });
+                          // FirebaseFirestore.instance
+                          //     .collection('groups')
+                          //     .doc(widget.groupId)
+                          //     .update({
+                          //   "group_description": descController.text
+                          // });
                           //}
                         }),
                     Container(

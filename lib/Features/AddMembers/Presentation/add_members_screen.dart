@@ -8,7 +8,6 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Widgets/custom_text_field.dart';
@@ -27,12 +26,21 @@ class AddMembersScreen extends StatefulWidget {
 
 class _AddMembersScreenState extends State<AddMembersScreen> {
   var selectedIndex = [];
-  List<Map<String, dynamic>> existingMembersList = [];
+  List multipleSelected = [];
+  List<Map<String, dynamic>> selectedMembers = [];
 
   List<QueryDocumentSnapshot> members = [];
   final TextEditingController searchController = TextEditingController();
   var membersName = '';
+  var membersEmail = '';
   Map<String, dynamic> data = {};
+
+  var indx;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +68,8 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                           Padding(
                             padding: const EdgeInsets.all(
                                 AppSizes.kDefaultPadding + 6),
-                            child: Text('${selectedIndex.length} / ${snapshot.data!.docs.length}'),
+                            child: Text(
+                                '${selectedIndex.length} / ${snapshot.data!.docs.length}'),
                           )
                         ],
                       ),
@@ -72,19 +81,19 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             margin:
                                 const EdgeInsets.all(AppSizes.kDefaultPadding),
                             decoration: BoxDecoration(
-                                color: AppColors.white,
-                                boxShadow: const [
-                                  BoxShadow(
-                                      offset: Offset(7, 7),
-                                      color: AppColors.lightGrey,
-                                      blurRadius: 15),
-                                  BoxShadow(
-                                      offset: Offset(-7, -7),
-                                      color: AppColors.shimmer,
-                                      blurRadius: 15)
-                                ],
+                                color: AppColors.bg,
+                                // boxShadow: const [
+                                //   BoxShadow(
+                                //       offset: Offset(2, 2),
+                                //       color: AppColors.shimmer,
+                                //       blurRadius: 10),
+                                //   BoxShadow(
+                                //       offset: Offset(-2, -2),
+                                //       color: AppColors.shimmer,
+                                //       blurRadius: 10)
+                                // ],
                                 borderRadius: BorderRadius.circular(
-                                    AppSizes.cardCornerRadius * 3)),
+                                    AppSizes.cardCornerRadius)),
                             child: Row(
                               children: [
                                 const Icon(
@@ -99,10 +108,13 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                   child: CustomTextField(
                                     controller: searchController,
                                     hintText: 'Search participants...',
-                                    onChanged: (value) {
+                                    isBorder: false,
+                                    onChanged: (String? value) {
                                       setState(() {
                                         membersName = value!;
+                                        membersEmail = value;
                                       });
+                                      return null;
                                     },
                                   ),
                                 )
@@ -118,38 +130,44 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                     bottom: AppSizes.kDefaultPadding * 9),
                                 itemBuilder: (context, index) {
                                   members = snapshot.data!.docs;
-                                  members.removeWhere((element) {
-                                    return element['uid'] ==
-                                        FirebaseAuth.instance.currentUser!.uid && element['isSuperAdmin']==true;
-                                  });
-
+                                  indx = index;
                                   //for search members
                                   data = members[index].data()
                                       as Map<String, dynamic>;
 
                                   if (membersName.isEmpty) {
                                     return _customCb(
-                                        context,
-                                        '${members[index]['profile_picture']}',
-                                        members[index]['name'],
-                                        members[index]['email'],
-                                        selectedIndex.contains(index),
-                                        index);
+                                      context,
+                                      '${data['profile_picture']}',
+                                      data['name'],
+                                      data['email'],
+                                      selectedIndex.contains(index),
+                                      index,
+                                    );
                                   } else if (data['name']
-                                      .toLowerCase()
-                                      .trim()
-                                      .toString()
-                                      .startsWith(membersName
                                           .toLowerCase()
                                           .trim()
-                                          .toString())) {
+                                          .toString()
+                                          .contains(membersName
+                                              .toLowerCase()
+                                              .trim()
+                                              .toString()) ||
+                                      data['email']
+                                          .toLowerCase()
+                                          .trim()
+                                          .toString()
+                                          .contains(membersEmail
+                                              .toLowerCase()
+                                              .trim()
+                                              .toString())) {
                                     return _customCb(
-                                        context,
-                                        '${members[index]['profile_picture']}',
-                                        members[index]['name'],
-                                        members[index]['email'],
-                                        selectedIndex.contains(index),
-                                        index);
+                                      context,
+                                      '${data['profile_picture']}',
+                                      data['name'],
+                                      data['email'],
+                                      selectedIndex.contains(index),
+                                      index,
+                                    );
                                   }
                                   return const SizedBox();
                                 },
@@ -167,39 +185,18 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
       floatingActionButton: selectedIndex.isNotEmpty
           ? CustomFloatingActionButton(
               onPressed: () {
-                // for (var i = 0; i < members.length; i++) {
-                //   members.add(data);
-                // }
-                // for (var i = 0; i < selectedIndex.length; i++) {
-                //   members.add({
-                //     "name": members[i]['name'],
-                //     "id": members[i]['uid'],
-                //     "isAdmin": members[i]['isAdmin'],
-                //     "email": members[i]['email'],
-                //     "profile_picture": members[i]['profile_picture'],
-                //   });
-                //   print(members.length);
-                // }
-                for (var i = 0; i < members.length; i++) {
-                  print(members[i]['name']);
-                  existingMembersList.add({
-                    'name': members[i]['name'],
-                    'email': members[i]['email'],
-                    'uid': members[i]['uid'],
-                    'status': members[i]['status'],
-                    'profile_picture': members[i]['profile_picture'],
-                    'isAdmin': false
-                  });
-                }
-
                 if (widget.isCameFromHomeScreen == true) {
                   context.push(CreateNewGroupScreen(
-                   membersList: existingMembersList,
+                    membersList: selectedMembers.unique((x) => x['uid']),
                   ));
                 } else {
-                  context.pop(GroupInfoScreen(
-                    groupId: widget.groupId!,
-                  ));
+                  //FirebaseProvider.addMemberToGroup(widget.groupId!, selectedMembers[indx]);
+
+                  Future.delayed(
+                      const Duration(seconds: 2),
+                      () => context.pop(GroupInfoScreen(
+                            groupId: widget.groupId!,
+                          )));
                 }
               },
               iconData: EvaIcons.arrowForwardOutline,
@@ -222,7 +219,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                     width: 30,
                     height: 30,
                     fit: BoxFit.cover,
-                    imageUrl: '${AppStrings.imagePath}$imageUrl',
+                    imageUrl: imageUrl,
                     placeholder: (context, url) => const CircleAvatar(
                       radius: 16,
                       backgroundColor: AppColors.shimmer,
@@ -264,10 +261,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               setState(() {
                 if (selectedIndex.contains(index)) {
                   selectedIndex.remove(index);
-                  //isChecked = false;
+                  selectedMembers.unique((x) => x['uid']);
                 } else {
                   selectedIndex.add(index);
-                  // isChecked = true;
+                  selectedMembers
+                      .add(members[index].data() as Map<String, dynamic>);
+                  selectedMembers.unique((x) => x['uid']);
                 }
               });
             }),
@@ -277,5 +276,14 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
         )
       ],
     );
+  }
+}
+
+extension Unique<E, Id> on List<E> {
+  List<E> unique([Id Function(E element)? id, bool inplace = true]) {
+    final ids = <dynamic>{}; //Set()
+    var list = inplace ? this : List<E>.from(this);
+    list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
+    return list;
   }
 }

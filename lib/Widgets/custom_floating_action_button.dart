@@ -22,7 +22,7 @@ class CustomFloatingActionButton extends StatelessWidget {
             shape: BoxShape.circle, gradient: AppColors.buttonGradientColor),
         child: Icon(
           iconData ?? EvaIcons.arrowForwardOutline,
-          size: 24,
+          size: 25,
           color: AppColors.white,
         ),
       ),

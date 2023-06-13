@@ -1,16 +1,31 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_colors.dart';
 import 'package:cpscom_admin/Commons/app_sizes.dart';
 import 'package:cpscom_admin/Commons/app_strings.dart';
 import 'package:cpscom_admin/Commons/route.dart';
+import 'package:cpscom_admin/Features/Login/Presentation/login_screen.dart';
 import 'package:cpscom_admin/Features/UpdateUserStatus/Presentation/update_user_status_screen.dart';
+import 'package:cpscom_admin/Utils/app_preference.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_loader.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../../Commons/app_images.dart';
+import '../../../Utils/custom_bottom_modal_sheet.dart';
+import '../../../Widgets/custom_confirmation_dialog.dart';
+import '../../../Widgets/custom_image_picker.dart';
+import '../../GroupInfo/Model/image_picker_model.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({Key? key}) : super(key: key);
@@ -20,19 +35,116 @@ class MyProfileScreen extends StatefulWidget {
 }
 
 class _MyProfileScreenState extends State<MyProfileScreen> {
-  var future = FirebaseFirestore.instance
-      .collection('users')
-      .doc(FirebaseAuth.instance.currentUser!.uid)
-      .get();
+  final AppPreference preference = AppPreference();
+  final FirebaseProvider firebaseProvider = FirebaseProvider();
+
+  File? image;
+  String imageUrl = "";
+
+  Future pickImageFromGallery() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.gallery,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      setState(() => this.image = imageTemp);
+      uploadImage();
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  Future pickImageFromCamera() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      setState(() => this.image = imageTemp);
+      await uploadImage();
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  UploadTask uploadFile(File image, String fileName) {
+    Reference reference =
+        FirebaseProvider.storage.ref().child('user_profile_pictures/$fileName');
+    UploadTask uploadTask = reference.putFile(image);
+    return uploadTask;
+  }
+
+  Future uploadImage() async {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    UploadTask uploadTask = uploadFile(image!, fileName);
+    try {
+      TaskSnapshot snapshot = await uploadTask;
+      imageUrl = await snapshot.ref.getDownloadURL();
+      await FirebaseProvider.firestore
+          .collection('users')
+          .doc(FirebaseProvider.auth.currentUser!.uid)
+          .update({'profile_picture': imageUrl});
+      await FirebaseProvider.firestore
+          .collection('users')
+          .doc(FirebaseProvider.auth.currentUser!.uid)
+          .update({'profile_picture': imageUrl});
+    } on FirebaseException catch (e) {}
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'My Profile',
+        actions: [
+          TextButton(
+              onPressed: () => showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  builder: (BuildContext dialogContext) {
+                    return ConfirmationDialog(
+                        title: 'Logout?',
+                        body: 'Are you sure you want to logout?',
+                        positiveButtonLabel: 'Logout',
+                        negativeButtonLabel: 'Cancel',
+                        onPressedPositiveButton: () async {
+                          await FirebaseProvider.logout();
+                          await preference.setIsLoggedIn(false);
+                          await preference.clearPreference();
+                          context.pushAndRemoveUntil(const LoginScreen());
+                        });
+                  }),
+              child: Row(
+                children: [
+                  const Icon(
+                    EvaIcons.logOutOutline,
+                    color: AppColors.red,
+                    size: 18,
+                  ),
+                  const SizedBox(
+                    width: AppSizes.kDefaultPadding / 3,
+                  ),
+                  Text(
+                    'Logout',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: AppColors.red, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ))
+        ],
       ),
       body: StreamBuilder(
-          stream: FirebaseProvider.getCurrentUserDetails(),
+          stream: firebaseProvider.getCurrentUserDetails(),
           builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
@@ -54,11 +166,147 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             children: [
                               Row(
                                 children: [
-                                  CircleAvatar(
-                                    radius: 46,
-                                    backgroundColor: AppColors.bg,
-                                    foregroundImage: NetworkImage(
-                                        '${AppStrings.imagePath}${snapshot.data!['profile_picture']}'),
+                                  Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                            AppSizes.cardCornerRadius * 10),
+                                        child: CachedNetworkImage(
+                                            width: 106,
+                                            height: 106,
+                                            fit: BoxFit.cover,
+                                            imageUrl:
+                                                '${snapshot.data?['profile_picture']}',
+                                            placeholder: (context, url) =>
+                                                const CircleAvatar(
+                                                  radius: 66,
+                                                  backgroundColor: AppColors.bg,
+                                                ),
+                                            errorWidget: (context, url,
+                                                    error) =>
+                                                CircleAvatar(
+                                                  radius: 66,
+                                                  backgroundColor: AppColors.bg,
+                                                  child: Text(
+                                                    snapshot.data!['name']
+                                                        .substring(0, 1)
+                                                        .toString()
+                                                        .toUpperCase(),
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .headlineLarge!
+                                                        .copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600),
+                                                  ),
+                                                )),
+                                      ),
+                                      Positioned(
+                                          bottom: 0,
+                                          right: 0,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              showCustomBottomSheet(
+                                                  context,
+                                                  '',
+                                                  SizedBox(
+                                                    height: 150,
+                                                    child: ListView.builder(
+                                                        shrinkWrap: true,
+                                                        padding: const EdgeInsets
+                                                                .all(
+                                                            AppSizes
+                                                                .kDefaultPadding),
+                                                        itemCount:
+                                                            pickerList.length,
+                                                        scrollDirection:
+                                                            Axis.horizontal,
+                                                        itemBuilder:
+                                                            (context, index) {
+                                                          return GestureDetector(
+                                                            onTap: () {
+                                                              switch (index) {
+                                                                case 0:
+                                                                  pickImageFromGallery();
+                                                                  break;
+                                                                case 1:
+                                                                  pickImageFromCamera();
+                                                                  break;
+                                                              }
+                                                              Navigator.pop(
+                                                                  context);
+                                                            },
+                                                            child: Padding(
+                                                              padding: const EdgeInsets
+                                                                      .only(
+                                                                  left: AppSizes
+                                                                          .kDefaultPadding *
+                                                                      2),
+                                                              child: Column(
+                                                                children: [
+                                                                  Container(
+                                                                    width: 60,
+                                                                    height: 60,
+                                                                    padding: const EdgeInsets
+                                                                            .all(
+                                                                        AppSizes
+                                                                            .kDefaultPadding),
+                                                                    decoration: BoxDecoration(
+                                                                        border: Border.all(
+                                                                            width:
+                                                                                1,
+                                                                            color: AppColors
+                                                                                .lightGrey),
+                                                                        color: AppColors
+                                                                            .white,
+                                                                        shape: BoxShape
+                                                                            .circle),
+                                                                    child: pickerList[
+                                                                            index]
+                                                                        .icon,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    height:
+                                                                        AppSizes.kDefaultPadding /
+                                                                            2,
+                                                                  ),
+                                                                  Text(
+                                                                    '${pickerList[index].title}',
+                                                                    style: Theme.of(
+                                                                            context)
+                                                                        .textTheme
+                                                                        .bodyMedium,
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          );
+                                                        }),
+                                                  ));
+                                            },
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              padding: const EdgeInsets.all(
+                                                  AppSizes.kDefaultPadding /
+                                                      1.3),
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      width: 1,
+                                                      color:
+                                                          AppColors.lightGrey),
+                                                  color: AppColors.white,
+                                                  shape: BoxShape.circle),
+                                              child: Image.asset(
+                                                AppImages.cameraIcon,
+                                                width: 36,
+                                                height: 36,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                          ))
+                                    ],
                                   ),
                                   Expanded(
                                     child: Padding(
@@ -74,23 +322,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                   ),
                                 ],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: AppSizes.kDefaultPadding + 2),
-                                child: TextButton(
-                                    onPressed: () {},
-                                    child: Text(
-                                      'Edit',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .button!
-                                          .copyWith(color: AppColors.primary),
-                                    )),
-                              )
                             ],
                           ),
                         ),
-                        const CustomDivider(),
+                        const CustomDivider(
+                          height: 30,
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: AppSizes.kDefaultPadding),
@@ -98,27 +335,45 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             children: [
                               ListTile(
                                 dense: true,
+                                horizontalTitleGap: 0,
                                 contentPadding: EdgeInsets.zero,
+                                leading: const Icon(
+                                  EvaIcons.person,
+                                  color: AppColors.grey,
+                                  size: 20,
+                                ),
                                 title: Text(
                                   'Name',
                                   style: Theme.of(context).textTheme.bodyText2,
                                 ),
                                 subtitle: Text(
                                   snapshot.data!['name'],
-                                  style: Theme.of(context).textTheme.bodyText1,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1!
+                                      .copyWith(fontWeight: FontWeight.w400),
                                 ),
                               ),
                               const CustomDivider(),
                               ListTile(
                                 dense: true,
+                                horizontalTitleGap: 0,
                                 contentPadding: EdgeInsets.zero,
+                                leading: const Icon(
+                                  EvaIcons.email,
+                                  color: AppColors.grey,
+                                  size: 20,
+                                ),
                                 title: Text(
                                   'Email',
                                   style: Theme.of(context).textTheme.bodyText2,
                                 ),
                                 subtitle: Text(
                                   snapshot.data!['email'],
-                                  style: Theme.of(context).textTheme.bodyText1,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyText1!
+                                      .copyWith(fontWeight: FontWeight.w400),
                                 ),
                               ),
                               const CustomDivider(),
@@ -132,13 +387,24 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           dense: true,
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: AppSizes.kDefaultPadding),
+                          horizontalTitleGap: 0,
+                          leading: const Icon(
+                            EvaIcons.info,
+                            color: AppColors.grey,
+                            size: 20,
+                          ),
                           title: Text(
                             'Status',
                             style: Theme.of(context).textTheme.bodyText2,
                           ),
                           subtitle: Text(
                             snapshot.data!['status'],
-                            style: Theme.of(context).textTheme.bodyText1,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(fontWeight: FontWeight.w400),
                           ),
                           trailing: const Icon(
                             EvaIcons.arrowIosForward,

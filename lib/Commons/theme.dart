@@ -17,8 +17,8 @@ class AppTheme {
       hintColor: AppColors.darkGrey,
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
           elevation: AppSizes.elevation5, backgroundColor: AppColors.primary),
-      appBarTheme: AppBarTheme(
-          iconTheme: const IconThemeData(
+      appBarTheme: const AppBarTheme(
+          iconTheme: IconThemeData(
             size: AppSizes.appBarIconSize,
             color: AppColors.black,
           ),
@@ -26,11 +26,14 @@ class AppTheme {
           elevation: AppSizes.elevation0,
           centerTitle: true,
           titleTextStyle: TextStyle(
-              color: AppColors.black,
-              fontSize: AppSizes.bodyText1,
-              fontWeight: FontWeight.w500,
-              fontFamily: FontFamily.poppinsRegular),
+            color: AppColors.black,
+            fontSize: AppSizes.bodyText1,
+            fontWeight: FontWeight.w500,
+            //    fontFamily: FontFamily.poppinsRegular
+          ),
           foregroundColor: AppColors.black),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: AppColors.lightGrey, circularTrackColor: AppColors.bg),
       checkboxTheme: CheckboxThemeData(
           shape: RoundedRectangleBorder(
               borderRadius:
@@ -87,7 +90,7 @@ class AppTheme {
             fontSize: AppSizes.button,
             fontWeight: FontWeight.w600),
       ),
-      fontFamily: FontFamily.poppinsRegular,
+      //fontFamily: FontFamily.poppinsRegular,
     );
   }
 

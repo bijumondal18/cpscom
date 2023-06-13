@@ -1,53 +1,27 @@
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+// import 'package:package_info_plus/package_info_plus.dart';
 
 class AppHelper {
-  static String getDeviceInfo() {
-    return "";
-  }
-
-  static void showToast() {}
-
-  static String getDeviceId() {
-    return "";
-  }
-
-  static String getAppVersion() {
-    String appVersion = '';
-    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
-      appVersion = packageInfo.version;
-    });
-
-    //String appName = _packageInfo.appName;
-    //String packageName = _packageInfo.packageName;
-    //appVersion = _packageInfo.version;
-    // String buildNumber = _packageInfo.buildNumber;
-    return appVersion;
-  }
-
   static String getDateFromString(String givenDate) {
     var inputDate = DateTime.parse(givenDate);
-    //var outputFormat = DateFormat('dd MMM, yyyy');
-    var outputFormat = DateFormat('dd MMM');
+    var outputFormat = DateFormat('hh:mm a');
     var outputDate = outputFormat.format(inputDate);
     return outputDate;
   }
 
-  static String getBookingStatus(String givenData) {
-    var bookingStatus = '';
+  static String getStringDateFromTimestamp(int timestamp) {
+    DateTime inputDate =
+        DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: false);
+    var outputFormat = DateFormat('dd MMM, yyyy').format(inputDate);
+    return outputFormat;
+  }
 
-    if (givenData == "C") {
-      bookingStatus = 'Canceled'.toUpperCase();
-    } else if (givenData == "CMP") {
-      bookingStatus = 'Completed'.toUpperCase();
-    } else if (givenData == "R") {
-      bookingStatus = 'Rebook'.toUpperCase();
-    } else if (givenData == "N") {
-      bookingStatus = 'New'.toUpperCase();
-    }
-
-    return bookingStatus;
+  static String getStringTimeFromTimestamp(int timestamp) {
+    DateTime inputDate =
+        DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: false);
+    var outputFormat = DateFormat('hh:mm a').format(inputDate);
+    return outputFormat;
   }
 }
 
@@ -76,5 +50,23 @@ extension extString on String {
   bool get isValidPhone {
     final phoneRegExp = RegExp(r"^\+?0[0-9]{10}$");
     return phoneRegExp.hasMatch(this);
+  }
+}
+
+extension DateHelper on DateTime {
+
+  String formatDate() {
+    final formatter = DateFormat('dd MMM, yyyy');
+    return formatter.format(this);
+  }
+  bool isSameDate(DateTime other) {
+    return this.year == other.year &&
+        this.month == other.month &&
+        this.day == other.day;
+  }
+
+  int getDifferenceInDaysWithNow() {
+    final now = DateTime.now();
+    return now.difference(this).inDays;
   }
 }

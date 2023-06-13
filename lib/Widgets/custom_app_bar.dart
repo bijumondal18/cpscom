@@ -12,7 +12,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const CustomAppBar({
     Key? key,
-    this.title,
+    this.title = '',
     this.actions,
     this.autoImplyLeading = true,
   }) : super(key: key);
@@ -25,39 +25,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: AppBar(
             automaticallyImplyLeading: autoImplyLeading!,
             actions: actions,
-            leading: autoImplyLeading == true ? IconButton(
-              icon: const Icon(
-                EvaIcons.arrowBack,
-                color: AppColors.black,
-                size: 24,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ): Container(),
+            leading: autoImplyLeading == true
+                ? IconButton(
+                    icon: const Icon(
+                      EvaIcons.arrowBack,
+                      color: AppColors.black,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  )
+                : const SizedBox(),
             title: Text(
-              title ?? '',
+              title!,
             ),
-            // Expanded(
-            //   child: Row(
-            //     children: [
-            //       isOnChatScreen == true
-            //           ? const CircleAvatar(
-            //               radius: 15,
-            //               backgroundColor: AppColors.lightGrey,
-            //             )
-            //           : Container(),
-            //       isOnChatScreen == true
-            //           ? const SizedBox(
-            //               width: AppSizes.kDefaultPadding,
-            //             )
-            //           : Container(),
-            //       Text(
-            //         title ?? '',
-            //       ),
-            //     ],
-            //   ),
-            // ),
           ),
         ),
         const CustomDivider()
