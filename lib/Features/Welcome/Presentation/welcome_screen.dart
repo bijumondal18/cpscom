@@ -198,7 +198,7 @@ Widget _buildMobileView(BuildContext context, GetStartedStateLoaded state) {
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Expanded(
-        flex: 4,
+        flex: 5,
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
@@ -212,7 +212,7 @@ Widget _buildMobileView(BuildContext context, GetStartedStateLoaded state) {
         ),
       ),
       Expanded(
-        flex: 2,
+        flex: 3,
         child: Container(
           width: MediaQuery.of(context).size.width,
           padding: const EdgeInsets.symmetric(
@@ -233,25 +233,27 @@ Widget _buildMobileView(BuildContext context, GetStartedStateLoaded state) {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Column(
-                children: [
-                  Text(
-                    state.responseGetStarted.data?.cms?.title.toString() ??
-                        'Join the Conversation: Connect and Collaborate',
-                    style: Theme.of(context).textTheme.headline6,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: AppSizes.kDefaultPadding * 2,
-                  ),
-                  Text(
-                    state.responseGetStarted.data?.cms?.description
-                            .toString() ??
-                        'Say goodbye to scattered conversations! Connect with your team, share files, and stay organized all in one place.',
-                    style: Theme.of(context).textTheme.bodyText2,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      state.responseGetStarted.data?.cms?.title.toString() ??
+                          'Join the Conversation: Connect and Collaborate',
+                      style: Theme.of(context).textTheme.headline6,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: AppSizes.kDefaultPadding * 2,
+                    ),
+                    Text(
+                      state.responseGetStarted.data?.cms?.description
+                              .toString() ??
+                          'Say goodbye to scattered conversations! Connect with your team, share files, and stay organized all in one place.',
+                      style: Theme.of(context).textTheme.bodyText2,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(
                 height: AppSizes.kDefaultPadding * 3,

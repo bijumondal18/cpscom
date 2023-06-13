@@ -25,7 +25,7 @@ class BuildGroupListState extends State<BuildGroupList> {
   List<Group> groupsList = [];
   List<Group> searchedGroupList = [];
 
-  // Search groups by name or last message
+  // Search groups by name
   List<Group> searchGroups(String query) {
     setState(() {
       searchedGroupList = groupsList
@@ -38,20 +38,13 @@ class BuildGroupListState extends State<BuildGroupList> {
     return searchedGroupList;
   }
 
-  //Get Groups List
+  //Get All Groups List
   Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
     var allGroupsList = firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .collection('groups')
+        .collection('users/${auth.currentUser!.uid}/groups')
         .orderBy('created_at', descending: true)
         .snapshots();
     yield* allGroupsList;
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override
@@ -122,8 +115,8 @@ class BuildGroupListState extends State<BuildGroupList> {
                             itemBuilder: (context, index) {
                               return InkWell(
                                   onTap: () {
-                                    context.push(ChatScreen(
-                                        group: searchedGroupList[index]));
+                                    // context.push(ChatScreen(
+                                    //     group: searchedGroupList[index]));
                                   },
                                   child: GroupListItem(
                                     groupsModel: searchedGroupList[index],
@@ -138,8 +131,8 @@ class BuildGroupListState extends State<BuildGroupList> {
                             itemBuilder: (context, index) {
                               return InkWell(
                                   onTap: () {
-                                    context.push(
-                                        ChatScreen(group: groupsList[index]));
+                                    // context.push(
+                                    //     ChatScreen(group: groupsList[index]));
                                   },
                                   child: GroupListItem(
                                     groupsModel: groupsList[index],

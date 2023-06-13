@@ -101,6 +101,7 @@ dependencies:
   # Collection Package for groupBy Function to separate Chats by Date
   collection: ^1.17.0
   overlay_support: ^2.1.0
+  flutter_local_notifications: ^9.2.0
 
 
 dev_dependencies:

@@ -131,11 +131,11 @@ class _BuildChatListState extends State<BuildChatList> {
                                     return HomeChatCard(
                                         groupId: snapshot.data!.docs[index].id,
                                         onPressed: () {
-                                          // context.push(ChatScreen(
-                                          //   groupId:
-                                          //       snapshot.data!.docs[index].id,
-                                          //   isAdmin: widget.isAdmin,
-                                          // ));
+                                          context.push(ChatScreen(
+                                            groupId:
+                                                snapshot.data!.docs[index].id,
+                                            isAdmin: widget.isAdmin,
+                                          ));
                                         },
                                         groupName: snapshot.data!.docs[index]
                                             ['name'],

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -26,22 +27,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
+import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as p;
 
+import '../../../Api/urls.dart';
 import '../../../Utils/app_preference.dart';
 import '../../GroupMedia/Presentation/group_media_screen.dart';
 
 final ScrollController _scrollController = ScrollController();
 
 class ChatScreen extends StatefulWidget {
-  final Group group;
+  // final Group group;
+  final String groupId;
   bool? isAdmin;
 
-  ChatScreen({Key? key, required this.group, this.isAdmin}) : super(key: key);
+  ChatScreen({Key? key, required this.groupId, this.isAdmin}) : super(key: key);
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -54,7 +58,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String profilePicture = '';
-  String pushToken = '';
+  List<String> pushToken = [];
 
   File? imageFile;
 
@@ -151,7 +155,7 @@ class _ChatScreenState extends State<ChatScreen> {
     int status = 1;
     await _firestore
         .collection('groups')
-        .doc(widget.group.id)
+        .doc(widget.groupId)
         .collection('chats')
         .doc(fileName)
         .set({
@@ -170,7 +174,7 @@ class _ChatScreenState extends State<ChatScreen> {
     var uploadTask = await ref.putFile(file).catchError((error) async {
       await _firestore
           .collection('groups')
-          .doc(widget.group.id)
+          .doc(widget.groupId)
           .collection('chats')
           .doc(fileName)
           .delete();
@@ -180,18 +184,84 @@ class _ChatScreenState extends State<ChatScreen> {
       String imageUrl = await uploadTask.ref.getDownloadURL();
       await _firestore
           .collection('groups')
-          .doc(widget.group.id)
+          .doc(widget.groupId)
           .collection('chats')
           .doc(fileName)
           .update({"message": imageUrl});
     }
   }
 
+   Future<void> onSendMessages(String groupId,
+      String msg,
+      String profilePicture,
+      String senderName,) async {
+    if (msg
+        .trim()
+        .isNotEmpty) {
+      Map<String, dynamic> chatData = {
+        'sendBy': FirebaseProvider.auth.currentUser!.displayName,
+        'sendById': FirebaseProvider.auth.currentUser!.uid,
+        'profile_picture': profilePicture,
+        'message': msg,
+        'type': 'text',
+        'time': DateTime
+            .now()
+            .millisecondsSinceEpoch, //Timestamp.now(),
+        "isSeen": false,
+      };
+
+      await FirebaseProvider.firestore
+          .collection('groups')
+          .doc(groupId)
+          .collection('chats')
+          .add(chatData)
+          .then((value) {
+        sendPushNotification(senderName, msg);
+      });
+    }
+  }
+
+   Future<void> sendPushNotification(String senderName,
+      String msg) async {
+    for(var i = 0; i<membersList.length;i++){
+      print('push token -------------      '+membersList[i]['pushToken']);
+      try {
+        final body = {
+          "priority":"high",
+          // "data":{
+          //   "click_action": "FLUTTER_NOTIFICATION_CLICK",
+          //   "status":"done",
+          //   "body":msg,
+          //   "title":senderName,
+          // },
+          "to": membersList[i]['pushToken'].toString(),
+          "notification": <String, dynamic>{"title": senderName, "body": msg}
+        };
+        var response = await post(Uri.parse(Urls.sendPushNotificationUrl),
+            headers: <String, String>{
+              HttpHeaders.contentTypeHeader: 'application/json',
+              HttpHeaders.authorizationHeader:
+              'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
+            },
+            body: jsonEncode(body));
+        if (kDebugMode) {
+          print('status code send notification - ${response.statusCode}');
+          print('body send notification -  ${response.body}');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print(e.toString());
+        }
+      }
+   }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-          stream: FirebaseProvider.getGroupDetails(widget.group.id!),
+          stream: FirebaseProvider.getGroupDetails(widget.groupId),
           builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
@@ -199,7 +269,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 return const CircularProgressIndicator.adaptive();
               default:
                 if (snapshot.hasData) {
-                  membersList = snapshot.data!['members'];
+                  membersList = snapshot.data?['members'];
                   for (var i = 0; i < membersList.length; i++) {
                     if (membersList[i]['uid'] ==
                         FirebaseAuth.instance.currentUser!.uid) {
@@ -209,7 +279,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       widget.isAdmin = membersList[i]['isAdmin'];
                       profilePicture = membersList[i]['profile_picture'];
                     }
+                    else{
+                      pushToken.add(membersList[i]['pushToken']) ;
+                    }
                   }
+                  // for(var t = 0; t< membersList.length;t++){
+                  //   pushToken = membersList[t]['pushToken'];
+                  //   print(pushToken);
+                  // }
                   return SafeArea(
                     child: Scaffold(
                       appBar: CustomAppBar(
@@ -271,7 +348,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               switch (value) {
                                 case 1:
                                   context.push(GroupInfoScreen(
-                                      groupId: widget.group.id!,
+                                      groupId: widget.groupId,
                                       isAdmin: widget.isAdmin));
                                   break;
                                 case 2:
@@ -292,7 +369,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       .requestFocus(FocusNode());
                                 },
                                 child: _BuildChatList(
-                                  groupId: widget.group.id!,
+                                  groupId: widget.groupId,
                                 ),
                               ),
                             ),
@@ -408,43 +485,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                                             }),
                                                       ));
                                                 },
-                                                // onTap: () async {
-                                                //   FilePickerResult? result =
-                                                //       await FilePicker.platform
-                                                //           .pickFiles(
-                                                //     allowMultiple: true,
-                                                //     type: FileType.custom,
-                                                //     allowedExtensions: [
-                                                //       'jpg',
-                                                //       'JPG',
-                                                //       'jpeg',
-                                                //       'png',
-                                                //       'pdf',
-                                                //       'gif',
-                                                //       'doc',
-                                                //       'docx',
-                                                //     ],
-                                                //   );
-
-                                                //   if (result != null) {
-                                                //     PlatformFile file =
-                                                //         result.files.first;
-
-                                                //     extension = file.extension;
-                                                //     print("chp--->$extension");
-                                                //     List<File> files = result
-                                                //         .paths
-                                                //         .map((path) => File(
-                                                //             path.toString()))
-                                                //         .toList();
-                                                //     for (var i in files) {
-                                                //       //log('Image Path: ${i.path}');
-                                                //       uploadImage(i, extension);
-                                                //     }
-                                                //   } else {
-                                                //     // User canceled the picker
-                                                //   }
-                                                // },
                                                 child: const Icon(
                                                   EvaIcons.imageOutline,
                                                   color: AppColors.darkGrey,
@@ -460,11 +500,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ),
                                       GestureDetector(
                                         onTap: () async {
-                                          await FirebaseProvider.onSendMessages(
-                                              widget.group.id!,
+                                          await onSendMessages(
+                                              widget.groupId,
                                               msgController.text,
                                               profilePicture,
-                                              [await preference.getPushToken()],
                                               '${_auth.currentUser!.displayName}');
                                           msgController.clear();
                                           SchedulerBinding.instance
@@ -579,504 +618,6 @@ class _BuildChatListState extends State<_BuildChatList> {
                                 sentByImageUrl: chatMap['profile_picture'],
                                 groupCreatedBy: groupCreatedBy,
                               );
-
-                        // return chatMap['type'] == 'text'
-                        //     ? Padding(
-                        //         padding: const EdgeInsets.all(8.0),
-                        //         child: Row(
-                        //           crossAxisAlignment: CrossAxisAlignment.end,
-                        //           mainAxisAlignment: isSender
-                        //               ? MainAxisAlignment.end
-                        //               : MainAxisAlignment.start,
-                        //           children: [
-                        //             !isSender
-                        //                 ? ClipRRect(
-                        //                     borderRadius: BorderRadius.circular(
-                        //                         AppSizes.cardCornerRadius * 3),
-                        //                     child: CachedNetworkImage(
-                        //                         width: 30,
-                        //                         height: 30,
-                        //                         fit: BoxFit.cover,
-                        //                         imageUrl:
-                        //                             '${chatMap['profile_picture']}',
-                        //                         placeholder: (context, url) =>
-                        //                             const CircleAvatar(
-                        //                               radius: 16,
-                        //                               backgroundColor:
-                        //                                   AppColors.bg,
-                        //                             ),
-                        //                         errorWidget: (context, url,
-                        //                                 error) =>
-                        //                             CircleAvatar(
-                        //                               radius: 16,
-                        //                               backgroundColor:
-                        //                                   AppColors.bg,
-                        //                               child: Text(
-                        //                                 chatMap['name']
-                        //                                     .substring(0, 1)
-                        //                                     .toString()
-                        //                                     .toUpperCase(),
-                        //                                 style: Theme.of(context)
-                        //                                     .textTheme
-                        //                                     .bodyLarge!
-                        //                                     .copyWith(
-                        //                                         fontWeight:
-                        //                                             FontWeight
-                        //                                                 .w600),
-                        //                               ),
-                        //                             )),
-                        //                   )
-                        //                 : const SizedBox(),
-                        //             Padding(
-                        //               padding: const EdgeInsets.only(
-                        //                   bottom: AppSizes.kDefaultPadding),
-                        //               child: Column(
-                        //                 crossAxisAlignment: isSender
-                        //                     ? CrossAxisAlignment.end
-                        //                     : CrossAxisAlignment.start,
-                        //                 children: [
-                        //                   !isSender
-                        //                       ? Padding(
-                        //                           padding:
-                        //                               const EdgeInsets.only(
-                        //                                   left: AppSizes
-                        //                                       .kDefaultPadding,
-                        //                                   bottom: 4),
-                        //                           child: Row(
-                        //                             children: [
-                        //                               Text(
-                        //                                 '${chatMap['sendBy']}, ',
-                        //                                 style: Theme.of(context)
-                        //                                     .textTheme
-                        //                                     .caption!
-                        //                                     .copyWith(
-                        //                                         fontSize: 12,
-                        //                                         fontWeight:
-                        //                                             FontWeight
-                        //                                                 .w600),
-                        //                               ),
-                        //                               Text(
-                        //                                 sentTime,
-                        //                                 style: Theme.of(context)
-                        //                                     .textTheme
-                        //                                     .caption!
-                        //                                     .copyWith(
-                        //                                         fontSize: 12),
-                        //                               ),
-                        //                             ],
-                        //                           ),
-                        //                         )
-                        //                       : Padding(
-                        //                           padding:
-                        //                               const EdgeInsets.only(
-                        //                                   left: AppSizes
-                        //                                       .kDefaultPadding,
-                        //                                   bottom: 4),
-                        //                           child: Text(
-                        //                             sentTime,
-                        //                             style: Theme.of(context)
-                        //                                 .textTheme
-                        //                                 .caption!
-                        //                                 .copyWith(fontSize: 12),
-                        //                           ),
-                        //                         ),
-                        //                   ChatBubble(
-                        //                     clipper: ChatBubbleClipper3(
-                        //                         type: isSender
-                        //                             ? BubbleType.sendBubble
-                        //                             : BubbleType
-                        //                                 .receiverBubble),
-                        //                     backGroundColor: isSender
-                        //                         ? AppColors.secondary
-                        //                             .withOpacity(0.5)
-                        //                         : AppColors.bg,
-                        //                     alignment: isSender
-                        //                         ? Alignment.topRight
-                        //                         : Alignment.topLeft,
-                        //                     elevation: 0,
-                        //                     margin: const EdgeInsets.only(
-                        //                         left: AppSizes.kDefaultPadding /
-                        //                             4),
-                        //                     child: Container(
-                        //                       constraints: BoxConstraints(
-                        //                           maxWidth:
-                        //                               MediaQuery.of(context)
-                        //                                       .size
-                        //                                       .width *
-                        //                                   0.65),
-                        //                       child: Text(
-                        //                         chatMap['message'],
-                        //                         style: Theme.of(context)
-                        //                             .textTheme
-                        //                             .bodyText2!
-                        //                             .copyWith(
-                        //                                 color: AppColors.black),
-                        //                       ),
-                        //                     ),
-                        //                   ),
-                        //                 ],
-                        //               ),
-                        //             ),
-                        //           ],
-                        //         ),
-                        //       )
-                        //     : chatMap['type'] == 'img'
-                        //         ? GestureDetector(
-                        //             // onTap: () => context.push(
-                        //             //     ShowImage(imageUrl: chatMap['message'])),
-                        //             child: Padding(
-                        //               padding: const EdgeInsets.all(8.0),
-                        //               child: Row(
-                        //                 crossAxisAlignment:
-                        //                     CrossAxisAlignment.end,
-                        //                 mainAxisAlignment: isSender
-                        //                     ? MainAxisAlignment.end
-                        //                     : MainAxisAlignment.start,
-                        //                 children: [
-                        //                   !isSender
-                        //                       ? ClipRRect(
-                        //                           borderRadius: BorderRadius
-                        //                               .circular(AppSizes
-                        //                                       .cardCornerRadius *
-                        //                                   3),
-                        //                           child: CachedNetworkImage(
-                        //                               width: 30,
-                        //                               height: 30,
-                        //                               fit: BoxFit.cover,
-                        //                               imageUrl:
-                        //                                   '${chatMap['profile_picture']}',
-                        //                               placeholder: (context,
-                        //                                       url) =>
-                        //                                   const CircleAvatar(
-                        //                                     radius: 16,
-                        //                                     backgroundColor:
-                        //                                         AppColors.bg,
-                        //                                   ),
-                        //                               errorWidget: (context,
-                        //                                       url, error) =>
-                        //                                   CircleAvatar(
-                        //                                     radius: 16,
-                        //                                     backgroundColor:
-                        //                                         AppColors.bg,
-                        //                                     child: Text(
-                        //                                       chatMap['name']
-                        //                                           .substring(
-                        //                                               0, 1)
-                        //                                           .toString()
-                        //                                           .toUpperCase(),
-                        //                                       style: Theme.of(
-                        //                                               context)
-                        //                                           .textTheme
-                        //                                           .bodyLarge!
-                        //                                           .copyWith(
-                        //                                               fontWeight:
-                        //                                                   FontWeight
-                        //                                                       .w600),
-                        //                                     ),
-                        //                                   )),
-                        //                         )
-                        //                       : const SizedBox(),
-                        //                   Padding(
-                        //                     padding: const EdgeInsets.only(
-                        //                         bottom:
-                        //                             AppSizes.kDefaultPadding),
-                        //                     child: Column(
-                        //                       crossAxisAlignment: isSender
-                        //                           ? CrossAxisAlignment.end
-                        //                           : CrossAxisAlignment.start,
-                        //                       children: [
-                        //                         !isSender
-                        //                             ? Row(
-                        //                                 children: [
-                        //                                   Text(
-                        //                                     '${chatMap['sendBy']},',
-                        //                                     style: Theme.of(
-                        //                                             context)
-                        //                                         .textTheme
-                        //                                         .caption!
-                        //                                         .copyWith(
-                        //                                             fontSize:
-                        //                                                 12,
-                        //                                             fontWeight:
-                        //                                                 FontWeight
-                        //                                                     .w600),
-                        //                                   ),
-                        //                                   Text(
-                        //                                     sentTime,
-                        //                                     style: Theme.of(
-                        //                                             context)
-                        //                                         .textTheme
-                        //                                         .caption!
-                        //                                         .copyWith(
-                        //                                             fontSize:
-                        //                                                 12),
-                        //                                   ),
-                        //                                 ],
-                        //                               )
-                        //                             : Text(
-                        //                                 sentTime,
-                        //                                 style: Theme.of(context)
-                        //                                     .textTheme
-                        //                                     .caption!
-                        //                                     .copyWith(
-                        //                                         fontSize: 12),
-                        //                               ),
-                        //                         ChatBubble(
-                        //                           clipper: ChatBubbleClipper3(
-                        //                               type: isSender
-                        //                                   ? BubbleType
-                        //                                       .sendBubble
-                        //                                   : BubbleType
-                        //                                       .receiverBubble),
-                        //                           backGroundColor: isSender
-                        //                               ? AppColors.secondary
-                        //                                   .withOpacity(0.3)
-                        //                               : AppColors.bg,
-                        //                           alignment: isSender
-                        //                               ? Alignment.topRight
-                        //                               : Alignment.topLeft,
-                        //                           elevation: 0,
-                        //                           margin: const EdgeInsets.only(
-                        //                               top: AppSizes
-                        //                                   .kDefaultPadding),
-                        //                           child: Container(
-                        //                             constraints: BoxConstraints(
-                        //                                 maxWidth: MediaQuery.of(
-                        //                                             context)
-                        //                                         .size
-                        //                                         .width *
-                        //                                     0.65),
-                        //                             child: ClipRRect(
-                        //                               borderRadius: BorderRadius
-                        //                                   .circular(AppSizes
-                        //                                       .cardCornerRadius),
-                        //                               child: CachedNetworkImage(
-                        //                                 imageUrl:
-                        //                                     chatMap['message'],
-                        //                                 fit: BoxFit.cover,
-                        //                                 placeholder: (context,
-                        //                                         url) =>
-                        //                                     Platform.isAndroid
-                        //                                         ? const CircularProgressIndicator()
-                        //                                         : const CupertinoActivityIndicator(),
-                        //                                 errorWidget: (context,
-                        //                                         url, error) =>
-                        //                                     Platform.isAndroid
-                        //                                         ? const CircularProgressIndicator()
-                        //                                         : const CupertinoActivityIndicator(),
-                        //                               ),
-                        //                             ),
-                        //                           ),
-                        //                         ),
-                        //                       ],
-                        //                     ),
-                        //                   ),
-                        //                 ],
-                        //               ),
-                        //             ),
-                        //           )
-                        //         : (chatMap['type'] == 'pdf' ||
-                        //                 chatMap['type'] == 'doc' ||
-                        //                 chatMap['type'] == 'docx')
-                        //             ? GestureDetector(
-                        //                 // onTap: () => context.push(
-                        //                 //     ShowImage(imageUrl: chatMap['message'])),
-                        //                 child: Padding(
-                        //                   padding: const EdgeInsets.all(8.0),
-                        //                   child: Row(
-                        //                     crossAxisAlignment:
-                        //                         CrossAxisAlignment.end,
-                        //                     mainAxisAlignment: isSender
-                        //                         ? MainAxisAlignment.end
-                        //                         : MainAxisAlignment.start,
-                        //                     children: [
-                        //                       !isSender
-                        //                           ? ClipRRect(
-                        //                               borderRadius: BorderRadius
-                        //                                   .circular(AppSizes
-                        //                                           .cardCornerRadius *
-                        //                                       3),
-                        //                               child: CachedNetworkImage(
-                        //                                   width: 30,
-                        //                                   height: 30,
-                        //                                   fit: BoxFit.cover,
-                        //                                   imageUrl:
-                        //                                       '${chatMap['profile_picture']}',
-                        //                                   placeholder: (context,
-                        //                                           url) =>
-                        //                                       const CircleAvatar(
-                        //                                         radius: 16,
-                        //                                         backgroundColor:
-                        //                                             AppColors
-                        //                                                 .bg,
-                        //                                       ),
-                        //                                   errorWidget: (context,
-                        //                                           url, error) =>
-                        //                                       CircleAvatar(
-                        //                                         radius: 16,
-                        //                                         backgroundColor:
-                        //                                             AppColors
-                        //                                                 .bg,
-                        //                                         child: Text(
-                        //                                           chatMap['name']
-                        //                                               .substring(
-                        //                                                   0, 1)
-                        //                                               .toString()
-                        //                                               .toUpperCase(),
-                        //                                           style: Theme.of(
-                        //                                                   context)
-                        //                                               .textTheme
-                        //                                               .bodyLarge!
-                        //                                               .copyWith(
-                        //                                                   fontWeight:
-                        //                                                       FontWeight.w600),
-                        //                                         ),
-                        //                                       )),
-                        //                             )
-                        //                           : const SizedBox(),
-                        //                       Padding(
-                        //                         padding: const EdgeInsets.only(
-                        //                             bottom: AppSizes
-                        //                                 .kDefaultPadding),
-                        //                         child: Column(
-                        //                           crossAxisAlignment: isSender
-                        //                               ? CrossAxisAlignment.end
-                        //                               : CrossAxisAlignment
-                        //                                   .start,
-                        //                           children: [
-                        //                             !isSender
-                        //                                 ? Row(
-                        //                                     children: [
-                        //                                       Text(
-                        //                                         '${chatMap['sendBy']},',
-                        //                                         style: Theme.of(
-                        //                                                 context)
-                        //                                             .textTheme
-                        //                                             .caption!
-                        //                                             .copyWith(
-                        //                                                 fontSize:
-                        //                                                     12,
-                        //                                                 fontWeight:
-                        //                                                     FontWeight.w600),
-                        //                                       ),
-                        //                                       Text(
-                        //                                         sentTime,
-                        //                                         style: Theme.of(
-                        //                                                 context)
-                        //                                             .textTheme
-                        //                                             .caption!
-                        //                                             .copyWith(
-                        //                                                 fontSize:
-                        //                                                     12),
-                        //                                       ),
-                        //                                     ],
-                        //                                   )
-                        //                                 : Text(
-                        //                                     sentTime,
-                        //                                     style: Theme.of(
-                        //                                             context)
-                        //                                         .textTheme
-                        //                                         .caption!
-                        //                                         .copyWith(
-                        //                                             fontSize:
-                        //                                                 12),
-                        //                                   ),
-                        //                             ChatBubble(
-                        //                               clipper: ChatBubbleClipper3(
-                        //                                   type: isSender
-                        //                                       ? BubbleType
-                        //                                           .sendBubble
-                        //                                       : BubbleType
-                        //                                           .receiverBubble),
-                        //                               backGroundColor: isSender
-                        //                                   ? AppColors.secondary
-                        //                                       .withOpacity(0.3)
-                        //                                   : AppColors.bg,
-                        //                               alignment: isSender
-                        //                                   ? Alignment.topRight
-                        //                                   : Alignment.topLeft,
-                        //                               elevation: 0,
-                        //                               margin: const EdgeInsets
-                        //                                       .only(
-                        //                                   top: AppSizes
-                        //                                       .kDefaultPadding),
-                        //                               child: Container(
-                        //                                 constraints: BoxConstraints(
-                        //                                     maxHeight: 100,
-                        //                                     maxWidth: MediaQuery.of(
-                        //                                                 context)
-                        //                                             .size
-                        //                                             .width *
-                        //                                         0.45),
-                        //                                 child: ClipRRect(
-                        //                                   borderRadius: BorderRadius
-                        //                                       .circular(AppSizes
-                        //                                           .cardCornerRadius),
-                        //                                   child: SfPdfViewer
-                        //                                       .network(
-                        //                                     chatMap['message'],
-                        //                                     canShowPaginationDialog:
-                        //                                         false,
-                        //                                     canShowScrollHead:
-                        //                                         false,
-                        //                                     canShowScrollStatus:
-                        //                                         false,
-                        //                                     pageLayoutMode:
-                        //                                         PdfPageLayoutMode
-                        //                                             .single,
-                        //                                     canShowPasswordDialog:
-                        //                                         false,
-                        //                                   ),
-                        //                                 ),
-                        //                               ),
-                        //                             ),
-                        //                           ],
-                        //                         ),
-                        //                       ),
-                        //                     ],
-                        //                   ),
-                        //                 ),
-                        //               )
-                        //             : chatMap['type'] == 'notify'
-                        //                 ? Padding(
-                        //                     padding: const EdgeInsets.symmetric(
-                        //                         horizontal:
-                        //                             AppSizes.kDefaultPadding),
-                        //                     child: Row(
-                        //                       mainAxisAlignment:
-                        //                           MainAxisAlignment.center,
-                        //                       children: [
-                        //                         Container(
-                        //                           decoration: BoxDecoration(
-                        //                               color: AppColors.primary
-                        //                                   .withOpacity(0.2),
-                        //                               borderRadius: BorderRadius
-                        //                                   .circular(AppSizes
-                        //                                           .cardCornerRadius /
-                        //                                       2)),
-                        //                           padding: const EdgeInsets.all(
-                        //                               AppSizes.kDefaultPadding /
-                        //                                   1.5),
-                        //                           margin: const EdgeInsets.all(
-                        //                               AppSizes.kDefaultPadding),
-                        //                           child: Text(
-                        //                             chatMap['sendById'] ==
-                        //                                     auth.currentUser!
-                        //                                         .uid
-                        //                                 ? 'You ${chatMap['message']}'
-                        //                                 : '${chatMap['sendBy']} ${chatMap['message']}',
-                        //                             style: Theme.of(context)
-                        //                                 .textTheme
-                        //                                 .bodySmall!
-                        //                                 .copyWith(
-                        //                                     color: AppColors
-                        //                                         .black),
-                        //                           ),
-                        //                         ),
-                        //                       ],
-                        //                     ),
-                        //                   )
-                        //                 : const SizedBox();
                       }),
                 );
               }

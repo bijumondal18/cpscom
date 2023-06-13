@@ -1,14 +1,14 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
-import 'package:cpscom_admin/Features/Home/Components/build_groups_list.dart';
-import 'package:cpscom_admin/Features/Home/Widgets/home_header.dart';
+import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Api/firebase_provider.dart';
 import '../../../Widgets/custom_floating_action_button.dart';
 import '../../AddMembers/Presentation/add_members_screen.dart';
+import '../Components/build_groups_list.dart';
+import '../Widgets/home_header.dart';
 
 class BuildMobileView extends StatefulWidget {
   const BuildMobileView({Key? key}) : super(key: key);
@@ -39,17 +39,17 @@ class _BuildMobileViewState extends State<BuildMobileView> {
                 if (snapshot.hasData) {
                   isAdmin = snapshot.data?['isAdmin'];
                   return Scaffold(
-                    body: const SafeArea(
+                    body:  SafeArea(
                       bottom: false,
-                      child: Column(
-                        children: [
-                          HomeHeader(),
-                          Expanded(child: BuildGroupList()),
-                        ],
-                      ),
-                      // child: BuildChatList(
-                      //   isAdmin: isAdmin!,
+                      // child: Column(
+                      //   children: [
+                      //     HomeHeader(),
+                      //     Expanded(child: BuildGroupList()),
+                      //   ],
                       // ),
+                      child: BuildChatList(
+                        isAdmin: isAdmin ?? false,
+                      ),
                     ),
                     floatingActionButton: isAdmin == true
                         ? CustomFloatingActionButton(

@@ -168,7 +168,7 @@ class FirebaseProvider {
         .orderBy('time', descending: true)
         .limit(1)
         .snapshots();
-    }
+  }
 
   //get group details from firebase firestore collection
   static Stream<DocumentSnapshot<Map<String, dynamic>>> getGroupDetails(
@@ -361,7 +361,7 @@ class FirebaseProvider {
   static Future<void> onSendMessages(String groupId,
       String msg,
       String profilePicture,
-      List<String> pushToken,
+      String pushToken,
       String senderName,) async {
     if (msg
         .trim()
@@ -371,7 +371,6 @@ class FirebaseProvider {
         'sendById': auth.currentUser!.uid,
         'profile_picture': profilePicture,
         'message': msg,
-        'pushToken': pushToken,
         'type': 'text',
         'time': DateTime
             .now()
@@ -384,7 +383,9 @@ class FirebaseProvider {
           .doc(groupId)
           .collection('chats')
           .add(chatData)
-          .then((value) => sendPushNotification(pushToken, senderName, msg));
+          .then((value) {
+        sendPushNotification(pushToken, senderName, msg);
+      });
     }
   }
 
@@ -406,15 +407,15 @@ class FirebaseProvider {
             .collection('users')
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .update({'pushToken': value});
-        //print('push token - $value');
+        print('push token - $value');
         await preference.setPushToken(value);
         //print('push token from preference - ${await preference.getPushToken()}');
       }
     });
   }
 
-  static Future<void> sendPushNotification(List<String> pushToken,
-      String senderName, String msg) async {
+  static Future<void> sendPushNotification(String pushToken, String senderName,
+      String msg) async {
     try {
       final body = {
         "to": pushToken,
