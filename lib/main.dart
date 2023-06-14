@@ -40,7 +40,6 @@ void requestPermission() async {
 }
 
 void main() async {
-  //await PushNotificationService().setupInteractedMessage();
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
