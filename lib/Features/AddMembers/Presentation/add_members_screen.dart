@@ -8,6 +8,7 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Widgets/custom_text_field.dart';
@@ -37,10 +38,35 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
 
   var indx;
 
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+
   @override
   void initState() {
     super.initState();
   }
+
+  // Future<void> addMemberToGroup(
+  //   String groupId,
+  //   List<Map<String, dynamic>> member,
+  // ) async {
+  //   var memberList = [];
+  //   memberList.add(member);
+  //
+  //   await firestore
+  //       .collection('users')
+  //       .doc(auth.currentUser!.uid)
+  //       .collection('groups')
+  //       .doc(groupId)
+  //       .update({
+  //     'members': FieldValue.arrayUnion([
+  //       {
+  //         'id': member['uid'],
+  //         'members': memberList,
+  //       }
+  //     ]) //memberList
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -190,8 +216,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                     membersList: selectedMembers.unique((x) => x['uid']),
                   ));
                 } else {
-                  //FirebaseProvider.addMemberToGroup(widget.groupId!, selectedMembers[indx]);
-
+                 // addMemberToGroup(widget.groupId!,selectedMembers);
                   Future.delayed(
                       const Duration(seconds: 2),
                       () => context.pop(GroupInfoScreen(
@@ -261,12 +286,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               setState(() {
                 if (selectedIndex.contains(index)) {
                   selectedIndex.remove(index);
-                  selectedMembers.unique((x) => x['uid']);
+                 // selectedMembers.unique((x) => x['uid']);
                 } else {
                   selectedIndex.add(index);
                   selectedMembers
                       .add(members[index].data() as Map<String, dynamic>);
-                  selectedMembers.unique((x) => x['uid']);
+                  //selectedMembers.unique((x) => x['uid']);
                 }
               });
             }),

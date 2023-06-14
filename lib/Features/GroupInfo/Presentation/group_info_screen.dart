@@ -25,6 +25,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../Commons/app_images.dart';
+import '../../../Models/user.dart';
 import '../../../Utils/custom_bottom_modal_sheet.dart';
 import '../Model/image_picker_model.dart';
 
@@ -41,8 +42,6 @@ class GroupInfoScreen extends StatefulWidget {
 
 class _GroupInfoScreenState extends State<GroupInfoScreen> {
   List<dynamic> membersList = [];
-  List<Map<String, dynamic>> memberList = [];
-  int? indx;
 
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   File? image;
@@ -108,10 +107,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           .collection('groups')
           .doc(widget.groupId)
           .update({'profile_picture': imageUrl});
-
-      // for (var i = 0; i<memberList.length;i++){
-      //
-      // }
       customSnackBar(context, 'Group Image Updated Successfully');
       //print('image url - ----------- $imageUrl');
     } on FirebaseException catch (e) {}
@@ -119,7 +114,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(FirebaseProvider.auth.currentUser!.uid);
     return Scaffold(
         backgroundColor: AppColors.bg,
         appBar: CustomAppBar(
@@ -507,13 +501,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   shrinkWrap: true,
                                   padding: EdgeInsets.zero,
                                   itemBuilder: (context, index) {
-                                    indx = index;
                                     return ParticipantsCardWidget(
-                                        profilePicture: membersList[index]
-                                            ['profile_picture'],
-                                        name: membersList[index]['name'],
-                                        email: membersList[index]['email'],
-                                        isAdmin: membersList[index]['isAdmin'],
+                                      member: membersList[index],
                                         isUserAdmin: widget.isAdmin,
                                         onDeleteButtonPressed: () {
                                           widget.isAdmin == true
