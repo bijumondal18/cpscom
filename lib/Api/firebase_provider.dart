@@ -288,6 +288,10 @@ class FirebaseProvider {
     // });
   }
 
+  // static Future<void> updateMessageReadStatus(Map<String, dynamic> read) async{
+  //   await firestore.collection(collectionPath)
+  // }
+
   //GET ALL CHAT Messages in a group firebase firestore collection
   static Stream<QuerySnapshot> getChatsMessages(
     String groupId,

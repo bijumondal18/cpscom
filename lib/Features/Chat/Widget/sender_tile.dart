@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Features/Chat/Presentation/chat_screen.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:photo_view/photo_view.dart';
@@ -15,13 +16,15 @@ class SenderTile extends StatelessWidget {
   final String messageType;
   final String sentTime;
   final String groupCreatedBy;
+  final String read;
 
   const SenderTile(
       {Key? key,
       required this.message,
       required this.messageType,
       required this.sentTime,
-      required this.groupCreatedBy})
+      required this.groupCreatedBy,
+      required this.read})
       : super(key: key);
 
   @override
@@ -49,12 +52,32 @@ class SenderTile extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: Text(
-                    sentTime,
-                    style: Theme.of(context)
-                        .textTheme
-                        .caption!
-                        .copyWith(fontSize: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        sentTime,
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption!
+                            .copyWith(fontSize: 12),
+                      ),
+                      const SizedBox(
+                        width: AppSizes.kDefaultPadding / 2,
+                      ),
+                      read != ''
+                          ? const Icon(
+                              Icons.done_all_rounded,
+                              size: 16,
+                              color: AppColors.grey,
+                            )
+                          : const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: AppColors.grey,
+                            )
+                    ],
                   ),
                 ),
                 ChatBubble(

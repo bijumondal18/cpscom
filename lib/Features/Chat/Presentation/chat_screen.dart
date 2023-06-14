@@ -191,22 +191,17 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-   Future<void> onSendMessages(String groupId,
-      String msg,
-      String profilePicture,
-      String senderName,) async {
-    if (msg
-        .trim()
-        .isNotEmpty) {
+  Future<void> onSendMessages(String groupId, String msg, String profilePicture,
+      String senderName) async {
+    if (msg.trim().isNotEmpty) {
       Map<String, dynamic> chatData = {
         'sendBy': FirebaseProvider.auth.currentUser!.displayName,
         'sendById': FirebaseProvider.auth.currentUser!.uid,
         'profile_picture': profilePicture,
         'message': msg,
+        'read': DateTime.now().millisecondsSinceEpoch,
         'type': 'text',
-        'time': DateTime
-            .now()
-            .millisecondsSinceEpoch, //Timestamp.now(),
+        'time': DateTime.now().millisecondsSinceEpoch,
         "isSeen": false,
       };
 
@@ -221,19 +216,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-   Future<void> sendPushNotification(String senderName,
-      String msg) async {
-    for(var i = 0; i<membersList.length;i++){
-      print('push token -------------      '+membersList[i]['pushToken']);
+  Future<void> sendPushNotification(String senderName, String msg) async {
+    for (var i = 0; i < membersList.length; i++) {
       try {
         final body = {
-          "priority":"high",
-          // "data":{
-          //   "click_action": "FLUTTER_NOTIFICATION_CLICK",
-          //   "status":"done",
-          //   "body":msg,
-          //   "title":senderName,
-          // },
+          "priority": "high",
           "to": membersList[i]['pushToken'].toString(),
           "notification": <String, dynamic>{"title": senderName, "body": msg}
         };
@@ -241,7 +228,7 @@ class _ChatScreenState extends State<ChatScreen> {
             headers: <String, String>{
               HttpHeaders.contentTypeHeader: 'application/json',
               HttpHeaders.authorizationHeader:
-              'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
+                  'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
             },
             body: jsonEncode(body));
         if (kDebugMode) {
@@ -253,8 +240,7 @@ class _ChatScreenState extends State<ChatScreen> {
           print(e.toString());
         }
       }
-   }
-
+    }
   }
 
   @override
@@ -278,15 +264,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           FirebaseAuth.instance.currentUser!.uid);
                       widget.isAdmin = membersList[i]['isAdmin'];
                       profilePicture = membersList[i]['profile_picture'];
-                    }
-                    else{
-                      pushToken.add(membersList[i]['pushToken']) ;
+                    } else {
+                      pushToken.add(membersList[i]['pushToken']);
                     }
                   }
-                  // for(var t = 0; t< membersList.length;t++){
-                  //   pushToken = membersList[t]['pushToken'];
-                  //   print(pushToken);
-                  // }
                   return SafeArea(
                     child: Scaffold(
                       appBar: CustomAppBar(
@@ -501,15 +482,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                       GestureDetector(
                                         onTap: () async {
                                           await onSendMessages(
-                                              widget.groupId,
-                                              msgController.text,
-                                              profilePicture,
-                                              '${_auth.currentUser!.displayName}');
+                                            widget.groupId,
+                                            msgController.text,
+                                            profilePicture,
+                                            '${_auth.currentUser!.displayName}',
+                                          );
                                           msgController.clear();
                                           SchedulerBinding.instance
                                               .addPostFrameCallback((_) {
-                                            _scrollController.animateTo(
-                                                0.0,
+                                            _scrollController.animateTo(0.0,
                                                 duration: const Duration(
                                                     milliseconds: 300),
                                                 curve: Curves.easeInOut);
@@ -609,6 +590,7 @@ class _BuildChatListState extends State<_BuildChatList> {
                                 messageType: chatMap['type'],
                                 sentTime: sentTime,
                                 groupCreatedBy: groupCreatedBy,
+                                read: sentTime,
                               )
                             : ReceiverTile(
                                 message: chatMap['message'],
