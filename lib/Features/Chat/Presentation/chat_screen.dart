@@ -11,6 +11,7 @@ import 'package:cpscom_admin/Features/Chat/Widget/receiver_tile.dart';
 import 'package:cpscom_admin/Features/Chat/Widget/sender_tile.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Model/image_picker_model.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
+import 'package:cpscom_admin/Features/MessageInfo/Presentation/message_info_screen.dart';
 import 'package:cpscom_admin/Models/group.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Utils/custom_bottom_modal_sheet.dart';
@@ -196,7 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
       String senderName) async {
     if (msg.trim().isNotEmpty) {
       Map<String, dynamic> chatData = {};
-      for(var i = 0;i<chatMembersList.length;i++){
+      for (var i = 0; i < chatMembersList.length; i++) {
         chatData = {
           'sendBy': FirebaseProvider.auth.currentUser!.displayName,
           'sendById': FirebaseProvider.auth.currentUser!.uid,
@@ -209,7 +210,6 @@ class _ChatScreenState extends State<ChatScreen> {
           "members": chatMembersList.toSet().toList(),
         };
       }
-
 
       await FirebaseProvider.firestore
           .collection('groups')
@@ -590,20 +590,28 @@ class _BuildChatListState extends State<_BuildChatList> {
                                 : false;
                         sentTime = AppHelper.getStringTimeFromTimestamp(
                             chatMap['time']);
-
                         var groupCreatedBy =
                             FirebaseProvider.auth.currentUser!.uid ==
                                     chatMap['sendById']
                                 ? 'You'
                                 : chatMap['sendBy'];
-
                         return isSender
-                            ? SenderTile(
-                                message: chatMap['message'],
-                                messageType: chatMap['type'],
-                                sentTime: sentTime,
-                                groupCreatedBy: groupCreatedBy,
-                                read: sentTime,
+                            ? GestureDetector(
+                                onTap: () {
+                                  print(chatMap['message']);
+                                },
+                                onHorizontalDragUpdate: (DragEndDetails) {
+                                  context.push(MessageInfoScreen(
+                                    chatMap: chatMap,
+                                  ));
+                                },
+                                child: SenderTile(
+                                  message: chatMap['message'],
+                                  messageType: chatMap['type'],
+                                  sentTime: sentTime,
+                                  groupCreatedBy: groupCreatedBy,
+                                  read: sentTime,
+                                ),
                               )
                             : ReceiverTile(
                                 message: chatMap['message'],
