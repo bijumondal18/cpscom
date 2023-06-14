@@ -6,83 +6,71 @@ import '../../../Commons/app_sizes.dart';
 import '../../../Models/user.dart';
 import '../../../Widgets/custom_divider.dart';
 
-class MemberCardWidget extends StatefulWidget {
+class MemberCardWidget extends StatelessWidget {
   final User member;
-  final int index;
 
-  const MemberCardWidget(
-      {super.key, required this.member, required this.index});
-
-  @override
-  State<MemberCardWidget> createState() => _MemberCardWidgetState();
-}
-
-class _MemberCardWidgetState extends State<MemberCardWidget> {
-  var selectedIndex = [];
+  const MemberCardWidget({
+    super.key,
+    required this.member,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CheckboxListTile(
-            title: Row(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.cardCornerRadius * 10),
-                  child: CachedNetworkImage(
-                    width: 30,
-                    height: 30,
-                    fit: BoxFit.cover,
-                    imageUrl: widget.member.profilePicture ?? '',
-                    placeholder: (context, url) => const CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppColors.shimmer,
-                    ),
-                    errorWidget: (context, url, error) => CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppColors.shimmer,
-                      child: Text(
-                        widget.member.name?.substring(0, 1) ?? '',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyText1!
-                            .copyWith(fontWeight: FontWeight.w600),
-                      ),
+        Padding(
+          padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(AppSizes.cardCornerRadius * 10),
+                child: CachedNetworkImage(
+                  width: 30,
+                  height: 30,
+                  fit: BoxFit.cover,
+                  imageUrl: member.profilePicture ?? '',
+                  placeholder: (context, url) => const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.shimmer,
+                  ),
+                  errorWidget: (context, url, error) => CircleAvatar(
+                    radius: 16,
+                    backgroundColor: AppColors.shimmer,
+                    child: Text(
+                      member.name?.substring(0, 1) ?? '',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyText1!
+                          .copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: AppSizes.kDefaultPadding,
-                ),
-                Column(
+              ),
+              const SizedBox(
+                width: AppSizes.kDefaultPadding,
+              ),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.member.name ?? '',
+                      member.name ?? '',
                       style: Theme.of(context).textTheme.bodyText1,
                     ),
                     Text(
-                      widget.member.email ?? '',
+                      member.email ?? '',
                       style: Theme.of(context).textTheme.bodyText2,
                     ),
                   ],
                 ),
-              ],
-            ),
-            controlAffinity: ListTileControlAffinity.trailing,
-            value: selectedIndex.contains(widget.index),
-            onChanged: (_) {
-              setState(() {
-                if (selectedIndex.contains(widget.index)) {
-                  selectedIndex.remove(widget.index);
-                } else {
-                  selectedIndex.add(widget.index);
-                }
-              });
-            }),
+              ),
+            ],
+          ),
+        ),
         const Padding(
-          padding: EdgeInsets.only(left: 64),
+          padding: EdgeInsets.only(left: 56),
           child: CustomDivider(),
         )
       ],

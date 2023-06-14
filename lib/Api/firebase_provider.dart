@@ -29,7 +29,7 @@ class FirebaseProvider {
   Future<User?> login(String email, String password) async {
     try {
       User? user = (await auth.signInWithEmailAndPassword(
-          email: email, password: password))
+              email: email, password: password))
           .user;
 
       if (user != null) {
@@ -53,10 +53,12 @@ class FirebaseProvider {
   }
 
   //CREATE NEW GROUP to firebase firestore collection
-  static Future<void> createGroup(String groupName,
-      String? groupDescription,
-      String? profilePicture,
-      List<Map<String, dynamic>> members,) async {
+  static Future<void> createGroup(
+    String groupName,
+    String? groupDescription,
+    String? profilePicture,
+    List<Map<String, dynamic>> members,
+  ) async {
     var groupId = const Uuid().v1();
     String uid = '';
     await firestore
@@ -69,12 +71,8 @@ class FirebaseProvider {
       "name": groupName,
       "group_description": groupDescription,
       "profile_picture": profilePicture,
-      "created_at": DateTime
-          .now()
-          .millisecondsSinceEpoch,
-      'time': DateTime
-          .now()
-          .millisecondsSinceEpoch,
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      'time': DateTime.now().millisecondsSinceEpoch,
       "members": members
     });
 
@@ -83,12 +81,8 @@ class FirebaseProvider {
       "name": groupName,
       "group_description": groupDescription,
       "profile_picture": profilePicture,
-      "created_at": DateTime
-          .now()
-          .millisecondsSinceEpoch,
-      'time': DateTime
-          .now()
-          .millisecondsSinceEpoch,
+      "created_at": DateTime.now().millisecondsSinceEpoch,
+      'time': DateTime.now().millisecondsSinceEpoch,
       "members": members
     });
 
@@ -106,12 +100,8 @@ class FirebaseProvider {
         "group_description": groupDescription,
         "id": groupId,
         "profile_picture": profilePicture,
-        "created_at": DateTime
-            .now()
-            .millisecondsSinceEpoch, //createdTime,
-        'time': DateTime
-            .now()
-            .millisecondsSinceEpoch,
+        "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
+        'time': DateTime.now().millisecondsSinceEpoch,
         "members": members
       });
 
@@ -120,12 +110,8 @@ class FirebaseProvider {
         "group_description": groupDescription,
         "id": groupId,
         "profile_picture": profilePicture,
-        "created_at": DateTime
-            .now()
-            .millisecondsSinceEpoch, //createdTime,
-        'time': DateTime
-            .now()
-            .millisecondsSinceEpoch,
+        "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
+        'time': DateTime.now().millisecondsSinceEpoch,
         "members": members
       });
     }
@@ -136,9 +122,7 @@ class FirebaseProvider {
       'sendById': auth.currentUser!.uid,
       'type': 'notify',
       "profile_picture": profilePicture,
-      'time': DateTime
-          .now()
-          .millisecondsSinceEpoch
+      'time': DateTime.now().millisecondsSinceEpoch
     });
   }
 
@@ -153,10 +137,9 @@ class FirebaseProvider {
     yield* allGroupsList;
   }
 
-  static String getConversationId(String id) =>
-      user.uid.hashCode <= id.hashCode
-          ? '${user.uid}_$id'
-          : '${id}_${user.uid}';
+  static String getConversationId(String id) => user.uid.hashCode <= id.hashCode
+      ? '${user.uid}_$id'
+      : '${id}_${user.uid}';
 
   //Get Last Message to a Group
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessages(
@@ -183,14 +166,33 @@ class FirebaseProvider {
   }
 
   //get all users from firebase firestore collection
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() async* {
-    var allUsersList = firestore.collection('users').snapshots();
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsersWithoutCurrentUser() async* {
+    var allUsersList = firestore
+        .collection('users')
+        .where('uid', isNotEqualTo: auth.currentUser!.uid)
+        .snapshots();
     yield* allUsersList;
+  }
+
+  //get all users from firebase firestore collection
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() async* {
+    var allUsersList = firestore
+        .collection('users')
+        .snapshots();
+    yield* allUsersList;
+  }
+
+  //get all users from firebase firestore collection
+  static Future<QuerySnapshot<Map<String, dynamic>>> getAllUsersList() async {
+    var allUsersList = firestore
+        .collection('users')
+        .get();
+    return allUsersList;
   }
 
   //get current user details from firebase firestore
   Stream<DocumentSnapshot<Map<String, dynamic>>>
-  getCurrentUserDetails() async* {
+      getCurrentUserDetails() async* {
     getFirebaseMessagingToken();
     yield* FirebaseFirestore.instance
         .collection('users')
@@ -229,8 +231,8 @@ class FirebaseProvider {
   }
 
   //DELETE user from a group firebase firestore collection
-  static Future<void> deleteMember(String groupId, List<dynamic> membersList,
-      int index) async {
+  static Future<void> deleteMember(
+      String groupId, List<dynamic> membersList, int index) async {
     await firestore
         .collection('users')
         .doc(auth.currentUser!.uid)
@@ -242,11 +244,13 @@ class FirebaseProvider {
   }
 
   //ADD user to a group firebase firestore collection
-  static Future<void> addMemberToGroup(String groupId,
-      String groupName,
-      String profilePicture,
-      String groupDesc,
-      Map<String, dynamic> member,) async {
+  static Future<void> addMemberToGroup(
+    String groupId,
+    String groupName,
+    String profilePicture,
+    String groupDesc,
+    Map<String, dynamic> member,
+  ) async {
     var memberList = [];
     memberList.add(member);
 
@@ -263,8 +267,7 @@ class FirebaseProvider {
           'group_description': groupDesc,
           'name': groupName,
           'profile_picture': profilePicture,
-          'created_at': DateTime
-              .now()
+          'created_at': DateTime.now()
               .millisecondsSinceEpoch, //FieldValue.serverTimestamp(),
         }
       ]) as List<Map<String, dynamic>> //memberList
@@ -286,7 +289,9 @@ class FirebaseProvider {
   }
 
   //GET ALL CHAT Messages in a group firebase firestore collection
-  static Stream<QuerySnapshot> getChatsMessages(String groupId,) async* {
+  static Stream<QuerySnapshot> getChatsMessages(
+    String groupId,
+  ) async* {
     yield* firestore
         .collection('groups')
         .doc(groupId)
@@ -311,8 +316,8 @@ class FirebaseProvider {
   }
 
   //UPDATE GROUP DESCRIPTION in  firebase
-  static Future<void> updateGroupDescription(String groupId,
-      String desc) async {
+  static Future<void> updateGroupDescription(
+      String groupId, String desc) async {
     await firestore
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -339,7 +344,9 @@ class FirebaseProvider {
   // }
 
   //GET Group Description in a group
-  static Stream<DocumentSnapshot> getGroupDescription(String groupId,) async* {
+  static Stream<DocumentSnapshot> getGroupDescription(
+    String groupId,
+  ) async* {
     yield* firestore
         .collection('users')
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -349,7 +356,9 @@ class FirebaseProvider {
   }
 
   //GET LAST CHAT Message in a group firebase firestore collection
-  static Stream<QuerySnapshot> getLastMessage(String groupId,) async* {
+  static Stream<QuerySnapshot> getLastMessage(
+    String groupId,
+  ) async* {
     yield* firestore
         .collection('groups')
         .doc(groupId)
@@ -358,23 +367,21 @@ class FirebaseProvider {
         .snapshots();
   }
 
-  static Future<void> onSendMessages(String groupId,
-      String msg,
-      String profilePicture,
-      String pushToken,
-      String senderName,) async {
-    if (msg
-        .trim()
-        .isNotEmpty) {
+  static Future<void> onSendMessages(
+    String groupId,
+    String msg,
+    String profilePicture,
+    String pushToken,
+    String senderName,
+  ) async {
+    if (msg.trim().isNotEmpty) {
       Map<String, dynamic> chatData = {
         'sendBy': auth.currentUser!.displayName,
         'sendById': auth.currentUser!.uid,
         'profile_picture': profilePicture,
         'message': msg,
         'type': 'text',
-        'time': DateTime
-            .now()
-            .millisecondsSinceEpoch, //Timestamp.now(),
+        'time': DateTime.now().millisecondsSinceEpoch, //Timestamp.now(),
         "isSeen": false,
       };
 
@@ -414,8 +421,8 @@ class FirebaseProvider {
     });
   }
 
-  static Future<void> sendPushNotification(String pushToken, String senderName,
-      String msg) async {
+  static Future<void> sendPushNotification(
+      String pushToken, String senderName, String msg) async {
     try {
       final body = {
         "to": pushToken,
@@ -425,7 +432,7 @@ class FirebaseProvider {
           headers: {
             HttpHeaders.contentTypeHeader: 'application/json',
             HttpHeaders.authorizationHeader:
-            'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
+                'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
           },
           body: jsonEncode(body));
       if (kDebugMode) {

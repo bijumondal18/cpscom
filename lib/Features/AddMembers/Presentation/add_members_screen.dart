@@ -2,8 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
+import 'package:cpscom_admin/Features/AddMembers/Widgets/member_card_widget.dart';
 import 'package:cpscom_admin/Features/CreateNewGroup/Presentation/create_new_group_screen.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
+import 'package:cpscom_admin/Models/user.dart' as Users;
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
@@ -46,33 +48,33 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
     super.initState();
   }
 
-  // Future<void> addMemberToGroup(
-  //   String groupId,
-  //   List<Map<String, dynamic>> member,
-  // ) async {
-  //   var memberList = [];
-  //   memberList.add(member);
-  //
-  //   await firestore
-  //       .collection('users')
-  //       .doc(auth.currentUser!.uid)
-  //       .collection('groups')
-  //       .doc(groupId)
-  //       .update({
-  //     'members': FieldValue.arrayUnion([
-  //       {
-  //         'id': member['uid'],
-  //         'members': memberList,
-  //       }
-  //     ]) //memberList
-  //   });
-  // }
+  Future<void> addMemberToGroup(
+    String groupId,
+    List<Map<String, dynamic>> member,
+  ) async {
+    var memberList = [];
+    memberList.add(member);
+
+    await firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('groups')
+        .doc(groupId)
+        .update({
+      'members': FieldValue.arrayUnion([
+        {
+          'id': groupId,
+          'members': memberList,
+        }
+      ]) //memberList
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-          stream: FirebaseProvider.getAllUsers(),
+          stream: FirebaseProvider.getAllUsersWithoutCurrentUser(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
@@ -155,8 +157,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                 padding: const EdgeInsets.only(
                                     bottom: AppSizes.kDefaultPadding * 9),
                                 itemBuilder: (context, index) {
-                                  members = snapshot.data!.docs;
+                                  members =
+                                      snapshot.data!.docs.toSet().toList();
                                   indx = index;
+                                  if (members[index]['isSuperAdmin'] == true) {
+                                    members.remove(members[index]);
+                                  }
                                   //for search members
                                   data = members[index].data()
                                       as Map<String, dynamic>;
@@ -216,7 +222,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                     membersList: selectedMembers.unique((x) => x['uid']),
                   ));
                 } else {
-                 // addMemberToGroup(widget.groupId!,selectedMembers);
+                  //addMemberToGroup(widget.groupId!,selectedMembers.unique((x) => x['uid']));
                   Future.delayed(
                       const Duration(seconds: 2),
                       () => context.pop(GroupInfoScreen(
@@ -286,12 +292,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               setState(() {
                 if (selectedIndex.contains(index)) {
                   selectedIndex.remove(index);
-                 // selectedMembers.unique((x) => x['uid']);
+                  selectedMembers.unique((x) => x['uid']);
                 } else {
                   selectedIndex.add(index);
                   selectedMembers
                       .add(members[index].data() as Map<String, dynamic>);
-                  //selectedMembers.unique((x) => x['uid']);
+                  selectedMembers.unique((x) => x['uid']);
                 }
               });
             }),

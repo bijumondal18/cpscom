@@ -7,6 +7,7 @@ class User {
   bool? isSuperAdmin;
   String? status;
   bool? isOnline;
+  bool select = false;
   String? lastActive;
   String? pushToken;
 
@@ -19,6 +20,7 @@ class User {
         this.isSuperAdmin,
         this.status,
         this.isOnline,
+        this.select = false,
         this.lastActive,
         this.pushToken});
 
@@ -31,6 +33,7 @@ class User {
     isSuperAdmin = json['isSuperAdmin'];
     status = json['status'];
     isOnline = json['isOnline'];
+    // select = json['select'];
     lastActive = json['last_active'];
     pushToken = json['push_token'];
   }
@@ -45,6 +48,7 @@ class User {
     data['isSuperAdmin'] = isSuperAdmin;
     data['status'] = status;
     data['isOnline'] = isOnline;
+    // data['select'] = select;
     data['last_active'] = lastActive;
     data['push_token'] = pushToken;
     return data;

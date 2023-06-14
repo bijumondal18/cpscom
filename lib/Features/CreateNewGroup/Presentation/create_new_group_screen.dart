@@ -36,14 +36,15 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
   final TextEditingController grpNameController = TextEditingController();
   final TextEditingController grpDescController = TextEditingController();
 
+  final FirebaseProvider firebaseProvider = FirebaseProvider();
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  //List<Members> selectedMembersList = [];
-
   File? image;
   String imageUrl = "";
+
+  List<Map<String, dynamic>> finalMembersList = [];
 
   Future pickImageFromGallery() async {
     try {
@@ -90,10 +91,13 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
   }
 
   UploadTask uploadFile(File image, String fileName) {
-    Reference reference = FirebaseProvider.storage.ref().child('group_profile_pictures/$fileName');
+    Reference reference = FirebaseProvider.storage
+        .ref()
+        .child('group_profile_pictures/$fileName');
     UploadTask uploadTask = reference.putFile(image);
     return uploadTask;
   }
+
   //
   // Future uploadImage() async {
   //   String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -120,83 +124,312 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
     return Form(
       key: _formKey,
       child: Scaffold(
-        backgroundColor: AppColors.bg,
-        appBar: const CustomAppBar(
-          title: 'Create New Group',
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 56,
-                      backgroundColor: AppColors.lightGrey,
-                      child: image != null
-                          ?
-                          ClipRRect(
-                              borderRadius: BorderRadius.circular(AppSizes.cardCornerRadius*10),
-                              child: Image.file(File(image!.path), fit: BoxFit.cover,width: 150,height: 150,))
-                          : Image.asset(
-                              AppImages.groupAvatar,
+          backgroundColor: AppColors.bg,
+          appBar: const CustomAppBar(
+            title: 'Create New Group',
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: AppSizes.kDefaultPadding,
+                ),
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 56,
+                        backgroundColor: AppColors.lightGrey,
+                        child: image != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.cardCornerRadius * 10),
+                                child: Image.file(
+                                  File(image!.path),
+                                  fit: BoxFit.cover,
+                                  width: 150,
+                                  height: 150,
+                                ))
+                            : Image.asset(
+                                AppImages.groupAvatar,
+                                fit: BoxFit.contain,
+                                width: 50,
+                                height: 50,
+                              ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            showCustomBottomSheet(
+                                context,
+                                '',
+                                SizedBox(
+                                  height: 150,
+                                  child: ListView.builder(
+                                      shrinkWrap: true,
+                                      padding: const EdgeInsets.all(
+                                          AppSizes.kDefaultPadding),
+                                      itemCount: pickerList.length,
+                                      scrollDirection: Axis.horizontal,
+                                      itemBuilder: (context, index) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            switch (index) {
+                                              case 0:
+                                                pickImageFromGallery();
+                                                break;
+                                              case 1:
+                                                pickImageFromCamera();
+                                                break;
+                                            }
+                                            Navigator.pop(context);
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: AppSizes.kDefaultPadding *
+                                                    2),
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  width: 60,
+                                                  height: 60,
+                                                  padding: const EdgeInsets.all(
+                                                      AppSizes.kDefaultPadding),
+                                                  decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                          width: 1,
+                                                          color: AppColors
+                                                              .lightGrey),
+                                                      color: AppColors.white,
+                                                      shape: BoxShape.circle),
+                                                  child: pickerList[index].icon,
+                                                ),
+                                                const SizedBox(
+                                                  height:
+                                                      AppSizes.kDefaultPadding /
+                                                          2,
+                                                ),
+                                                Text(
+                                                  '${pickerList[index].title}',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                ));
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            padding: const EdgeInsets.all(
+                                AppSizes.kDefaultPadding / 1.3),
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                    width: 1, color: AppColors.lightGrey),
+                                color: AppColors.white,
+                                shape: BoxShape.circle),
+                            child: Image.asset(
+                              AppImages.cameraIcon,
+                              width: 36,
+                              height: 36,
                               fit: BoxFit.contain,
-                              width: 50,
-                              height: 50,
                             ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          showCustomBottomSheet(
-                              context,
-                              '',
-                              SizedBox(
-                                height: 150,
-                                child: ListView.builder(
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: AppSizes.kDefaultPadding * 2,
+                ),
+                CustomCard(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.kDefaultPadding),
+                  padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Add Group Title',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2!
+                            .copyWith(color: AppColors.black),
+                      ),
+                      CustomTextField(
+                        controller: grpNameController,
+                        hintText: 'Group Name',
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Group name can\'t be empty';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: AppSizes.kDefaultPadding,
+                ),
+                CustomCard(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.kDefaultPadding),
+                  padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Add Group Description',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyText2!
+                            .copyWith(color: AppColors.black),
+                      ),
+                      const SizedBox(
+                        height: AppSizes.kDefaultPadding,
+                      ),
+                      Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.kDefaultPadding,
+                          ),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                  AppSizes.cardCornerRadius / 2),
+                              border: Border.all(
+                                  width: 1, color: AppColors.lightGrey)),
+                          child: CustomTextField(
+                            controller: grpDescController,
+                            hintText: 'Add Group Description (optional)',
+                            minLines: 5,
+                            maxLines: 5,
+                          )),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: AppSizes.kDefaultPadding * 2,
+                ),
+                SizedBox(
+                  height: 150,
+                  width: MediaQuery.of(context).size.width,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(
+                          AppSizes.kDefaultPadding,
+                        ),
+                        child: Text(
+                          '${widget.membersList.length} Participants',
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
+                      ),
+                      Expanded(
+                        child: StreamBuilder(
+                            stream: FirebaseProvider.getAllUsers(),
+                            builder: (context,
+                                AsyncSnapshot<QuerySnapshot> snapshot) {
+                              if (snapshot.hasData) {
+                                var data = snapshot.data!.docs
+                                    .map(
+                                        (e) => e.data() as Map<String, dynamic>)
+                                    .toList();
+                                return ListView.builder(
+                                    itemCount: widget.membersList.length,
                                     shrinkWrap: true,
-                                    padding: const EdgeInsets.all(
-                                        AppSizes.kDefaultPadding),
-                                    itemCount: pickerList.length,
                                     scrollDirection: Axis.horizontal,
                                     itemBuilder: (context, index) {
-                                      return GestureDetector(
-                                        onTap: () {
-                                          switch (index) {
-                                            case 0:
-                                              pickImageFromGallery();
-                                              break;
-                                            case 1:
-                                              pickImageFromCamera();
-                                              break;
-                                          }
-                                          Navigator.pop(context);
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(
-                                              left:
-                                                  AppSizes.kDefaultPadding * 2),
+                                      finalMembersList = widget.membersList.toSet().toList();
+                                      for (var i = 0; i < data.length; i++) {
+                                        if (data[i]['isSuperAdmin'] == true) {
+                                          finalMembersList.add({
+                                            "email": data[i]['email'],
+                                            "isAdmin": data[i]['isAdmin'],
+                                            "isSuperAdmin": data[i]
+                                                ['isSuperAdmin'],
+                                            "name": data[i]['name'],
+                                            "profile_picture": data[i]
+                                                ['profile_picture'],
+                                            "pushToken": data[i]['pushToken'],
+                                            "status": data[i]['status'],
+                                            "uid": data[i]['uid'],
+                                          });
+                                        }
+                                        if (data[i]['uid'] ==
+                                            auth.currentUser!.uid) {
+                                          finalMembersList.add({
+                                            "email": data[i]['email'],
+                                            "isAdmin": data[i]['isAdmin'],
+                                            "isSuperAdmin": data[i]
+                                                ['isSuperAdmin'],
+                                            "name": data[i]['name'],
+                                            "profile_picture": data[i]
+                                                ['profile_picture'],
+                                            "pushToken": data[i]['pushToken'],
+                                            "status": data[i]['status'],
+                                            "uid": data[i]['uid'],
+                                          });
+                                        }
+                                      }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: AppSizes.kDefaultPadding),
+                                        child: SizedBox(
+                                          width: 60,
                                           child: Column(
                                             children: [
-                                              Container(
-                                                width: 60,
-                                                height: 60,
-                                                padding: const EdgeInsets.all(
-                                                    AppSizes.kDefaultPadding),
-                                                decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                        width: 1,
-                                                        color: AppColors
-                                                            .lightGrey),
-                                                    color: AppColors.white,
-                                                    shape: BoxShape.circle),
-                                                child: pickerList[index].icon,
+                                              ClipRRect(
+                                                borderRadius: BorderRadius
+                                                    .circular(AppSizes
+                                                            .cardCornerRadius *
+                                                        10),
+                                                child: CachedNetworkImage(
+                                                    width: 56,
+                                                    height: 56,
+                                                    fit: BoxFit.cover,
+                                                    imageUrl:
+                                                        '${widget.membersList[index]['profile_picture']}',
+                                                    placeholder:
+                                                        (context, url) =>
+                                                            const CircleAvatar(
+                                                              radius: 40,
+                                                              backgroundColor:
+                                                                  AppColors
+                                                                      .lightGrey,
+                                                            ),
+                                                    errorWidget: (context, url,
+                                                            error) =>
+                                                        CircleAvatar(
+                                                          radius: 40,
+                                                          backgroundColor:
+                                                              AppColors
+                                                                  .lightGrey,
+                                                          child: Text(
+                                                            widget.membersList[
+                                                                    index]
+                                                                    ['name']
+                                                                .substring(0, 1)
+                                                                .toString()
+                                                                .toUpperCase(),
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .bodyText1!
+                                                                .copyWith(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w600),
+                                                          ),
+                                                        )),
                                               ),
                                               const SizedBox(
                                                 height:
@@ -204,223 +437,55 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                                         2,
                                               ),
                                               Text(
-                                                '${pickerList[index].title}',
+                                                widget.membersList[index]
+                                                    ['name'],
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
                                                 style: Theme.of(context)
                                                     .textTheme
-                                                    .bodyMedium,
-                                              ),
+                                                    .bodySmall!
+                                                    .copyWith(
+                                                        color: AppColors.black),
+                                              )
                                             ],
                                           ),
                                         ),
                                       );
-                                    }),
-                              ));
-                        },
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          padding: const EdgeInsets.all(
-                              AppSizes.kDefaultPadding / 1.3),
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                  width: 1, color: AppColors.lightGrey),
-                              color: AppColors.white,
-                              shape: BoxShape.circle),
-                          child: Image.asset(
-                            AppImages.cameraIcon,
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                                    });
+                              }
+                              return const SizedBox();
+                            }),
                       ),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 2,
-              ),
-              CustomCard(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.kDefaultPadding),
-                padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Add Group Title',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyText2!
-                          .copyWith(color: AppColors.black),
-                    ),
-                    CustomTextField(
-                      controller: grpNameController,
-                      hintText: 'Group Name',
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Group name can\'t be empty';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
+                const SizedBox(
+                  height: AppSizes.kDefaultPadding * 3,
                 ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding,
-              ),
-              CustomCard(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.kDefaultPadding),
-                padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Add Group Description',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyText2!
-                          .copyWith(color: AppColors.black),
-                    ),
-                    const SizedBox(
-                      height: AppSizes.kDefaultPadding,
-                    ),
-                    Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSizes.kDefaultPadding,
-                        ),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                AppSizes.cardCornerRadius / 2),
-                            border: Border.all(
-                                width: 1, color: AppColors.lightGrey)),
-                        child: CustomTextField(
-                          controller: grpDescController,
-                          hintText: 'Add Group Description (optional)',
-                          minLines: 5,
-                          maxLines: 5,
-                        )),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 2,
-              ),
-              SizedBox(
-                height: 150,
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(
-                        AppSizes.kDefaultPadding,
-                      ),
-                      child: Text(
-                        '${widget.membersList.length} Participants',
-                        style: Theme.of(context).textTheme.bodyText1,
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                          itemCount: widget.membersList.length,
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  left: AppSizes.kDefaultPadding),
-                              child: SizedBox(
-                                width: 60,
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(
-                                          AppSizes.cardCornerRadius * 10),
-                                      child: CachedNetworkImage(
-                                          width: 56,
-                                          height: 56,
-                                          fit: BoxFit.cover,
-                                          imageUrl:
-                                              '${widget.membersList[index]['profile_picture']}',
-                                          placeholder: (context, url) =>
-                                              const CircleAvatar(
-                                                radius: 40,
-                                                backgroundColor:
-                                                    AppColors.lightGrey,
-                                              ),
-                                          errorWidget: (context, url, error) =>
-                                              CircleAvatar(
-                                                radius: 40,
-                                                backgroundColor:
-                                                    AppColors.lightGrey,
-                                                child: Text(
-                                                  widget.membersList[index]
-                                                          ['name']
-                                                      .substring(0, 1)
-                                                      .toString()
-                                                      .toUpperCase(),
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyText1!
-                                                      .copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w600),
-                                                ),
-                                              )),
-                                    ),
-                                    const SizedBox(
-                                      height: AppSizes.kDefaultPadding / 2,
-                                    ),
-                                    Text(
-                                      widget.membersList[index]['name'],
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall!
-                                          .copyWith(color: AppColors.black),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: AppSizes.kDefaultPadding * 3,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        floatingActionButton: CustomFloatingActionButton(
-          onPressed: () async {
-            if (_formKey.currentState!.validate()) {
-              try {
-                FirebaseProvider.createGroup(
-                  grpNameController.text,
-                  grpDescController.text,
-                  imageUrl,
-                  widget.membersList,
-                );
-                customSnackBar(context, 'Group Created Successfully');
-                context.pushAndRemoveUntil(const HomeScreen());
-              } catch (e) {
-                return;
+          floatingActionButton: CustomFloatingActionButton(
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                try {
+                  FirebaseProvider.createGroup(
+                    grpNameController.text,
+                    grpDescController.text,
+                    imageUrl,
+                    finalMembersList.toSet().toList(),
+                  );
+                  customSnackBar(context, 'Group Created Successfully');
+                  context.pushAndRemoveUntil(const HomeScreen());
+                } catch (e) {
+                  return;
+                }
               }
-            }
-            return;
-          },
-          iconData: EvaIcons.checkmark,
-        ),
-      ),
+              return;
+            },
+            iconData: EvaIcons.checkmark,
+          )),
     );
   }
 }

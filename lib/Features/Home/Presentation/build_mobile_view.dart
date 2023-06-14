@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
+import 'package:cpscom_admin/Features/AddParticipants/Presentation/add_participants_screen.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +58,7 @@ class _BuildMobileViewState extends State<BuildMobileView> {
                               context.push(const AddMembersScreen(
                                 isCameFromHomeScreen: true,
                               ));
+                              //context.push(AddParticipantsScreen());
                             },
                             iconData: EvaIcons.plus,
                           )
