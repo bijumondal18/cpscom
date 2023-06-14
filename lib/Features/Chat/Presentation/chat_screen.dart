@@ -55,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController msgController = TextEditingController();
   final AppPreference preference = AppPreference();
   List<dynamic> membersList = [];
+  List<dynamic> chatMembersList = [];
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String profilePicture = '';
@@ -194,16 +195,21 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> onSendMessages(String groupId, String msg, String profilePicture,
       String senderName) async {
     if (msg.trim().isNotEmpty) {
-      Map<String, dynamic> chatData = {
-        'sendBy': FirebaseProvider.auth.currentUser!.displayName,
-        'sendById': FirebaseProvider.auth.currentUser!.uid,
-        'profile_picture': profilePicture,
-        'message': msg,
-        'read': DateTime.now().millisecondsSinceEpoch,
-        'type': 'text',
-        'time': DateTime.now().millisecondsSinceEpoch,
-        "isSeen": false,
-      };
+      Map<String, dynamic> chatData = {};
+      for(var i = 0;i<chatMembersList.length;i++){
+        chatData = {
+          'sendBy': FirebaseProvider.auth.currentUser!.displayName,
+          'sendById': FirebaseProvider.auth.currentUser!.uid,
+          'profile_picture': profilePicture,
+          'message': msg,
+          'read': DateTime.now().millisecondsSinceEpoch,
+          'type': 'text',
+          'time': DateTime.now().millisecondsSinceEpoch,
+          "isSeen": false,
+          "members": chatMembersList.toSet().toList(),
+        };
+      }
+
 
       await FirebaseProvider.firestore
           .collection('groups')
@@ -256,6 +262,7 @@ class _ChatScreenState extends State<ChatScreen> {
               default:
                 if (snapshot.hasData) {
                   membersList = snapshot.data?['members'];
+
                   for (var i = 0; i < membersList.length; i++) {
                     if (membersList[i]['uid'] ==
                         FirebaseAuth.instance.currentUser!.uid) {
@@ -267,6 +274,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     } else {
                       pushToken.add(membersList[i]['pushToken']);
                     }
+                    chatMembersList.add({
+                      "uid": membersList[i]['uid'],
+                      "name": membersList[i]['name'],
+                      "isSeen": false,
+                      "isDelivered": false,
+                    });
                   }
                   return SafeArea(
                     child: Scaffold(
