@@ -103,27 +103,15 @@ dependencies:
   overlay_support: ^2.1.0
   flutter_local_notifications: ^9.2.0
 
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-  # Flutter Lints Package for Coding Guidelines
-  flutter_lints: ^2.0.0
-
   # Launcher Icons for the Application
   flutter_launcher_icons: ^0.13.1
 
-  # Package to Change App Package Name
-  change_app_package_name: ^1.1.0
-
-  
-
-
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
-  image_path: "assets/icons/app-logo.png"
+  remove_alpha_ios: true
+  image_path_android: "assets/icons/app-logo.png"
+  image_path_ios: "assets/icons/app-logo.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
@@ -137,6 +125,16 @@ flutter_launcher_icons:
   macos:
     generate: true
     image_path: "assets/icons/app-logo.png"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Flutter Lints Package for Coding Guidelines
+  flutter_lints: ^2.0.0
+
+  # Package to Change App Package Name
+  change_app_package_name: ^1.1.0
 
 
 flutter:

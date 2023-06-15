@@ -3,7 +3,7 @@
 
     <application
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="cpscom">
 
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
