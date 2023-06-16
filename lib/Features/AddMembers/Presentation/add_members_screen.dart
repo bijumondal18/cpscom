@@ -78,7 +78,6 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               default:
                 if (snapshot.hasData) {
                   members = snapshot.data!.docs.toSet().toList();
-                  //members.unique((x) => x['uid']);
                   if (members.isEmpty) {
                     return Center(
                       child: Text(
