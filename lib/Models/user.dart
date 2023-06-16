@@ -7,22 +7,22 @@ class User {
   bool? isSuperAdmin;
   String? status;
   bool? isOnline;
-  bool select = false;
+  bool isSelected = false;
   String? lastActive;
   String? pushToken;
 
   User(
       {this.id,
-        this.name,
-        this.email,
-        this.isAdmin,
-        this.profilePicture,
-        this.isSuperAdmin,
-        this.status,
-        this.isOnline,
-        this.select = false,
-        this.lastActive,
-        this.pushToken});
+      this.name,
+      this.email,
+      this.isAdmin,
+      this.profilePicture,
+      this.isSuperAdmin,
+      this.status,
+      required this.isSelected,
+      this.isOnline,
+      this.lastActive,
+      this.pushToken});
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['uid'];
@@ -33,7 +33,6 @@ class User {
     isSuperAdmin = json['isSuperAdmin'];
     status = json['status'];
     isOnline = json['isOnline'];
-    // select = json['select'];
     lastActive = json['last_active'];
     pushToken = json['push_token'];
   }
@@ -48,7 +47,6 @@ class User {
     data['isSuperAdmin'] = isSuperAdmin;
     data['status'] = status;
     data['isOnline'] = isOnline;
-    // data['select'] = select;
     data['last_active'] = lastActive;
     data['push_token'] = pushToken;
     return data;

@@ -197,7 +197,6 @@ class _ChatScreenState extends State<ChatScreen> {
       String senderName) async {
     if (msg.trim().isNotEmpty) {
       Map<String, dynamic> chatData = {};
-      for (var i = 0; i < chatMembersList.length; i++) {
         chatData = {
           'sendBy': FirebaseProvider.auth.currentUser!.displayName,
           'sendById': FirebaseProvider.auth.currentUser!.uid,
@@ -209,7 +208,6 @@ class _ChatScreenState extends State<ChatScreen> {
           "isSeen": false,
           "members": chatMembersList.toSet().toList(),
         };
-      }
 
       await FirebaseProvider.firestore
           .collection('groups')
@@ -272,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       widget.isAdmin = membersList[i]['isAdmin'];
                       profilePicture = membersList[i]['profile_picture'];
                     } else {
-                      pushToken.add(membersList[i]['pushToken']);
+                     // pushToken.add(membersList[i]['pushToken']);
                     }
                     chatMembersList.add({
                       "uid": membersList[i]['uid'],

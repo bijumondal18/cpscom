@@ -6,6 +6,7 @@ import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_icons.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
+import 'package:cpscom_admin/Features/AddParticipants/Presentation/add_participants_screen.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Bloc/image_upload_bloc.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupDescription/Presentation/chnage_group_description.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupTitle/Presentation/change_group_title.dart';
@@ -467,9 +468,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     widget.isAdmin == true
                                         ? InkWell(
                                             onTap: () {
+                                              // context.push(const AddParticipantsScreen());
                                               context.push(AddMembersScreen(
                                                 groupId: widget.groupId,
                                                 isCameFromHomeScreen: false,
+                                                existingMembersList: membersList,
                                               ));
                                             },
                                             child: Container(

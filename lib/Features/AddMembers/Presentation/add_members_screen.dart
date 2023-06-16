@@ -6,6 +6,7 @@ import 'package:cpscom_admin/Features/AddMembers/Widgets/member_card_widget.dart
 import 'package:cpscom_admin/Features/CreateNewGroup/Presentation/create_new_group_screen.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
 import 'package:cpscom_admin/Models/user.dart' as Users;
+import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
@@ -13,14 +14,19 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../Utils/custom_snack_bar.dart';
 import '../../../Widgets/custom_text_field.dart';
 
 class AddMembersScreen extends StatefulWidget {
   final String? groupId;
   final bool isCameFromHomeScreen;
+  final List<dynamic>? existingMembersList;
 
   const AddMembersScreen(
-      {Key? key, this.groupId, required this.isCameFromHomeScreen})
+      {Key? key,
+      this.groupId,
+      required this.isCameFromHomeScreen,
+      this.existingMembersList})
       : super(key: key);
 
   @override
@@ -29,7 +35,6 @@ class AddMembersScreen extends StatefulWidget {
 
 class _AddMembersScreenState extends State<AddMembersScreen> {
   var selectedIndex = [];
-  List multipleSelected = [];
   List<Map<String, dynamic>> selectedMembers = [];
 
   List<QueryDocumentSnapshot> members = [];
@@ -43,44 +48,36 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Future<void> addMemberToGroup(
     String groupId,
-    List<Map<String, dynamic>> member,
   ) async {
-    var memberList = [];
-    memberList.add(member);
-
     await firestore
         .collection('users')
         .doc(auth.currentUser!.uid)
         .collection('groups')
         .doc(groupId)
         .update({
-      'members': FieldValue.arrayUnion([
-        {
-          'id': groupId,
-          'members': memberList,
-        }
-      ]) //memberList
-    });
+      'members': selectedMembers //memberList
+    }).then((value) => 'Member Added Successfully');
+
+    await firestore.collection('groups').doc(groupId).update({
+      'members': selectedMembers //memberList
+    }).then((value) => 'Member Added Successfully');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-          stream: FirebaseProvider.getAllUsersWithoutCurrentUser(),
+          stream: FirebaseProvider.getAllUsers(),
           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
               default:
                 if (snapshot.hasData) {
+                  members = snapshot.data!.docs.toSet().toList();
+                  members.unique((x) => x['uid']);
                   if (snapshot.data!.docs.isEmpty) {
                     return Center(
                       child: Text(
@@ -89,6 +86,20 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                       ),
                     );
                   } else {
+                    for (var i = 0; i < members.length; i++) {
+                      if (members[i]['isSuperAdmin'] == true) {
+                        members.remove(members[i]);
+                      }
+                      if (members[i]['uid'] == auth.currentUser!.uid) {
+                        members.remove(members[i]);
+                      }
+                      widget.existingMembersList?.forEach((element) {
+                        if (element['uid'] == members[i]['uid']) {
+                          members.remove(members[i]);
+                        }
+                        //print(element['name']);
+                      });
+                    }
                     return Scaffold(
                       appBar: CustomAppBar(
                         title: 'Add Participants',
@@ -97,7 +108,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             padding: const EdgeInsets.all(
                                 AppSizes.kDefaultPadding + 6),
                             child: Text(
-                                '${selectedIndex.length} / ${snapshot.data!.docs.length}'),
+                                '${selectedIndex.length} / ${members.length}'),
                           )
                         ],
                       ),
@@ -153,16 +164,11 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             child: Scrollbar(
                               child: ListView.builder(
                                 shrinkWrap: true,
-                                itemCount: snapshot.data?.docs.length,
+                                itemCount: members.length,
                                 padding: const EdgeInsets.only(
                                     bottom: AppSizes.kDefaultPadding * 9),
                                 itemBuilder: (context, index) {
-                                  members =
-                                      snapshot.data!.docs.toSet().toList();
-                                  indx = index;
-                                  if (members[index]['isSuperAdmin'] == true) {
-                                    members.remove(members[index]);
-                                  }
+                                  indx = members.length;
                                   //for search members
                                   data = members[index].data()
                                       as Map<String, dynamic>;
@@ -222,12 +228,13 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                     membersList: selectedMembers.unique((x) => x['uid']),
                   ));
                 } else {
-                  //addMemberToGroup(widget.groupId!,selectedMembers.unique((x) => x['uid']));
+                  addMemberToGroup(widget.groupId!);
                   Future.delayed(
-                      const Duration(seconds: 2),
+                      const Duration(seconds: 1),
                       () => context.pop(GroupInfoScreen(
                             groupId: widget.groupId!,
                           )));
+                  customSnackBar(context, 'Member Added Successfully');
                 }
               },
               iconData: EvaIcons.arrowForwardOutline,
@@ -292,12 +299,14 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               setState(() {
                 if (selectedIndex.contains(index)) {
                   selectedIndex.remove(index);
-                  selectedMembers.unique((x) => x['uid']);
+                  selectedMembers
+                      .remove(members[index].data() as Map<String, dynamic>);
+                  //selectedMembers.unique((x) => x['uid']);
                 } else {
                   selectedIndex.add(index);
                   selectedMembers
                       .add(members[index].data() as Map<String, dynamic>);
-                  selectedMembers.unique((x) => x['uid']);
+                  // selectedMembers.unique((x) => x['uid']);
                 }
               });
             }),

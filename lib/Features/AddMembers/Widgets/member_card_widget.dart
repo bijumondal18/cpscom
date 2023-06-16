@@ -8,10 +8,12 @@ import '../../../Widgets/custom_divider.dart';
 
 class MemberCardWidget extends StatelessWidget {
   final User member;
+  bool? isSelected;
 
-  const MemberCardWidget({
+  MemberCardWidget({
     super.key,
     required this.member,
+    this.isSelected = false,
   });
 
   @override

@@ -70,3 +70,15 @@ extension DateHelper on DateTime {
     return now.difference(this).inDays;
   }
 }
+
+extension ListExtensions<T> on List<T> {
+  Iterable<T> whereWithIndex(bool test(T element, int index)) {
+    final List<T> result = [];
+    for (var i = 0; i < this.length; i++) {
+      if (test(this[i], i)) {
+        result.add(this[i]);
+      }
+    }
+    return result;
+  }
+}
