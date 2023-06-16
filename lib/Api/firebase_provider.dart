@@ -71,6 +71,8 @@ class FirebaseProvider {
       "name": groupName,
       "group_description": groupDescription,
       "profile_picture": profilePicture,
+      "group_creator_uid": auth.currentUser!.uid,
+      "group_creator_name": auth.currentUser!.displayName,
       "created_at": DateTime.now().millisecondsSinceEpoch,
       'time': DateTime.now().millisecondsSinceEpoch,
       "members": members
@@ -81,6 +83,8 @@ class FirebaseProvider {
       "name": groupName,
       "group_description": groupDescription,
       "profile_picture": profilePicture,
+      "group_creator_uid": auth.currentUser!.uid,
+      "group_creator_name": auth.currentUser!.displayName,
       "created_at": DateTime.now().millisecondsSinceEpoch,
       'time': DateTime.now().millisecondsSinceEpoch,
       "members": members
@@ -99,6 +103,8 @@ class FirebaseProvider {
         "name": groupName,
         "group_description": groupDescription,
         "id": groupId,
+        "group_creator_uid": auth.currentUser!.uid,
+        "group_creator_name": auth.currentUser!.displayName,
         "profile_picture": profilePicture,
         "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
         'time': DateTime.now().millisecondsSinceEpoch,
@@ -109,6 +115,8 @@ class FirebaseProvider {
         "name": groupName,
         "group_description": groupDescription,
         "id": groupId,
+        "group_creator_uid": auth.currentUser!.uid,
+        "group_creator_name": auth.currentUser!.displayName,
         "profile_picture": profilePicture,
         "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
         'time': DateTime.now().millisecondsSinceEpoch,
@@ -166,7 +174,8 @@ class FirebaseProvider {
   }
 
   //get all users from firebase firestore collection
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsersWithoutCurrentUser() async* {
+  static Stream<QuerySnapshot<Map<String, dynamic>>>
+      getAllUsersWithoutCurrentUser() async* {
     var allUsersList = firestore
         .collection('users')
         .where('uid', isNotEqualTo: auth.currentUser!.uid)
@@ -176,17 +185,13 @@ class FirebaseProvider {
 
   //get all users from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() async* {
-    var allUsersList = firestore
-        .collection('users')
-        .snapshots();
+    var allUsersList = firestore.collection('users').snapshots();
     yield* allUsersList;
   }
 
   //get all users from firebase firestore collection
   static Future<QuerySnapshot<Map<String, dynamic>>> getAllUsersList() async {
-    var allUsersList = firestore
-        .collection('users')
-        .get();
+    var allUsersList = firestore.collection('users').get();
     return allUsersList;
   }
 
