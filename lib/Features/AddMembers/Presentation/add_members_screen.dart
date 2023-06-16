@@ -51,17 +51,18 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
   Future<void> addMemberToGroup(
     String groupId,
   ) async {
+    widget.existingMembersList?.addAll(selectedMembers);
     await firestore
         .collection('users')
         .doc(auth.currentUser!.uid)
         .collection('groups')
         .doc(groupId)
         .update({
-      'members': selectedMembers //memberList
+      'members': widget.existingMembersList //memberList
     }).then((value) => 'Member Added Successfully');
 
     await firestore.collection('groups').doc(groupId).update({
-      'members': selectedMembers //memberList
+      'members': widget.existingMembersList //memberList
     }).then((value) => 'Member Added Successfully');
   }
 
@@ -77,8 +78,8 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               default:
                 if (snapshot.hasData) {
                   members = snapshot.data!.docs.toSet().toList();
-                  members.unique((x) => x['uid']);
-                  if (snapshot.data!.docs.isEmpty) {
+                  //members.unique((x) => x['uid']);
+                  if (members.isEmpty) {
                     return Center(
                       child: Text(
                         'No Participants Found',
@@ -86,7 +87,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                       ),
                     );
                   } else {
-                    for (var i = 0; i < members.length; i++) {
+                    for (var i = 0; i < members.length - 1; i++) {
                       if (members[i]['isSuperAdmin'] == true) {
                         members.remove(members[i]);
                       }
@@ -97,7 +98,6 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                         if (element['uid'] == members[i]['uid']) {
                           members.remove(members[i]);
                         }
-                        //print(element['name']);
                       });
                     }
                     return Scaffold(
