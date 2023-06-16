@@ -258,7 +258,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                               AppSizes
                                                                   .kDefaultPadding),
                                                           itemCount:
-                                                              pickerList.length,
+                                                          imagePickerList.length,
                                                           scrollDirection:
                                                               Axis.horizontal,
                                                           itemBuilder:
@@ -302,7 +302,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                                               .white,
                                                                           shape:
                                                                               BoxShape.circle),
-                                                                      child: pickerList[
+                                                                      child: imagePickerList[
                                                                               index]
                                                                           .icon,
                                                                     ),
@@ -312,7 +312,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                                               2,
                                                                     ),
                                                                     Text(
-                                                                      '${pickerList[index].title}',
+                                                                      '${imagePickerList[index].title}',
                                                                       style: Theme.of(
                                                                               context)
                                                                           .textTheme

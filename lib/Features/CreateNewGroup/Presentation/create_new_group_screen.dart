@@ -172,7 +172,7 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                       shrinkWrap: true,
                                       padding: const EdgeInsets.all(
                                           AppSizes.kDefaultPadding),
-                                      itemCount: pickerList.length,
+                                      itemCount: imagePickerList.length,
                                       scrollDirection: Axis.horizontal,
                                       itemBuilder: (context, index) {
                                         return GestureDetector(
@@ -205,7 +205,7 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                                               .lightGrey),
                                                       color: AppColors.white,
                                                       shape: BoxShape.circle),
-                                                  child: pickerList[index].icon,
+                                                  child: imagePickerList[index].icon,
                                                 ),
                                                 const SizedBox(
                                                   height:
@@ -213,7 +213,7 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                                           2,
                                                 ),
                                                 Text(
-                                                  '${pickerList[index].title}',
+                                                  '${imagePickerList[index].title}',
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodyMedium,

@@ -197,17 +197,17 @@ class _ChatScreenState extends State<ChatScreen> {
       String senderName) async {
     if (msg.trim().isNotEmpty) {
       Map<String, dynamic> chatData = {};
-        chatData = {
-          'sendBy': FirebaseProvider.auth.currentUser!.displayName,
-          'sendById': FirebaseProvider.auth.currentUser!.uid,
-          'profile_picture': profilePicture,
-          'message': msg,
-          'read': DateTime.now().millisecondsSinceEpoch,
-          'type': 'text',
-          'time': DateTime.now().millisecondsSinceEpoch,
-          "isSeen": false,
-          "members": chatMembersList.toSet().toList(),
-        };
+      chatData = {
+        'sendBy': FirebaseProvider.auth.currentUser!.displayName,
+        'sendById': FirebaseProvider.auth.currentUser!.uid,
+        'profile_picture': profilePicture,
+        'message': msg,
+        'read': DateTime.now().millisecondsSinceEpoch,
+        'type': 'text',
+        'time': DateTime.now().millisecondsSinceEpoch,
+        "isSeen": false,
+        "members": chatMembersList.toSet().toList(),
+      };
 
       await FirebaseProvider.firestore
           .collection('groups')
@@ -270,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       widget.isAdmin = membersList[i]['isAdmin'];
                       profilePicture = membersList[i]['profile_picture'];
                     } else {
-                     // pushToken.add(membersList[i]['pushToken']);
+                      // pushToken.add(membersList[i]['pushToken']);
                     }
                     chatMembersList.add({
                       "uid": membersList[i]['uid'],
@@ -412,7 +412,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                     AppSizes
                                                                         .kDefaultPadding),
                                                             itemCount:
-                                                                pickerList
+                                                                chatPickerList
                                                                     .length,
                                                             scrollDirection:
                                                                 Axis.horizontal,
@@ -456,7 +456,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                                 Border.all(width: 1, color: AppColors.lightGrey),
                                                                             color: AppColors.white,
                                                                             shape: BoxShape.circle),
-                                                                        child: pickerList[index]
+                                                                        child: chatPickerList[index]
                                                                             .icon,
                                                                       ),
                                                                       const SizedBox(
@@ -465,7 +465,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                                 2,
                                                                       ),
                                                                       Text(
-                                                                        '${pickerList[index].title}',
+                                                                        '${chatPickerList[index].title}',
                                                                         style: Theme.of(context)
                                                                             .textTheme
                                                                             .bodyMedium,
@@ -478,8 +478,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       ));
                                                 },
                                                 child: const Icon(
-                                                  EvaIcons.imageOutline,
-                                                  color: AppColors.darkGrey,
+                                                  EvaIcons.attach,
+                                                  color: AppColors.primary,
                                                   size: 24,
                                                 ),
                                               ),

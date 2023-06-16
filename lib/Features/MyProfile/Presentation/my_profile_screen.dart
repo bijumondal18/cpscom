@@ -219,7 +219,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                             AppSizes
                                                                 .kDefaultPadding),
                                                         itemCount:
-                                                            pickerList.length,
+                                                        imagePickerList.length,
                                                         scrollDirection:
                                                             Axis.horizontal,
                                                         itemBuilder:
@@ -262,7 +262,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                                             .white,
                                                                         shape: BoxShape
                                                                             .circle),
-                                                                    child: pickerList[
+                                                                    child: imagePickerList[
                                                                             index]
                                                                         .icon,
                                                                   ),
@@ -272,7 +272,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                                             2,
                                                                   ),
                                                                   Text(
-                                                                    '${pickerList[index].title}',
+                                                                    '${imagePickerList[index].title}',
                                                                     style: Theme.of(
                                                                             context)
                                                                         .textTheme
