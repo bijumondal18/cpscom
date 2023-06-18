@@ -13,7 +13,7 @@ class LocalNotificationService {
             android: AndroidInitializationSettings('@drawable/ic_launcher'),
             iOS: IOSInitializationSettings());
 
-     _notificationsPlugin.initialize(
+    _notificationsPlugin.initialize(
       initializationSettings,
       onSelectNotification: (String? id) async {
         print("onSelectNotification");
@@ -29,6 +29,35 @@ class LocalNotificationService {
         }
       },
     );
+
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) {
+      if (message != null) {
+        /*Navigator.pushNamed(
+          context,
+          '/message',
+          arguments: MessageArguments(message, true),
+        );*/
+      }
+    });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null) {
+        createDisplayNotification(message);
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+      /*Navigator.pushNamed(
+        context,
+        '/message',
+        arguments: MessageArguments(message, true),
+      );*/
+    });
   }
 
   static void createDisplayNotification(RemoteMessage message) async {

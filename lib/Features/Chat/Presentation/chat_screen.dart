@@ -226,6 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final body = {
           "priority": "high",
           "to": membersList[i]['pushToken'].toString(),
+          "data": <String, dynamic>{"title": senderName, "body": msg},
           "notification": <String, dynamic>{"title": senderName, "body": msg}
         };
         var response = await post(Uri.parse(Urls.sendPushNotificationUrl),
