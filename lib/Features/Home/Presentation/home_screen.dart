@@ -139,12 +139,12 @@ class _BuildChatListState extends State<BuildChatList> {
 
                             groupMembers = groupList[i]['members'];
                             // remove the group in which the user is not present
-                            groupList.remove((element) {
-                              if (element['members'][i]['uid'] !=
-                                  auth.currentUser!.uid) {
-                                groupList.remove(groupList[i]);
-                              }
-                            });
+                            // groupList.remove((element) {
+                            //   if (element['members'][i]['uid'] !=
+                            //       auth.currentUser!.uid) {
+                            //     groupList.remove(groupList[i]);
+                            //   }
+                            // });
                           }
                           return Scrollbar(
                             child: ListView.builder(
