@@ -87,7 +87,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   }
 
   UploadTask uploadFile(File image, String fileName) {
-    Reference reference = firebaseStorage.ref().child('group_profile_pictures/$fileName');
+    Reference reference =
+        firebaseStorage.ref().child('group_profile_pictures/$fileName');
     UploadTask uploadTask = reference.putFile(image);
     return uploadTask;
   }
@@ -109,8 +110,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           .doc(widget.groupId)
           .update({'profile_picture': imageUrl});
       customSnackBar(context, 'Group Image Updated Successfully');
-      //print('image url - ----------- $imageUrl');
-    } on FirebaseException catch (e) {}
+    } on FirebaseException catch (e) {
+      print(e.message.toString());
+    }
   }
 
   @override
@@ -258,7 +260,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                               AppSizes
                                                                   .kDefaultPadding),
                                                           itemCount:
-                                                          imagePickerList.length,
+                                                              imagePickerList
+                                                                  .length,
                                                           scrollDirection:
                                                               Axis.horizontal,
                                                           itemBuilder:
@@ -472,7 +475,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                               context.push(AddMembersScreen(
                                                 groupId: widget.groupId,
                                                 isCameFromHomeScreen: false,
-                                                existingMembersList: membersList,
+                                                existingMembersList:
+                                                    membersList,
                                               ));
                                             },
                                             child: Container(
@@ -505,7 +509,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   padding: EdgeInsets.zero,
                                   itemBuilder: (context, index) {
                                     return ParticipantsCardWidget(
-                                      member: membersList[index],
+                                        member: membersList[index],
                                         isUserAdmin: widget.isAdmin,
                                         onDeleteButtonPressed: () {
                                           widget.isAdmin == true

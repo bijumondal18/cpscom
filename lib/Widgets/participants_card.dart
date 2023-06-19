@@ -8,22 +8,14 @@ import '../Commons/app_sizes.dart';
 import '../Commons/app_strings.dart';
 
 class ParticipantsCardWidget extends StatelessWidget {
-  // final String? profilePicture;
-  // final String name;
-  // final String email;
-  // final bool? isAdmin;
   final bool? isUserAdmin;
   final Map<String, dynamic> member;
   final VoidCallback onDeleteButtonPressed;
 
   const ParticipantsCardWidget({
     Key? key,
-    // required this.name,
-    // required this.email,
-    // this.isAdmin = false,
     required this.onDeleteButtonPressed,
     required this.member,
-    // this.profilePicture = '',
     this.isUserAdmin = false,
   }) : super(key: key);
 

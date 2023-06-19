@@ -165,8 +165,8 @@ class FirebaseProvider {
   static Stream<DocumentSnapshot<Map<String, dynamic>>> getGroupDetails(
       String groupId) async* {
     var groupDetails = firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
+        // .collection('users')
+        // .doc(auth.currentUser!.uid)
         .collection('groups')
         .doc(groupId)
         .snapshots();
@@ -239,8 +239,8 @@ class FirebaseProvider {
   static Future<void> deleteMember(
       String groupId, List<dynamic> membersList, int index) async {
     await firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
+        // .collection('users')
+        // .doc(auth.currentUser!.uid)
         .collection('groups')
         .doc(groupId)
         .update({
@@ -423,7 +423,7 @@ class FirebaseProvider {
             .collection('users')
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .update({'pushToken': value});
-        print('push token - $value');
+        //print('push token - $value');
         await preference.setPushToken(value);
         //print('push token from preference - ${await preference.getPushToken()}');
       }

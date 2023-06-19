@@ -597,8 +597,9 @@ class _BuildChatListState extends State<_BuildChatList> {
                         return isSender
                             ? GestureDetector(
                                 onTap: () {
-                                  print(chatMap['message']);
-                                },
+                                  context.push(MessageInfoScreen(
+                                    chatMap: chatMap,
+                                  ));                                },
                                 onHorizontalDragUpdate: (DragEndDetails) {
                                   context.push(MessageInfoScreen(
                                     chatMap: chatMap,

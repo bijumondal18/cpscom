@@ -19,7 +19,7 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
       ),
       body: Column(
         children: [
-          Container(
+          SizedBox(
             height: 100,
             child: Text(widget.chatMap['message']),
           ),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
@@ -9,7 +11,9 @@ import 'package:cpscom_admin/Features/Home/Widgets/home_header.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:developer';
 
 import '../../../Widgets/custom_text_field.dart';
 import '../../../Widgets/responsive.dart';
@@ -35,6 +39,12 @@ class BuildChatList extends StatefulWidget {
 
 class _BuildChatListState extends State<BuildChatList> {
   final TextEditingController searchController = TextEditingController();
+
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  List<QueryDocumentSnapshot> groupList = [];
+  Map<String, dynamic> data = {};
+  List<dynamic> groupMembers = [];
   String groupName = '';
   String groupDesc = '';
   String sentTime = '';
@@ -43,6 +53,15 @@ class _BuildChatListState extends State<BuildChatList> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  //get all groups from firebase firestore collection
+  Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
+    var allGroupsList = firestore
+        .collection('groups')
+        .orderBy('created_at', descending: true)
+        .snapshots();
+    yield* allGroupsList;
   }
 
   @override
@@ -94,7 +113,7 @@ class _BuildChatListState extends State<BuildChatList> {
               FocusScope.of(context).requestFocus(FocusNode());
             },
             child: StreamBuilder(
-                stream: FirebaseProvider.getAllGroups(),
+                stream: getAllGroups(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   switch (snapshot.connectionState) {
                     case ConnectionState.none:
@@ -114,37 +133,55 @@ class _BuildChatListState extends State<BuildChatList> {
                             ),
                           );
                         } else {
+                          groupList = snapshot.data!.docs;
+                          for (var i = 0; i < groupList.length; i++) {
+                            data = groupList[i].data() as Map<String, dynamic>;
+
+                            groupMembers = groupList[i]['members'];
+                            // remove the group in which the user is not present
+                            groupList.remove((element) {
+                              if (element['members'][i]['uid'] !=
+                                  auth.currentUser!.uid) {
+                                groupList.remove(groupList[i]);
+                              }
+                            });
+                          }
                           return Scrollbar(
                             child: ListView.builder(
-                                itemCount: snapshot.data!.docs.length,
+                                itemCount: groupList.length,
                                 shrinkWrap: true,
                                 padding: const EdgeInsets.only(
                                     top: AppSizes.kDefaultPadding),
                                 itemBuilder: (context, index) {
                                   //for search groups
-                                  var data = snapshot.data!.docs[index].data()
-                                      as Map<String, dynamic>;
                                   sentTime =
                                       AppHelper.getStringTimeFromTimestamp(
-                                          data['created_at']);
+                                          groupList[index]['created_at']);
                                   if (groupName.isEmpty && groupDesc.isEmpty) {
                                     return HomeChatCard(
-                                        groupId: snapshot.data!.docs[index].id,
+                                        groupId: groupList[index].id,
                                         onPressed: () {
-                                          context.push(ChatScreen(
-                                            groupId:
-                                                snapshot.data!.docs[index].id,
-                                            isAdmin: widget.isAdmin,
-                                          ));
+                                          Platform.isAndroid
+                                              ? Navigator.push(
+                                                  context,
+                                                  CustomPageRoute(
+                                                      widget: ChatScreen(
+                                                    groupId:
+                                                        groupList[index].id,
+                                                    isAdmin: widget.isAdmin,
+                                                  )))
+                                              : context.push(ChatScreen(
+                                                  groupId: groupList[index].id,
+                                                  isAdmin: widget.isAdmin,
+                                                ));
                                         },
-                                        groupName: snapshot.data!.docs[index]
-                                            ['name'],
-                                        groupDesc: snapshot.data!.docs[index]
+                                        groupName: groupList[index]['name'],
+                                        groupDesc: groupList[index]
                                             ['group_description'],
                                         sentTime: sentTime,
                                         imageUrl:
-                                            '${snapshot.data!.docs[index]['profile_picture']}');
-                                  } else if (data['name']
+                                            '${groupList[index]['profile_picture']}');
+                                  } else if (groupList[index]['name']
                                           .toLowerCase()
                                           .trim()
                                           .toString()
@@ -152,7 +189,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                               .toLowerCase()
                                               .trim()
                                               .toString()) ||
-                                      data['group_description']
+                                      groupList[index]['group_description']
                                           .toLowerCase()
                                           .trim()
                                           .toString()
@@ -161,21 +198,28 @@ class _BuildChatListState extends State<BuildChatList> {
                                               .trim()
                                               .toString())) {
                                     return HomeChatCard(
-                                        groupId: snapshot.data!.docs[index].id,
+                                        groupId: groupList[index].id,
                                         onPressed: () {
-                                          // context.push(ChatScreen(
-                                          //   groupId:
-                                          //       snapshot.data!.docs[index].id,
-                                          //   isAdmin: widget.isAdmin,
-                                          // ));
+                                          Platform.isAndroid
+                                              ? Navigator.push(
+                                                  context,
+                                                  CustomPageRoute(
+                                                      widget: ChatScreen(
+                                                    groupId:
+                                                        groupList[index].id,
+                                                    isAdmin: widget.isAdmin,
+                                                  )))
+                                              : context.push(ChatScreen(
+                                                  groupId: groupList[index].id,
+                                                  isAdmin: widget.isAdmin,
+                                                ));
                                         },
-                                        groupName: snapshot.data!.docs[index]
-                                            ['name'],
-                                        groupDesc: snapshot.data!.docs[index]
+                                        groupName: groupList[index]['name'],
+                                        groupDesc: groupList[index]
                                             ['group_description'],
                                         sentTime: sentTime,
                                         imageUrl:
-                                            '${snapshot.data!.docs[index]['profile_picture']}');
+                                            '${groupList[index]['profile_picture']}');
                                   }
                                   return const SizedBox();
                                 }),
