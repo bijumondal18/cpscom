@@ -242,7 +242,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     Positioned(
                                       right: 0,
                                       bottom: 0,
-                                      child: widget.isAdmin == true
+                                      child: snapshot.data!['group_creator_uid'] == FirebaseProvider.auth.currentUser!.uid
                                           ? GestureDetector(
                                               onTap: () {
                                                 showCustomBottomSheet(
@@ -367,10 +367,10 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                               ],
                             ),
                           ),
-                          (widget.isAdmin != true &&
+                          (snapshot.data!['group_creator_uid'] != FirebaseProvider.auth.currentUser!.uid &&
                                   snapshot.data!['group_description'] == '')
                               ? const SizedBox()
-                              : (widget.isAdmin == true &&
+                              : (snapshot.data!['group_creator_uid'] == FirebaseProvider.auth.currentUser!.uid &&
                                       snapshot.data!['group_description'] == '')
                                   ? GestureDetector(
                                       onTap: () => context.push(
@@ -394,7 +394,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     )
                                   : GestureDetector(
                                       onTap: () {
-                                        widget.isAdmin == true
+                                        snapshot.data!['group_creator_uid'] == FirebaseProvider.auth.currentUser!.uid
                                             ? context
                                                 .push(ChangeGroupDescription(
                                                 groupId: widget.groupId,
@@ -436,7 +436,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                                 .black),
                                                   ),
                                                 ),
-                                                widget.isAdmin == true
+                                                snapshot.data!['group_creator_uid'] == FirebaseProvider.auth.currentUser!.uid
                                                     ? const Icon(
                                                         EvaIcons
                                                             .arrowIosForward,
@@ -465,7 +465,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                       style:
                                           Theme.of(context).textTheme.bodyText1,
                                     ),
-                                    widget.isAdmin == true
+                                    snapshot.data!['group_creator_uid'] == FirebaseProvider.auth.currentUser!.uid
                                         ? InkWell(
                                             onTap: () {
                                               // context.push(const AddParticipantsScreen());
