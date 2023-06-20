@@ -1,5 +1,7 @@
 import 'package:cpscom_admin/Commons/app_sizes.dart';
+import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../Commons/app_colors.dart';
 
@@ -40,6 +42,8 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      textCapitalization: TextCapitalization.sentences,
+      //first letter will be capital
       autovalidateMode: AutovalidateMode.onUserInteraction,
       readOnly: readOnly ?? false,
       validator: validator,
@@ -54,8 +58,9 @@ class CustomTextField extends StatelessWidget {
       decoration: isBorder!
           ? InputDecoration(
               suffixIcon: suffixIcon,
-          contentPadding: EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
-          //border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: AppSizes.kDefaultPadding),
+              //border: InputBorder.none,
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: AppColors.lightGrey),
               ),
@@ -69,13 +74,8 @@ class CustomTextField extends StatelessWidget {
           : InputDecoration(
               suffixIcon: suffixIcon,
               border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
-              // enabledBorder: const UnderlineInputBorder(
-              //   borderSide: BorderSide(color: AppColors.lightGrey),
-              // ),
-              // focusedBorder: const UnderlineInputBorder(
-              //   borderSide: BorderSide(color: AppColors.lightGrey),
-              // ),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: AppSizes.kDefaultPadding),
               hintText: hintText ?? '',
               hintStyle: Theme.of(context).textTheme.bodyText2,
               labelStyle: Theme.of(context).textTheme.bodyText2,
