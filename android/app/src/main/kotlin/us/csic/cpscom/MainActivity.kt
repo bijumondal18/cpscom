@@ -1,6 +1,8 @@
 package us.csic.cpscom
 
-import io.flutter.embedding.android.FlutterActivity
+
+import io.flutter.embedding.android.FlutterActivity;
 
 class MainActivity: FlutterActivity() {
+
 }

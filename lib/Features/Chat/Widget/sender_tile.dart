@@ -40,7 +40,7 @@ class SenderTile extends StatelessWidget {
             decoration:
                 BoxDecoration(color: AppColors.lightGrey.withOpacity(0.8)),
             child: Text(
-              '$groupCreatedBy $message',
+              '$groupCreatedBy $message'.trim(),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           )
@@ -114,7 +114,7 @@ class SenderTile extends StatelessWidget {
                           )
                         : messageType == 'text'
                             ? Linkable(
-                                text: message,
+                                text: message.trim(),
                                 linkColor: Colors.blue,
                               )
                             : messageType == 'pdf'

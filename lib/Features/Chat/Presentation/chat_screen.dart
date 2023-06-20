@@ -394,6 +394,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   controller: msgController,
                                                   hintText: 'Type a message',
                                                   maxLines: 4,
+                                                  keyboardType:
+                                                      TextInputType.multiline,
                                                   minLines: 1,
                                                   isBorder: false,
                                                 ),
@@ -599,7 +601,8 @@ class _BuildChatListState extends State<_BuildChatList> {
                                 onTap: () {
                                   context.push(MessageInfoScreen(
                                     chatMap: chatMap,
-                                  ));                                },
+                                  ));
+                                },
                                 onHorizontalDragUpdate: (DragEndDetails) {
                                   context.push(MessageInfoScreen(
                                     chatMap: chatMap,
