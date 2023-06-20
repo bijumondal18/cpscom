@@ -135,7 +135,10 @@ class HomeChatCard extends StatelessWidget {
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall!
-                                                      .copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+                                                      .copyWith(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500),
                                                 )
                                               : const SizedBox(),
                                         ],
@@ -191,8 +194,7 @@ class HomeChatCard extends StatelessWidget {
                                                                         text:
                                                                             ' PDF')
                                                                   ],
-                                                                style: Theme.of(
-                                                                        context)
+                                                                style: Theme.of(context)
                                                                     .textTheme
                                                                     .bodySmall)
                                                             : snapshot.data.docs[0]
@@ -223,59 +225,62 @@ class HomeChatCard extends StatelessWidget {
                                                                         .bodySmall)
                                                                 : TextSpan(
                                                                     text:
-                                                                        ' ${snapshot.data.docs[0]['message']}'),
+                                                                        ' ${snapshot.data.docs[0]['message']}',
+                                                                    style: Theme.of(context)
+                                                                        .textTheme
+                                                                        .bodySmall),
                                                     //TextSpan(),
                                                   ]))
                                           : const SizedBox(),
                                       const SizedBox(
                                         height: AppSizes.kDefaultPadding / 2,
                                       ),
-                                      // Row(
-                                      //   mainAxisAlignment:
-                                      //       MainAxisAlignment.spaceBetween,
-                                      //   children: [
-                                      //     MembersStackOnGroup(
-                                      //       groupId: groupId,
-                                      //     ),
-                                      //     (snapshot.data != null &&
-                                      //             snapshot.data.docs != null &&
-                                      //             snapshot.data.docs.length >=
-                                      //                 1)
-                                      //         ? snapshot.data.docs[0]
-                                      //                     ['sendBy'] !=
-                                      //                 FirebaseProvider
-                                      //                     .auth
-                                      //                     .currentUser!
-                                      //                     .displayName
-                                      //             ? Container(
-                                      //                 alignment:
-                                      //                     Alignment.center,
-                                      //                 width: 18,
-                                      //                 height: 18,
-                                      //                 decoration: BoxDecoration(
-                                      //                     shape:
-                                      //                         BoxShape.circle,
-                                      //                     color: AppColors
-                                      //                         .primary
-                                      //                         .withOpacity(
-                                      //                             0.9)),
-                                      //                 child: FittedBox(
-                                      //                   child: Text(
-                                      //                     '1',
-                                      //                     style: Theme.of(
-                                      //                             context)
-                                      //                         .textTheme
-                                      //                         .caption!
-                                      //                         .copyWith(
-                                      //                             color: AppColors
-                                      //                                 .white),
-                                      //                   ),
-                                      //                 ),
-                                      //               )
-                                      //             : const SizedBox()
-                                      //         : const SizedBox()
-                                      //   ],
-                                      // )
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          MembersStackOnGroup(
+                                            groupId: groupId,
+                                          ),
+                                          (snapshot.data != null &&
+                                                  snapshot.data.docs != null &&
+                                                  snapshot.data.docs.length >=
+                                                      1)
+                                              ? snapshot.data.docs[0]
+                                                          ['sendBy'] !=
+                                                      FirebaseProvider
+                                                          .auth
+                                                          .currentUser!
+                                                          .displayName
+                                                  ? Container(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      width: 18,
+                                                      height: 18,
+                                                      decoration: BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color: AppColors
+                                                              .primary
+                                                              .withOpacity(
+                                                                  0.9)),
+                                                      child: FittedBox(
+                                                        child: Text(
+                                                          '1',
+                                                          style: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .caption!
+                                                              .copyWith(
+                                                                  color: AppColors
+                                                                      .white),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : const SizedBox()
+                                              : const SizedBox()
+                                        ],
+                                      )
                                     ],
                                   ),
                                 ),
@@ -308,8 +313,6 @@ class MembersStackOnGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var stream = FirebaseFirestore.instance
-        // .collection('users')
-        // .doc(FirebaseAuth.instance.currentUser!.uid)
         .collection('groups')
         .doc(groupId)
         .snapshots();

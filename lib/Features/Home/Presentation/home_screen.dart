@@ -123,7 +123,8 @@ class _BuildChatListState extends State<BuildChatList> {
                           child: CircularProgressIndicator.adaptive());
                     default:
                       if (snapshot.hasData) {
-                        if (finalGroupList.isEmpty) {
+                        groupList = snapshot.data!.docs;
+                        if (groupList.isEmpty) {
                           return Center(
                             child: Text(
                               'No Groups Found',
@@ -134,7 +135,7 @@ class _BuildChatListState extends State<BuildChatList> {
                             ),
                           );
                         } else {
-                          groupList = snapshot.data!.docs;
+                          print(groupList);
                           finalGroupList.clear();
                           // view only those groups which the user is present
                           for (var i = 0; i < groupList.length; i++) {

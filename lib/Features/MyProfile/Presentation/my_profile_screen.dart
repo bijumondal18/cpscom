@@ -98,7 +98,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           .collection('users')
           .doc(FirebaseProvider.auth.currentUser!.uid)
           .update({'profile_picture': imageUrl});
-    } on FirebaseException catch (e) {}
+    } on FirebaseException catch (e) {
+      if (kDebugMode) {
+        print(e.message.toString());
+      }
+    }
   }
 
   @override
@@ -219,7 +223,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                             AppSizes
                                                                 .kDefaultPadding),
                                                         itemCount:
-                                                        imagePickerList.length,
+                                                            imagePickerList
+                                                                .length,
                                                         scrollDirection:
                                                             Axis.horizontal,
                                                         itemBuilder:

@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 
 import 'Commons/theme.dart';
 import 'Features/Splash/Presentation/splash_screen.dart';
@@ -38,19 +39,31 @@ void requestPermission() async {
   print('User granted permission: ${settings.authorizationStatus}');
 }
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Prevent to take screenshot and screen recordings
+  //await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+
+  // Status bar configuration
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light));
+
+  // Initialize Firebase to App
   firebaseApp = await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Request Permission for Push Notification
   requestPermission();
+
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
   LocalNotificationService.initialize();
+
+  // Main Function to run the application
   runApp(const MyApp());
 }
 
