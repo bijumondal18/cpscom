@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
-import 'package:cpscom_admin/Features/AddParticipants/Presentation/add_participants_screen.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +7,7 @@ import 'package:flutter/material.dart';
 import '../../../Api/firebase_provider.dart';
 import '../../../Widgets/custom_floating_action_button.dart';
 import '../../AddMembers/Presentation/add_members_screen.dart';
-import '../Components/build_groups_list.dart';
-import '../Widgets/home_header.dart';
+
 
 class BuildMobileView extends StatefulWidget {
   const BuildMobileView({Key? key}) : super(key: key);

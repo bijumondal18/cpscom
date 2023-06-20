@@ -43,6 +43,7 @@ class _BuildChatListState extends State<BuildChatList> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
   List<QueryDocumentSnapshot> groupList = [];
+  List<QueryDocumentSnapshot> finalGroupList = [];
   Map<String, dynamic> data = {};
   List<dynamic> groupMembers = [];
   String groupName = '';
@@ -134,21 +135,19 @@ class _BuildChatListState extends State<BuildChatList> {
                           );
                         } else {
                           groupList = snapshot.data!.docs;
+                          finalGroupList.clear();
+                          // view only those groups which the user is present
                           for (var i = 0; i < groupList.length; i++) {
                             data = groupList[i].data() as Map<String, dynamic>;
-
-                            groupMembers = groupList[i]['members'];
-                            // remove the group in which the user is not present
-                            // groupList.remove((element) {
-                            //   if (element['members'][i]['uid'] !=
-                            //       auth.currentUser!.uid) {
-                            //     groupList.remove(groupList[i]);
-                            //   }
-                            // });
+                            data['members'].forEach((element) {
+                              if (element['uid'] == auth.currentUser!.uid) {
+                                finalGroupList.add(groupList[i]);
+                              }
+                            });
                           }
                           return Scrollbar(
                             child: ListView.builder(
-                                itemCount: groupList.length,
+                                itemCount: finalGroupList.length,
                                 shrinkWrap: true,
                                 padding: const EdgeInsets.only(
                                     top: AppSizes.kDefaultPadding),
@@ -156,10 +155,10 @@ class _BuildChatListState extends State<BuildChatList> {
                                   //for search groups
                                   sentTime =
                                       AppHelper.getStringTimeFromTimestamp(
-                                          groupList[index]['created_at']);
+                                          finalGroupList[index]['created_at']);
                                   if (groupName.isEmpty && groupDesc.isEmpty) {
                                     return HomeChatCard(
-                                        groupId: groupList[index].id,
+                                        groupId: finalGroupList[index].id,
                                         onPressed: () {
                                           Platform.isAndroid
                                               ? Navigator.push(
@@ -167,21 +166,24 @@ class _BuildChatListState extends State<BuildChatList> {
                                                   CustomPageRoute(
                                                       widget: ChatScreen(
                                                     groupId:
-                                                        groupList[index].id,
+                                                        finalGroupList[index]
+                                                            .id,
                                                     isAdmin: widget.isAdmin,
                                                   )))
                                               : context.push(ChatScreen(
-                                                  groupId: groupList[index].id,
+                                                  groupId:
+                                                      finalGroupList[index].id,
                                                   isAdmin: widget.isAdmin,
                                                 ));
                                         },
-                                        groupName: groupList[index]['name'],
-                                        groupDesc: groupList[index]
+                                        groupName: finalGroupList[index]
+                                            ['name'],
+                                        groupDesc: finalGroupList[index]
                                             ['group_description'],
                                         sentTime: sentTime,
                                         imageUrl:
-                                            '${groupList[index]['profile_picture']}');
-                                  } else if (groupList[index]['name']
+                                            '${finalGroupList[index]['profile_picture']}');
+                                  } else if (finalGroupList[index]['name']
                                           .toLowerCase()
                                           .trim()
                                           .toString()
@@ -189,7 +191,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                               .toLowerCase()
                                               .trim()
                                               .toString()) ||
-                                      groupList[index]['group_description']
+                                      finalGroupList[index]['group_description']
                                           .toLowerCase()
                                           .trim()
                                           .toString()
@@ -198,7 +200,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                               .trim()
                                               .toString())) {
                                     return HomeChatCard(
-                                        groupId: groupList[index].id,
+                                        groupId: finalGroupList[index].id,
                                         onPressed: () {
                                           Platform.isAndroid
                                               ? Navigator.push(
@@ -206,20 +208,23 @@ class _BuildChatListState extends State<BuildChatList> {
                                                   CustomPageRoute(
                                                       widget: ChatScreen(
                                                     groupId:
-                                                        groupList[index].id,
+                                                        finalGroupList[index]
+                                                            .id,
                                                     isAdmin: widget.isAdmin,
                                                   )))
                                               : context.push(ChatScreen(
-                                                  groupId: groupList[index].id,
+                                                  groupId:
+                                                      finalGroupList[index].id,
                                                   isAdmin: widget.isAdmin,
                                                 ));
                                         },
-                                        groupName: groupList[index]['name'],
-                                        groupDesc: groupList[index]
+                                        groupName: finalGroupList[index]
+                                            ['name'],
+                                        groupDesc: finalGroupList[index]
                                             ['group_description'],
                                         sentTime: sentTime,
                                         imageUrl:
-                                            '${groupList[index]['profile_picture']}');
+                                            '${finalGroupList[index]['profile_picture']}');
                                   }
                                   return const SizedBox();
                                 }),
