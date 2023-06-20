@@ -105,6 +105,7 @@ dependencies:
   # Launcher Icons for the Application
   flutter_launcher_icons: ^0.13.1
   flutter_windowmanager: ^0.2.0
+  flutter_mentions: ^2.0.1
 
 flutter_launcher_icons:
   android: true

@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
+import 'package:flutter_mentions/flutter_mentions.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
@@ -63,6 +64,9 @@ class _ChatScreenState extends State<ChatScreen> {
   List<String> pushToken = [];
 
   File? imageFile;
+  List<dynamic>? _filteredSuggestions;
+
+  String? _mention;
 
   var extension;
   var extType;
@@ -249,6 +253,28 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
+  void initState() {
+    // msgController.addListener(() {
+    //   setState(() {
+    //     final text = msgController.text;
+    //     final index = text.lastIndexOf('@');
+    //     if (index >= 0 && index < text.length - 1) {
+    //       final mention = text.substring(index + 1);
+    //       if (mention != _mention) {
+    //         _filteredSuggestions = membersList
+    //             .where((value) => value['name'].startsWith(_mention))
+    //             .toList();
+    //       } else {
+    //         _mention = '';
+    //         _filteredSuggestions = [];
+    //       }
+    //     }
+    //   });
+    // });
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
@@ -336,6 +362,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .bodyText2!
                                         .copyWith(color: AppColors.black),
                                   )),
+                              PopupMenuItem(
+                                  value: 3,
+                                  child: Text(
+                                    'Search',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2!
+                                        .copyWith(color: AppColors.black),
+                                  )),
                             ],
                             onSelected: (value) {
                               switch (value) {
@@ -344,9 +379,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                       groupId: widget.groupId,
                                       isAdmin: widget.isAdmin));
                                   break;
-                                case 2:
-                                  context.push(const GroupMediaScreen());
-                                  break;
+                                // case 2:
+                                //   context.push(const GroupMediaScreen());
+                                //   break;
+                                // case 3:
+                                //   context.push(const MessageSearchScreen());
+                                //   break;
                               }
                             },
                           ),
@@ -558,6 +596,7 @@ class _BuildChatList extends StatefulWidget {
 
 class _BuildChatListState extends State<_BuildChatList> {
   Map<String, dynamic> chatMap = <String, dynamic>{};
+  List<QueryDocumentSnapshot> chatList = [];
   bool isSender = false;
   String sentTime = '';
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -571,60 +610,70 @@ class _BuildChatListState extends State<_BuildChatList> {
             case ConnectionState.none:
             case ConnectionState.waiting:
               return const Center(child: CircularProgressIndicator.adaptive());
-            default:
+            case ConnectionState.active:
+            case ConnectionState.done:
               if (snapshot.hasData) {
+                chatList = snapshot.data!.docs;
+                log('$chatList');
                 return Scrollbar(
-                  child: ListView.builder(
-                      itemCount: snapshot.data!.docs.length,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      controller: _scrollController,
-                      shrinkWrap: true,
-                      reverse: true,
-                      padding: const EdgeInsets.only(
-                          bottom: AppSizes.kDefaultPadding * 2),
-                      itemBuilder: (context, index) {
-                        chatMap = snapshot.data!.docs[index].data()
-                            as Map<String, dynamic>;
-                        isSender =
-                            chatMap['sendBy'] == auth.currentUser!.displayName
-                                ? true
-                                : false;
-                        sentTime = AppHelper.getStringTimeFromTimestamp(
-                            chatMap['time']);
-                        var groupCreatedBy =
-                            FirebaseProvider.auth.currentUser!.uid ==
-                                    chatMap['sendById']
-                                ? 'You'
-                                : chatMap['sendBy'];
-                        return isSender
-                            ? GestureDetector(
-                                onTap: () {
-                                  context.push(MessageInfoScreen(
-                                    chatMap: chatMap,
-                                  ));
-                                },
-                                onHorizontalDragUpdate: (DragEndDetails) {
-                                  context.push(MessageInfoScreen(
-                                    chatMap: chatMap,
-                                  ));
-                                },
-                                child: SenderTile(
-                                  message: chatMap['message'],
-                                  messageType: chatMap['type'],
-                                  sentTime: sentTime,
-                                  groupCreatedBy: groupCreatedBy,
-                                  read: sentTime,
-                                ),
-                              )
-                            : ReceiverTile(
-                                message: chatMap['message'],
-                                messageType: chatMap['type'],
-                                sentTime: sentTime,
-                                sentByName: chatMap['sendBy'],
-                                sentByImageUrl: chatMap['profile_picture'],
-                                groupCreatedBy: groupCreatedBy,
-                              );
-                      }),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                            itemCount: chatList.length,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            controller: _scrollController,
+                            shrinkWrap: true,
+                            reverse: true,
+                            padding: const EdgeInsets.only(
+                                bottom: AppSizes.kDefaultPadding * 2),
+                            itemBuilder: (context, index) {
+                              chatMap = chatList[index].data()
+                                  as Map<String, dynamic>;
+                              isSender = chatMap['sendBy'] ==
+                                      auth.currentUser!.displayName
+                                  ? true
+                                  : false;
+                              sentTime = AppHelper.getStringTimeFromTimestamp(
+                                  chatMap['time']);
+                              var groupCreatedBy =
+                                  FirebaseProvider.auth.currentUser!.uid ==
+                                          chatMap['sendById']
+                                      ? 'You'
+                                      : chatMap['sendBy'];
+                              return isSender
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        context.push(MessageInfoScreen(
+                                          chatMap: chatMap,
+                                        ));
+                                      },
+                                      onHorizontalDragUpdate: (DragEndDetails) {
+                                        context.push(MessageInfoScreen(
+                                          chatMap: chatMap,
+                                        ));
+                                      },
+                                      child: SenderTile(
+                                        message: chatMap['message'],
+                                        messageType: chatMap['type'],
+                                        sentTime: sentTime,
+                                        groupCreatedBy: groupCreatedBy,
+                                        read: sentTime,
+                                      ),
+                                    )
+                                  : ReceiverTile(
+                                      message: chatMap['message'],
+                                      messageType: chatMap['type'],
+                                      sentTime: sentTime,
+                                      sentByName: chatMap['sendBy'],
+                                      sentByImageUrl:
+                                          chatMap['profile_picture'],
+                                      groupCreatedBy: groupCreatedBy,
+                                    );
+                            }),
+                      ),
+                    ],
+                  ),
                 );
               }
           }

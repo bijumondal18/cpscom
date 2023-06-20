@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -5,16 +6,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_colors.dart';
 import 'package:cpscom_admin/Commons/app_sizes.dart';
-import 'package:cpscom_admin/Commons/app_strings.dart';
 import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/Login/Presentation/login_screen.dart';
 import 'package:cpscom_admin/Features/UpdateUserStatus/Presentation/update_user_status_screen.dart';
 import 'package:cpscom_admin/Utils/app_preference.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
-import 'package:cpscom_admin/Widgets/custom_loader.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,11 +22,12 @@ import 'package:image_picker/image_picker.dart';
 import '../../../Commons/app_images.dart';
 import '../../../Utils/custom_bottom_modal_sheet.dart';
 import '../../../Widgets/custom_confirmation_dialog.dart';
-import '../../../Widgets/custom_image_picker.dart';
 import '../../GroupInfo/Model/image_picker_model.dart';
 
 class MyProfileScreen extends StatefulWidget {
-  const MyProfileScreen({Key? key}) : super(key: key);
+  final List<dynamic>? groupsList;
+
+  const MyProfileScreen({Key? key, this.groupsList}) : super(key: key);
 
   @override
   State<MyProfileScreen> createState() => _MyProfileScreenState();
@@ -94,15 +93,40 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           .collection('users')
           .doc(FirebaseProvider.auth.currentUser!.uid)
           .update({'profile_picture': imageUrl});
-      await FirebaseProvider.firestore
-          .collection('users')
-          .doc(FirebaseProvider.auth.currentUser!.uid)
-          .update({'profile_picture': imageUrl});
+
+      // Update user profile picture to firestore, i.e. group-> groupID -> members
+      // if (widget.groupsList!.isNotEmpty) {
+      //   Map<int, List<dynamic>> testtable = {};
+      //
+      //   for (var i = 0; i < widget.groupsList!.length; i++) {
+      //     var data = widget.groupsList![i].data() as Map<String, dynamic>;
+      //     data['members'].forEach((element) async {
+      //       if (element['uid'] == FirebaseProvider.auth.currentUser!.uid) {
+      //         testtable.update(data.length, (value){
+      //           log('${value.length}');
+      //           return value;
+      //         });
+      //         //log('${element['profile_picture']}');
+      //         // log('${element['profile_picture']}');
+      //         // await FirebaseProvider.firestore
+      //         //     .collection('groups')
+      //         //     .doc(data['id'])
+      //         //     .update({'members': FieldValue.arrayRemove(element)});
+      //       }
+      //     });
+      //   }
+      // }
     } on FirebaseException catch (e) {
       if (kDebugMode) {
         print(e.message.toString());
       }
     }
+  }
+
+  @override
+  void initState() {
+    log('final groups list in profile screen --------- ${widget.groupsList?.length}');
+    super.initState();
   }
 
   @override
@@ -153,8 +177,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-                return const CustomLoader();
-              default:
+                return const Center(
+                    child: CircularProgressIndicator.adaptive());
+              case ConnectionState.active:
+              case ConnectionState.done:
                 if (snapshot.hasData) {
                   return SingleChildScrollView(
                     child: Column(

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,7 +11,9 @@ import '../../../Commons/app_colors.dart';
 import '../../../Commons/app_sizes.dart';
 
 class HomeHeader extends StatefulWidget {
-  const HomeHeader({Key? key}) : super(key: key);
+  final List<dynamic>? groupsList;
+
+  const HomeHeader({Key? key, this.groupsList}) : super(key: key);
 
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
@@ -40,12 +42,14 @@ class _HomeHeaderState extends State<HomeHeader> {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:
                   case ConnectionState.waiting:
-                    return  const CircularProgressIndicator.adaptive();
+                    return const CircularProgressIndicator.adaptive();
                   default:
                     if (snapshot.hasData) {
                       // bool isAdmin = snapshot.data?['isAdmin'];
                       return GestureDetector(
-                        onTap: () => context.push(const MyProfileScreen()),
+                        onTap: () => context.push(MyProfileScreen(
+                          groupsList: widget.groupsList,
+                        )),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(
                               AppSizes.cardCornerRadius * 10),

@@ -69,7 +69,11 @@ class _BuildChatListState extends State<BuildChatList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Responsive.isMobile(context) ? const HomeHeader() : const SizedBox(),
+        Responsive.isMobile(context)
+            ? HomeHeader(
+                groupsList: finalGroupList,
+              )
+            : const SizedBox(),
         Container(
           padding:
               const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
@@ -135,7 +139,6 @@ class _BuildChatListState extends State<BuildChatList> {
                             ),
                           );
                         } else {
-                          print(groupList);
                           finalGroupList.clear();
                           // view only those groups which the user is present
                           for (var i = 0; i < groupList.length; i++) {
