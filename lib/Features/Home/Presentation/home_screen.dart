@@ -123,7 +123,7 @@ class _BuildChatListState extends State<BuildChatList> {
                           child: CircularProgressIndicator.adaptive());
                     default:
                       if (snapshot.hasData) {
-                        if (snapshot.data!.docs.isEmpty) {
+                        if (finalGroupList.isEmpty) {
                           return Center(
                             child: Text(
                               'No Groups Found',
