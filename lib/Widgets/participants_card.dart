@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Models/user.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import '../Commons/app_strings.dart';
 class ParticipantsCardWidget extends StatelessWidget {
   final bool? isUserAdmin;
   final Map<String, dynamic> member;
+  final String? creatorId;
   final VoidCallback onDeleteButtonPressed;
 
   const ParticipantsCardWidget({
@@ -17,6 +19,7 @@ class ParticipantsCardWidget extends StatelessWidget {
     required this.onDeleteButtonPressed,
     required this.member,
     this.isUserAdmin = false,
+    this.creatorId,
   }) : super(key: key);
 
   @override
@@ -60,13 +63,13 @@ class ParticipantsCardWidget extends StatelessWidget {
         member['email'],
         style: Theme.of(context).textTheme.caption,
       ),
-      trailing: member['isAdmin']
+      trailing: creatorId == member['uid'] || member['isSuperAdmin'] == true
           ? Text(
               'Admin',
               style: Theme.of(context).textTheme.caption!.copyWith(
                   color: AppColors.darkGrey, fontWeight: FontWeight.w400),
             )
-          : isUserAdmin!
+          : creatorId == FirebaseProvider.auth.currentUser!.uid
               ? IconButton(
                   onPressed: () => onDeleteButtonPressed.call(),
                   icon: const Icon(

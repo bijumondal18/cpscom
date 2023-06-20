@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -151,9 +152,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:
                   case ConnectionState.waiting:
-                  default:
+                  case ConnectionState.active:
+                  case ConnectionState.done:
                     if (snapshot.hasData) {
                       membersList = snapshot.data!['members'];
+                      //log('${snapshot.data!['group_creator_name']}');
                       return Column(
                         children: [
                           Container(
@@ -504,6 +507,8 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   itemBuilder: (context, index) {
                                     return ParticipantsCardWidget(
                                         member: membersList[index],
+                                        creatorId:
+                                            snapshot.data!['group_creator_uid'],
                                         isUserAdmin: widget.isAdmin,
                                         onDeleteButtonPressed: () {
                                           widget.isAdmin == true
