@@ -30,19 +30,37 @@ class ReceiverTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return messageType == 'notify'
-        ? Container(
-            margin:
-                const EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.kDefaultPadding,
-                vertical: AppSizes.kDefaultPadding / 2),
-            decoration:
-                BoxDecoration(color: AppColors.lightGrey.withOpacity(0.8)),
-            child: Text(
-              '$groupCreatedBy $message',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(
+                    vertical: AppSizes.kDefaultPadding),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.kDefaultPadding,
+                    vertical: AppSizes.kDefaultPadding / 2),
+                decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: AppColors.lightGrey),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+                    boxShadow: const [
+                      BoxShadow(
+                          offset: Offset(1, 1),
+                          blurRadius: 1,
+                          color: AppColors.lightGrey),
+                      BoxShadow(
+                          offset: Offset(-1, -1),
+                          blurRadius: 1,
+                          color: AppColors.lightGrey)
+                    ],
+                    color: AppColors.shimmer),
+                child: Text(
+                  '$groupCreatedBy $message',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
           )
         : Padding(
             padding: const EdgeInsets.only(
@@ -145,9 +163,9 @@ class ReceiverTile extends StatelessWidget {
                                 )
                               : messageType == 'text'
                                   ? Linkable(
-                                    text: message,
-                                    linkColor: Colors.blue,
-                                  )
+                                      text: message,
+                                      linkColor: Colors.blue,
+                                    )
                                   : messageType == 'pdf'
                                       ? ClipRRect(
                                           borderRadius: BorderRadius.circular(

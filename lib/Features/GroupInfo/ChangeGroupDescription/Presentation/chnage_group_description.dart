@@ -80,7 +80,8 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                           switch (snapshot.connectionState) {
                             case ConnectionState.none:
                             case ConnectionState.waiting:
-                            default:
+                            case ConnectionState.active:
+                            case ConnectionState.done:
                               if (snapshot.hasData) {
                                 descController.text =
                                     snapshot.data!['group_description'];

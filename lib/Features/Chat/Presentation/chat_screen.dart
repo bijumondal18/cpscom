@@ -299,6 +299,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     } else {
                       // pushToken.add(membersList[i]['pushToken']);
                     }
+                    // Add all the members in  the group to check who viewed the message
+                    // isSeen by whom and isDelivered to whom
                     chatMembersList.add({
                       "uid": membersList[i]['uid'],
                       "name": membersList[i]['name'],

@@ -322,6 +322,16 @@ class FirebaseProvider {
         .collection('groups')
         .doc(groupId)
         .update({"name": title}).then((value) => 'Status Updated Successfully');
+
+    //send a message to group chats for group title changes
+    await firestore.collection('groups').doc(groupId).collection('chats').add({
+      'message': 'changed group subject',
+      'sendBy': auth.currentUser!.displayName,
+      'sendById': auth.currentUser!.uid,
+      'type': 'notify',
+      "profile_picture": '',
+      'time': DateTime.now().millisecondsSinceEpoch
+    });
   }
 
   //UPDATE GROUP DESCRIPTION in  firebase
@@ -338,6 +348,16 @@ class FirebaseProvider {
         .collection('groups')
         .doc(groupId)
         .update({"group_description": desc});
+
+    //send a message to group chats for group description changes
+    await firestore.collection('groups').doc(groupId).collection('chats').add({
+      'message': 'changed group description',
+      'sendBy': auth.currentUser!.displayName,
+      'sendById': auth.currentUser!.uid,
+      'type': 'notify',
+      "profile_picture": '',
+      'time': DateTime.now().millisecondsSinceEpoch
+    });
   }
 
   //GET ALL CHAT Messages in a group firebase firestore collection

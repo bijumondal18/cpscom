@@ -106,7 +106,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           .update({'profile_picture': imageUrl});
       customSnackBar(context, 'Group Image Updated Successfully');
     } on FirebaseException catch (e) {
-      print(e.message.toString());
+      if (kDebugMode) {
+        print(e.message.toString());
+      }
     }
   }
 
@@ -156,7 +158,6 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                   case ConnectionState.done:
                     if (snapshot.hasData) {
                       membersList = snapshot.data!['members'];
-                      //log('${snapshot.data!['group_creator_name']}');
                       return Column(
                         children: [
                           Container(
