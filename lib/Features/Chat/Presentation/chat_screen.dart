@@ -658,7 +658,17 @@ class _BuildChatListState extends State<_BuildChatList> {
             case ConnectionState.done:
               if (snapshot.hasData) {
                 chatList = snapshot.data!.docs;
-                // log('$chatList');
+                for (var i = 0; i < chatList.length; i++) {
+                  if (chatList[i]['sendById'] != auth.currentUser!.uid) {
+                    // log('${chatList[i].id}');
+                    chatList[i]['members'].forEach((element) {
+                      if (element['uid'] != chatList[i]['sendById']) {
+                          log('${element['isSeen']}');
+                        FirebaseProvider.updateMessageSeenStatus(widget.groupId, chatList[i].id);
+                      }
+                    });
+                  }
+                }
                 return Scrollbar(
                   child: Column(
                     children: [

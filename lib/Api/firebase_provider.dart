@@ -235,6 +235,18 @@ class FirebaseProvider {
             (value) => 'Status Updated Successfully');
   }
 
+  //get current user details from firebase firestore
+  static Future<String> updateMessageSeenStatus(
+      String groupId, String messageId) async {
+    return await firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('chats')
+        .doc(messageId)
+        .update({'isSeen': true, "isDelivered": true}).then(
+            (value) => 'Status Updated Successfully');
+  }
+
   //DELETE user from a group firebase firestore collection
   static Future<void> deleteMember(
       String groupId, List<dynamic> membersList, int index) async {
