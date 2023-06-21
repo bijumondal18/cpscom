@@ -45,9 +45,6 @@ void requestPermission() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Prevent to take screenshot and screen recordings
-  //await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-
   // Status bar configuration
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -68,6 +65,8 @@ Future<void> main() async {
 
   // Main Function to run the application
   runApp(const MyApp());
+
+  // To Prevent Screenshot in app
   WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
     if(Platform.isAndroid){
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
