@@ -55,7 +55,7 @@ Widget _buildDesktopView(BuildContext context, GetStartedStateLoaded state) {
                   height: MediaQuery.of(context).size.height,
                   padding: const EdgeInsets.all(AppSizes.kDefaultPadding * 2),
                   decoration: const BoxDecoration(
-                    color: AppColors.shimmer,
+                      color: AppColors.shimmer,
                       image: DecorationImage(
                           image: AssetImage(AppImages.welcomeBg),
                           fit: BoxFit.cover,
@@ -198,7 +198,6 @@ Widget _buildMobileView(BuildContext context, GetStartedStateLoaded state) {
     crossAxisAlignment: CrossAxisAlignment.center,
     children: [
       Expanded(
-        flex: 5,
         child: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
@@ -211,59 +210,58 @@ Widget _buildMobileView(BuildContext context, GetStartedStateLoaded state) {
           child: const Image(image: AssetImage(AppImages.welcomeImage)),
         ),
       ),
-      Expanded(
-        flex: 3,
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.symmetric(
-              vertical: AppSizes.kDefaultPadding * 2,
-              horizontal: AppSizes.kDefaultPadding * 3),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: AppColors.lightGrey, width: 1.0),
-              boxShadow: const [
-                BoxShadow(
-                    offset: Offset(-8, -8),
-                    blurRadius: 15,
-                    color: AppColors.lightGrey)
-              ],
-              borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(AppSizes.cardCornerRadius * 2),
-                  topLeft: Radius.circular(AppSizes.cardCornerRadius * 2))),
+      Container(
+        width: MediaQuery.of(context).size.width,
+        padding: const EdgeInsets.symmetric(
+            vertical: AppSizes.kDefaultPadding * 2,
+            horizontal: AppSizes.kDefaultPadding * 3),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                  offset: Offset(12, -12),
+                  blurRadius: 15,
+                  color: AppColors.lightGrey),
+              BoxShadow(
+                  offset: Offset(0, 0), blurRadius: 0, color: AppColors.white)
+            ],
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(AppSizes.cardCornerRadius),
+                topLeft: Radius.circular(AppSizes.cardCornerRadius))),
+        child: Expanded(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(
-                      state.responseGetStarted.data?.cms?.title.toString() ??
-                          'Join the Conversation: Connect and Collaborate',
-                      style: Theme.of(context).textTheme.headline6,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(
-                      height: AppSizes.kDefaultPadding * 2,
-                    ),
-                    Text(
-                      state.responseGetStarted.data?.cms?.description
-                              .toString() ??
-                          'Say goodbye to scattered conversations! Connect with your team, share files, and stay organized all in one place.',
-                      style: Theme.of(context).textTheme.bodyText2,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+              const SizedBox(
+                height: AppSizes.kDefaultPadding,
+              ),
+              Text(
+                state.responseGetStarted.data?.cms?.title.toString() ??
+                    'Join the Conversation: Connect and Collaborate',
+                style: Theme.of(context).textTheme.headline6,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(
-                height: AppSizes.kDefaultPadding * 3,
+                height: AppSizes.kDefaultPadding,
+              ),
+              Text(
+                state.responseGetStarted.data?.cms?.description.toString() ??
+                    'Say goodbye to scattered conversations! Connect with your team, share files, and stay organized all in one place.',
+                style: Theme.of(context).textTheme.bodyText2,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(
+                height: AppSizes.kDefaultPadding * 4,
               ),
               FullButton(
                   label: 'Get Started',
                   onPressed: () {
                     //preference.setIsFirstTimeAppLoaded(false);
                     context.push(const LoginScreen());
-                  })
+                  }),
+              const SizedBox(
+                height: AppSizes.kDefaultPadding * 3,
+              ),
             ],
           ),
         ),

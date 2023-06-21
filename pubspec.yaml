@@ -104,6 +104,8 @@ dependencies:
 
   # Launcher Icons for the Application
   flutter_launcher_icons: ^0.13.1
+
+  # Prevent screenshot & screen recordings
   flutter_windowmanager: ^0.2.0
   flutter_mentions: ^2.0.1
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cpscom_admin/global_bloc.dart';
 import 'package:cpscom_admin/local_notification_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,6 +68,11 @@ Future<void> main() async {
 
   // Main Function to run the application
   runApp(const MyApp());
+  WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+    if(Platform.isAndroid){
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    }
+  });
 }
 
 class MyApp extends StatefulWidget {
