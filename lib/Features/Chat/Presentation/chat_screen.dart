@@ -304,6 +304,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     chatMembersList.add({
                       "uid": membersList[i]['uid'],
                       "name": membersList[i]['name'],
+                      "profile_picture": membersList[i]['profile_picture'],
                       "isSeen": false,
                       "isDelivered": false,
                     });
@@ -647,14 +648,15 @@ class _BuildChatListState extends State<_BuildChatList> {
                                   ? GestureDetector(
                                       onTap: () {
                                         context.push(MessageInfoScreen(
-                                          chatMap: chatMap,
+                                          chatMap: chatList[index].data()
+                                              as Map<String, dynamic>,
                                         ));
                                       },
-                                      onHorizontalDragUpdate: (DragEndDetails) {
-                                        context.push(MessageInfoScreen(
-                                          chatMap: chatMap,
-                                        ));
-                                      },
+                                      // onHorizontalDragUpdate: (DragEndDetails) {
+                                      //   context.push(MessageInfoScreen(
+                                      //     chatMap: chatMap,
+                                      //   ));
+                                      // },
                                       child: SenderTile(
                                         message: chatMap['message'],
                                         messageType: chatMap['type'],

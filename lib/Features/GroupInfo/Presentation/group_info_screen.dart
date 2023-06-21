@@ -540,7 +540,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                       return ConfirmationDialog(
                                                         title: 'Delete Member?',
                                                         body:
-                                                            'Are you sure want to delete this member from this group?',
+                                                            'Are you sure you want to delete this member from this group?',
                                                         onPressedPositiveButton:
                                                             () {
                                                           FirebaseProvider
