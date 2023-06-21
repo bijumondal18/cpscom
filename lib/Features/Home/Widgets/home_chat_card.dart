@@ -242,43 +242,43 @@ class HomeChatCard extends StatelessWidget {
                                           MembersStackOnGroup(
                                             groupId: groupId,
                                           ),
-                                          // (snapshot.data != null &&
-                                          //         snapshot.data.docs != null &&
-                                          //         snapshot.data.docs.length >=
-                                          //             1)
-                                          //     ? snapshot.data.docs[0]
-                                          //                 ['sendBy'] !=
-                                          //             FirebaseProvider
-                                          //                 .auth
-                                          //                 .currentUser!
-                                          //                 .displayName
-                                          //         ? Container(
-                                          //             alignment:
-                                          //                 Alignment.center,
-                                          //             width: 18,
-                                          //             height: 18,
-                                          //             decoration: BoxDecoration(
-                                          //                 shape:
-                                          //                     BoxShape.circle,
-                                          //                 color: AppColors
-                                          //                     .primary
-                                          //                     .withOpacity(
-                                          //                         0.9)),
-                                          //             child: FittedBox(
-                                          //               child: Text(
-                                          //                 '1',
-                                          //                 style: Theme.of(
-                                          //                         context)
-                                          //                     .textTheme
-                                          //                     .caption!
-                                          //                     .copyWith(
-                                          //                         color: AppColors
-                                          //                             .white),
-                                          //               ),
-                                          //             ),
-                                          //           )
-                                          //         : const SizedBox()
-                                          //     : const SizedBox()
+                                          (snapshot.data != null &&
+                                                  snapshot.data.docs != null &&
+                                                  snapshot.data.docs.length >=
+                                                      1)
+                                              ? snapshot.data.docs[0]
+                                                          ['sendBy'] !=
+                                                      FirebaseProvider
+                                                          .auth
+                                                          .currentUser!
+                                                          .displayName
+                                                  ? Container(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      width: 18,
+                                                      height: 18,
+                                                      decoration: BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color: AppColors
+                                                              .primary
+                                                              .withOpacity(
+                                                                  0.9)),
+                                                      child: FittedBox(
+                                                        child: Text(
+                                                          '1',
+                                                          style: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .caption!
+                                                              .copyWith(
+                                                                  color: AppColors
+                                                                      .white),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : const SizedBox()
+                                              : const SizedBox()
                                         ],
                                       )
                                     ],

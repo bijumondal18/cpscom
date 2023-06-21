@@ -148,6 +148,9 @@ class _BuildChatListState extends State<BuildChatList> {
                                 finalGroupList.add(groupList[i]);
                               }
                             });
+                            finalGroupList.sort((a,b){
+                              return b['time'].toString().compareTo(a['time'].toString());
+                            });
                           }
                           return Scrollbar(
                             child: ListView.builder(

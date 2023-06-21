@@ -78,6 +78,10 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               default:
                 if (snapshot.hasData) {
                   members = snapshot.data!.docs.toSet().toList();
+                  // Sort members list by ascending order by name
+                  members.sort((a, b) {
+                    return a['name'].toString().compareTo(b['name'].toString());
+                  });
                   if (members.isEmpty) {
                     return Center(
                       child: Text(

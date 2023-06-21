@@ -54,7 +54,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController msgController = TextEditingController();
+  late TextEditingController msgController;
   final AppPreference preference = AppPreference();
   List<dynamic> membersList = [];
   List<dynamic> chatMembersList = [];
@@ -64,9 +64,9 @@ class _ChatScreenState extends State<ChatScreen> {
   List<String> pushToken = [];
 
   File? imageFile;
-  List<dynamic>? _filteredSuggestions;
 
-  String? _mention;
+  String _mention = '';
+  List<dynamic> _filteredSuggestions = [];
 
   var extension;
   var extType;
@@ -85,11 +85,11 @@ class _ChatScreenState extends State<ChatScreen> {
     if (result != null) {
       PlatformFile file = result.files.first;
       extension = file.extension;
-      print("chp--->$extension");
+      // print("chp--->$extension");
       List<File> files =
           result.paths.map((path) => File(path.toString())).toList();
       for (var i in files) {
-        log('Image Path: ${i.path}');
+        // log('Image Path: ${i.path}');
         uploadImage(i, extension);
       }
     } else {
@@ -221,15 +221,28 @@ class _ChatScreenState extends State<ChatScreen> {
           .then((value) {
         sendPushNotification(senderName, msg);
       });
+
+      await FirebaseProvider.firestore
+          .collection('groups')
+          .doc(groupId)
+          .update({"time": DateTime.now().millisecondsSinceEpoch});
     }
   }
 
   Future<void> sendPushNotification(String senderName, String msg) async {
     for (var i = 0; i < membersList.length; i++) {
+      // notification will sent to all the users of the group except current user.
+      List<String> toSendNotificationIds = [];
+
       try {
+        // notification will sent to all the users of the group except current user.
+        if (membersList[i]['uid'] != FirebaseProvider.auth.currentUser!.uid) {
+          toSendNotificationIds.add(membersList[i]['pushToken']);
+        }
+
         final body = {
           "priority": "high",
-          "to": membersList[i]['pushToken'].toString(),
+          "to": toSendNotificationIds.toString(),
           "data": <String, dynamic>{"title": senderName, "body": msg},
           "notification": <String, dynamic>{"title": senderName, "body": msg}
         };
@@ -254,16 +267,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
+    msgController = TextEditingController();
     // msgController.addListener(() {
     //   setState(() {
-    //     final text = msgController.text;
-    //     final index = text.lastIndexOf('@');
-    //     if (index >= 0 && index < text.length - 1) {
-    //       final mention = text.substring(index + 1);
+    //     //final text = msgController.text;
+    //     final index = msgController.text.lastIndexOf('@');
+    //     if (index >= 0 && index < msgController.text.length - 1) {
+    //       final mention = msgController.text.substring(index + 1);
     //       if (mention != _mention) {
-    //         _filteredSuggestions = membersList
-    //             .where((value) => value['name'].startsWith(_mention))
-    //             .toList();
+    //         _filteredSuggestions = membersList.where((value) {
+    //           log('${value['name']}');
+    //           return value['name'].startsWith(_mention);
+    //         }).toList();
     //       } else {
     //         _mention = '';
     //         _filteredSuggestions = [];
@@ -283,8 +298,9 @@ class _ChatScreenState extends State<ChatScreen> {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-                return const CircularProgressIndicator.adaptive();
-              default:
+              //   // return const CircularProgressIndicator.adaptive();
+              case ConnectionState.active:
+              case ConnectionState.done:
                 if (snapshot.hasData) {
                   membersList = snapshot.data?['members'];
 
@@ -308,6 +324,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       "isSeen": false,
                       "isDelivered": false,
                     });
+                    chatMembersList.removeWhere((element) =>
+                        element['uid'] ==
+                        FirebaseProvider.auth.currentUser!.uid);
                   }
                   return SafeArea(
                     child: Scaffold(
@@ -407,7 +426,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                               ),
                             ),
-                            Column(
+                            Stack(
                               children: [
                                 const CustomDivider(),
                                 Padding(
@@ -439,6 +458,20 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       TextInputType.multiline,
                                                   minLines: 1,
                                                   isBorder: false,
+                                                  // onChanged: (String? value) {
+                                                  //   setState(() {
+                                                  //     words = value!.split('');
+                                                  //     str = words.isNotEmpty &&
+                                                  //             words[words.length -
+                                                  //                     1]
+                                                  //                 .startsWith(
+                                                  //                     '@')
+                                                  //         ? words[
+                                                  //             words.length - 1]
+                                                  //         : '';
+                                                  //   });
+                                                  //   log('$str');
+                                                  // },
                                                 ),
                                               ),
                                               InkWell(
@@ -573,6 +606,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ],
                                   ),
                                 ),
+                                // str.length > 1
+                                //     ? ListView.builder(
+                                //         shrinkWrap: true,
+                                //         itemCount: chatMembersList.length,
+                                //         itemBuilder: (context, index) {
+                                //           return Text('fdf');
+                                //         })
+                                //     : const SizedBox()
                               ],
                             ),
                           ],
@@ -617,7 +658,7 @@ class _BuildChatListState extends State<_BuildChatList> {
             case ConnectionState.done:
               if (snapshot.hasData) {
                 chatList = snapshot.data!.docs;
-                log('$chatList');
+                // log('$chatList');
                 return Scrollbar(
                   child: Column(
                     children: [
@@ -696,7 +737,7 @@ class ShowImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(imageUrl);
+    // print(imageUrl);
     return Scaffold(
       appBar: const CustomAppBar(
         title: '',
