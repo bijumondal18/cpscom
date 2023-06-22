@@ -243,7 +243,7 @@ class FirebaseProvider {
         .doc(groupId)
         .collection('chats')
         .doc(messageId)
-        .update({'isSeen': true, "isDelivered": true}).then(
+        .update({'isSeen': true,}).then(
             (value) => 'Status Updated Successfully');
   }
 

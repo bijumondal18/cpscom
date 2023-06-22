@@ -30,6 +30,7 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
             sentTime: '',
             groupCreatedBy: '',
             read: '',
+            isSeen: widget.chatMap['isSeen'],
           ),
           const SizedBox(
             height: AppSizes.kDefaultPadding,

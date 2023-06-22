@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -35,6 +36,7 @@ class HomeChatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var isSeenByUser = false;
     final FirebaseAuth auth = FirebaseAuth.instance;
     String lastMsgSenderName = '';
     return SizedBox(
@@ -57,6 +59,20 @@ class HomeChatCard extends StatelessWidget {
                             : '';
                     sentTime = AppHelper.getStringTimeFromTimestamp(
                         snapshot.data.docs[0]['time']);
+                    List<dynamic> chatMembersList = [];
+                    // remove unseen count from home screen when user viewed last message.
+                    if (snapshot.data.docs[0]['type'] != 'notify') {
+                      chatMembersList =
+                          snapshot.data.docs[0]['members'] as List<dynamic>;
+
+                      for (var i = 0; i < chatMembersList.length; i++) {
+                        if (chatMembersList[i]['uid'] ==
+                            auth.currentUser!.uid) {
+                          isSeenByUser = chatMembersList[i]['isSeen'];
+                        }
+
+                      }
+                    }
                   }
                   return InkWell(
                     onTap: () => onPressed.call(),
@@ -252,31 +268,38 @@ class HomeChatCard extends StatelessWidget {
                                                           .auth
                                                           .currentUser!
                                                           .displayName
-                                                  ? Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      width: 18,
-                                                      height: 18,
-                                                      decoration: BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          color: AppColors
-                                                              .primary
-                                                              .withOpacity(
-                                                                  0.9)),
-                                                      child: FittedBox(
-                                                        child: Text(
-                                                          '1',
-                                                          style: Theme.of(
-                                                                  context)
-                                                              .textTheme
-                                                              .caption!
-                                                              .copyWith(
+                                                  ? snapshot.data.docs[0]
+                                                              ['type'] !=
+                                                          'notify'
+                                                      ? isSeenByUser == false
+                                                          ? Container(
+                                                              alignment:
+                                                                  Alignment
+                                                                      .center,
+                                                              width: 18,
+                                                              height: 18,
+                                                              decoration: BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
                                                                   color: AppColors
-                                                                      .white),
-                                                        ),
-                                                      ),
-                                                    )
+                                                                      .primary
+                                                                      .withOpacity(
+                                                                          0.9)),
+                                                              child: FittedBox(
+                                                                child: Text(
+                                                                  '1',
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .caption!
+                                                                      .copyWith(
+                                                                          color:
+                                                                              AppColors.white),
+                                                                ),
+                                                              ),
+                                                            )
+                                                          : const SizedBox()
+                                                      : const SizedBox()
                                                   : const SizedBox()
                                               : const SizedBox()
                                         ],

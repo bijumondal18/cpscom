@@ -17,14 +17,16 @@ class SenderTile extends StatelessWidget {
   final String sentTime;
   final String groupCreatedBy;
   final String read;
+  bool? isSeen;
 
-  const SenderTile(
+  SenderTile(
       {Key? key,
       required this.message,
       required this.messageType,
       required this.sentTime,
       required this.groupCreatedBy,
-      required this.read})
+      required this.read,
+      this.isSeen = false})
       : super(key: key);
 
   @override
@@ -42,9 +44,9 @@ class SenderTile extends StatelessWidget {
                     horizontal: AppSizes.kDefaultPadding,
                     vertical: AppSizes.kDefaultPadding / 1.5),
                 decoration: BoxDecoration(
-                  border: Border.all(width: 1, color: AppColors.lightGrey),
+                    border: Border.all(width: 1, color: AppColors.lightGrey),
                     borderRadius:
-                        BorderRadius.circular(AppSizes.cardCornerRadius/2),
+                        BorderRadius.circular(AppSizes.cardCornerRadius / 2),
                     boxShadow: const [
                       BoxShadow(
                           offset: Offset(1, 1),
@@ -86,10 +88,12 @@ class SenderTile extends StatelessWidget {
                         width: AppSizes.kDefaultPadding / 2,
                       ),
                       read != ''
-                          ? const Icon(
+                          ? Icon(
                               Icons.done_all_rounded,
                               size: 16,
-                              color: AppColors.grey,
+                              color: isSeen == true
+                                  ? AppColors.primary
+                                  : AppColors.grey,
                             )
                           : const Icon(
                               Icons.check,
