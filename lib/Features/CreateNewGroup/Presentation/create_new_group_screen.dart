@@ -364,8 +364,9 @@ class _CreateNewGroupScreenState extends State<CreateNewGroupScreen> {
                                               i < data.length;
                                               i++) {
                                             // Add super admin to the group
+                                            // if admin create the group.
                                             if (data[i]['isSuperAdmin'] ==
-                                                true) {
+                                                true && data[i]['uid'] != auth.currentUser!.uid) {
                                               finalMembersList.add({
                                                 "email": data[i]['email'],
                                                 "isAdmin": data[i]['isAdmin'],

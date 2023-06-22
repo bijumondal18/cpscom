@@ -732,12 +732,14 @@ class _BuildChatListState extends State<_BuildChatList> {
 
                       if (chatMembers[lastMsg]['isSeen'] == true) {
                         isSeenCount += 1;
+                        print(isSeenCount);
                       }
                     }
-                    //if all members view the msg then only isSeen will be true;
-                    if(chatMembers.length == isSeenCount){
-                      updateIsSeenStatus(widget.groupId, chatList[i].id);
-                    }
+
+                  }
+                  //if all members view the msg then only isSeen will be true;
+                  if(chatMembers.length == isSeenCount){
+                    updateIsSeenStatus(widget.groupId, chatList[i].id);
                   }
                 }
                 // log('---------------- ${chatMembers}');
