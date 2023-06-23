@@ -739,9 +739,10 @@ class _BuildChatListState extends State<_BuildChatList> {
                     }
                   }
                   //if all members view the msg then only isSeen will be true;
-                  if (chatMembers.length == isSeenCount) {
-                    updateIsSeenStatus(widget.groupId, chatList[i].id);
-                  }
+
+                }
+                if (chatMembers.length == isSeenCount) {
+                  updateIsSeenStatus(widget.groupId, chatId);
                 }
                 //log('chat id ------------- ${chatId}');
                 // log('---------------- ${chatMembers}');
