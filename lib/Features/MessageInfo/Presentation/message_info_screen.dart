@@ -40,7 +40,7 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
       appBar: const CustomAppBar(
         title: 'Message Info',
       ),
-      body: Column(
+      body: ListView(
         children: [
           SenderTile(
             message: widget.chatMap['message'],

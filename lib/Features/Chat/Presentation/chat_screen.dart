@@ -681,7 +681,7 @@ class _BuildChatListState extends State<_BuildChatList> {
         .doc(messageId)
         .update({
       'isSeen': true,
-    }).then((value) => 'Status Updated Successfully');
+    });
   }
 
   // Future<void> updateIsDeliveredStatus(String groupId, String messageId) async {
@@ -739,11 +739,12 @@ class _BuildChatListState extends State<_BuildChatList> {
                     }
                   }
                   //if all members view the msg then only isSeen will be true;
+                  if (chatMembers.length == isSeenCount) {
+                    log('------------ $isSeenCount');
+                    updateIsSeenStatus(widget.groupId, chatList[i].id);
+                  }
+                }
 
-                }
-                if (chatMembers.length == isSeenCount) {
-                  updateIsSeenStatus(widget.groupId, chatId);
-                }
                 //log('chat id ------------- ${chatId}');
                 // log('---------------- ${chatMembers}');
               }
@@ -776,25 +777,33 @@ class _BuildChatListState extends State<_BuildChatList> {
                                     ? 'You'
                                     : chatMap['sendBy'];
                             return isSender
-                                ? GestureDetector(
-                                    onTap: () {
-                                      if(chatMap['type'] != 'notify'){
-                                        context.push(MessageInfoScreen(
-                                          chatMap: chatList[index].data()
-                                          as Map<String, dynamic>,
-                                        ));
-                                      }
-                                    },
-                                    child: SenderTile(
-                                      message: chatMap['message'],
-                                      messageType: chatMap['type'],
-                                      sentTime: sentTime,
-                                      groupCreatedBy: groupCreatedBy,
-                                      read: sentTime,
-                                      isSeen: chatMap['isSeen'],
-                                      // isDelivered: chatMap['isDelivered'],
-                                    ),
-                                  )
+                                ? chatMap['type'] != 'notify'
+                                    ? GestureDetector(
+                                        onHorizontalDragEnd: (DragEndDetails) {
+                                          context.push(MessageInfoScreen(
+                                            chatMap: chatList[index].data()
+                                                as Map<String, dynamic>,
+                                          ));
+                                        },
+                                        child: SenderTile(
+                                          message: chatMap['message'],
+                                          messageType: chatMap['type'],
+                                          sentTime: sentTime,
+                                          groupCreatedBy: groupCreatedBy,
+                                          read: sentTime,
+                                          isSeen: chatMap['isSeen'],
+                                          // isDelivered: chatMap['isDelivered'],
+                                        ),
+                                      )
+                                    : SenderTile(
+                                        message: chatMap['message'],
+                                        messageType: chatMap['type'],
+                                        sentTime: sentTime,
+                                        groupCreatedBy: groupCreatedBy,
+                                        read: sentTime,
+                                        isSeen: chatMap['isSeen'],
+                                        // isDelivered: chatMap['isDelivered'],
+                                      )
                                 : ReceiverTile(
                                     message: chatMap['message'],
                                     messageType: chatMap['type'],
