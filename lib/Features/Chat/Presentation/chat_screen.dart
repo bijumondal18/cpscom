@@ -762,7 +762,7 @@ class _BuildChatListState extends State<_BuildChatList> {
                             chatMap =
                                 chatList[index].data() as Map<String, dynamic>;
                             chatId = chatList[index].id;
-                            log('chat id ------------- ${chatId}');
+                            //log('chat id ------------- ${chatId}');
                             isSender = chatMap['sendBy'] ==
                                     auth.currentUser!.displayName
                                 ? true
@@ -777,10 +777,12 @@ class _BuildChatListState extends State<_BuildChatList> {
                             return isSender
                                 ? GestureDetector(
                                     onTap: () {
-                                      context.push(MessageInfoScreen(
-                                        chatMap: chatList[index].data()
-                                            as Map<String, dynamic>,
-                                      ));
+                                      if(chatMap['type'] != 'notify'){
+                                        context.push(MessageInfoScreen(
+                                          chatMap: chatList[index].data()
+                                          as Map<String, dynamic>,
+                                        ));
+                                      }
                                     },
                                     child: SenderTile(
                                       message: chatMap['message'],

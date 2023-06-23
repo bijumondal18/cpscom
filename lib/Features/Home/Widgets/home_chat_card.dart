@@ -150,12 +150,6 @@ class HomeChatCard extends StatelessWidget {
                                                       .textTheme
                                                       .bodySmall!
                                                       .copyWith(
-                                                          color: isSeenByUser ==
-                                                                  true
-                                                              ? AppColors
-                                                                  .darkGrey
-                                                              : AppColors
-                                                                  .primary,
                                                           fontSize: 12,
                                                           fontWeight:
                                                               FontWeight.w500),
@@ -234,7 +228,7 @@ class HomeChatCard extends StatelessWidget {
                                                                           color:
                                                                               AppColors.grey,
                                                                           size:
-                                                                              14,
+                                                                              16,
                                                                         )),
                                                                         TextSpan(
                                                                             text:

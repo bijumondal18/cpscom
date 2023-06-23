@@ -228,7 +228,7 @@ Widget _buildMobileView(BuildContext context, GetStartedStateLoaded state) {
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(AppSizes.cardCornerRadius),
                 topLeft: Radius.circular(AppSizes.cardCornerRadius))),
-        child: Expanded(
+        child: SizedBox(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
