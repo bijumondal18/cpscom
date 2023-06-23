@@ -125,7 +125,8 @@ class _BuildChatListState extends State<BuildChatList> {
                     case ConnectionState.waiting:
                       return const Center(
                           child: CircularProgressIndicator.adaptive());
-                    default:
+                    case ConnectionState.active:
+                    case ConnectionState.done:
                       if (snapshot.hasData) {
                         groupList = snapshot.data!.docs;
                         if (groupList.isEmpty) {

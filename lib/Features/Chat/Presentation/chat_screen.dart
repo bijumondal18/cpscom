@@ -41,6 +41,7 @@ import '../../../Utils/app_preference.dart';
 import '../../GroupMedia/Presentation/group_media_screen.dart';
 
 final ScrollController _scrollController = ScrollController();
+// bool isDelivered = true;
 
 class ChatScreen extends StatefulWidget {
   // final Group group;
@@ -172,7 +173,14 @@ class _ChatScreenState extends State<ChatScreen> {
       "type": extType,
       "isSeen": false,
       "time": DateTime.now().millisecondsSinceEpoch,
+      "members": chatMembersList.toSet().toList(),
     });
+    // Update last msg time with group time to show latest messaged group on top on the groups list
+    await FirebaseProvider.firestore
+        .collection('groups')
+        .doc(widget.groupId)
+        .update({"time": DateTime.now().millisecondsSinceEpoch});
+
     var ref = FirebaseStorage.instance
         .ref()
         .child('cpscom_admin_images')
@@ -222,6 +230,7 @@ class _ChatScreenState extends State<ChatScreen> {
         sendPushNotification(senderName, msg);
       });
 
+      // Update last msg time with group time to show latest messaged group on top on the groups list
       await FirebaseProvider.firestore
           .collection('groups')
           .doc(groupId)
@@ -253,6 +262,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
             },
             body: jsonEncode(body));
+        // if (response.statusCode == 200) {
+        //   isDelivered = true;
+        // }
         if (kDebugMode) {
           print('status code send notification - ${response.statusCode}');
           print('body send notification -  ${response.body}');
@@ -298,24 +310,12 @@ class _ChatScreenState extends State<ChatScreen> {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-              //   // return const CircularProgressIndicator.adaptive();
               case ConnectionState.active:
               case ConnectionState.done:
                 if (snapshot.hasData) {
                   membersList = snapshot.data?['members'];
                   chatMembersList.clear();
                   for (var i = 0; i < membersList.length; i++) {
-                    // if (membersList[i]['uid'] ==
-                    //     FirebaseAuth.instance.currentUser!.uid) {
-                    //   i = membersList.indexWhere((element) =>
-                    //       element['uid'] ==
-                    //       FirebaseAuth.instance.currentUser!.uid);
-                    //   widget.isAdmin = membersList[i]['isAdmin'];
-                    //   profilePicture = membersList[i]['profile_picture'];
-                    // } else {
-                    //   // pushToken.add(membersList[i]['pushToken']);
-                    // }
-
                     // Add all the members in  the group to check who viewed the message
                     // isSeen by whom and isDelivered to whom
                     chatMembersList.add({
@@ -376,24 +376,24 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .bodyText2!
                                         .copyWith(color: AppColors.black),
                                   )),
-                              PopupMenuItem(
-                                  value: 2,
-                                  child: Text(
-                                    'Group Media',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2!
-                                        .copyWith(color: AppColors.black),
-                                  )),
-                              PopupMenuItem(
-                                  value: 3,
-                                  child: Text(
-                                    'Search',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2!
-                                        .copyWith(color: AppColors.black),
-                                  )),
+                              // PopupMenuItem(
+                              //     value: 2,
+                              //     child: Text(
+                              //       'Group Media',
+                              //       style: Theme.of(context)
+                              //           .textTheme
+                              //           .bodyText2!
+                              //           .copyWith(color: AppColors.black),
+                              //     )),
+                              // PopupMenuItem(
+                              //     value: 3,
+                              //     child: Text(
+                              //       'Search',
+                              //       style: Theme.of(context)
+                              //           .textTheme
+                              //           .bodyText2!
+                              //           .copyWith(color: AppColors.black),
+                              //     )),
                             ],
                             onSelected: (value) {
                               switch (value) {
@@ -444,9 +444,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                             color: AppColors.shimmer,
                                             borderRadius: BorderRadius.circular(
                                                 AppSizes.cardCornerRadius),
-                                            // border: Border.all(
-                                            //     width: 0.3,
-                                            //     color: AppColors.grey)
                                           ),
                                           child: Row(
                                             children: [
@@ -459,20 +456,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       TextInputType.multiline,
                                                   minLines: 1,
                                                   isBorder: false,
-                                                  // onChanged: (String? value) {
-                                                  //   setState(() {
-                                                  //     words = value!.split('');
-                                                  //     str = words.isNotEmpty &&
-                                                  //             words[words.length -
-                                                  //                     1]
-                                                  //                 .startsWith(
-                                                  //                     '@')
-                                                  //         ? words[
-                                                  //             words.length - 1]
-                                                  //         : '';
-                                                  //   });
-                                                  //   log('$str');
-                                                  // },
                                                 ),
                                               ),
                                               InkWell(
@@ -646,9 +629,13 @@ class _BuildChatListState extends State<_BuildChatList> {
   String sentTime = '';
   final FirebaseAuth auth = FirebaseAuth.instance;
   List<dynamic> chatMembers = [];
-  Map<String, dynamic> chatMemberData = {};
+  Map<String, dynamic>? chatMemberData = {};
   List<dynamic> updatedChatMemberList = [];
   int isSeenCount = 0;
+
+  //int isDeliveredCount = 0;
+  String chatId = '';
+
   //get current user details from firebase firestore
   Future<void> updateMessageSeenStatus(
     String groupId,
@@ -686,8 +673,7 @@ class _BuildChatListState extends State<_BuildChatList> {
             (value) => 'Message Seen Status Updated ');
   }
 
-  static Future<void> updateIsSeenStatus(
-      String groupId, String messageId) async {
+  Future<void> updateIsSeenStatus(String groupId, String messageId) async {
     await FirebaseProvider.firestore
         .collection('groups')
         .doc(groupId)
@@ -697,6 +683,17 @@ class _BuildChatListState extends State<_BuildChatList> {
       'isSeen': true,
     }).then((value) => 'Status Updated Successfully');
   }
+
+  // Future<void> updateIsDeliveredStatus(String groupId, String messageId) async {
+  //   await FirebaseProvider.firestore
+  //       .collection('groups')
+  //       .doc(groupId)
+  //       .collection('chats')
+  //       .doc(messageId)
+  //       .update({
+  //     'isDelivered': true,
+  //   }).then((value) => 'Status Updated Successfully');
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -713,7 +710,11 @@ class _BuildChatListState extends State<_BuildChatList> {
                 chatList = snapshot.data!.docs;
                 for (var i = 0; i < chatList.length; i++) {
                   chatMap = chatList[i].data() as Map<String, dynamic>;
-                  if (chatMap['type'] == 'text' || chatMap['type'] == 'img') {
+                  if (chatMap['type'] == 'text' ||
+                      chatMap['type'] == 'img' ||
+                      chatMap['type'] == 'pdf' ||
+                      chatMap['type'] == 'doc' ||
+                      chatMap['type'] == 'docx') {
                     chatMembers = chatMap['members'];
                     for (var lastMsg = 0;
                         lastMsg < chatMembers.length;
@@ -725,23 +726,24 @@ class _BuildChatListState extends State<_BuildChatList> {
                         updateMessageSeenStatus(
                             widget.groupId,
                             chatList[i].id,
-                            chatMemberData['uid'],
-                            chatMemberData['profile_picture'],
+                            chatMemberData?['uid'],
+                            chatMemberData?['profile_picture'],
                             lastMsg);
                       }
 
                       if (chatMembers[lastMsg]['isSeen'] == true) {
                         isSeenCount += 1;
-                        print(isSeenCount);
+                      } else {
+                        isSeenCount = isSeenCount;
                       }
                     }
-
                   }
                   //if all members view the msg then only isSeen will be true;
-                  if(chatMembers.length == isSeenCount){
+                  if (chatMembers.length == isSeenCount) {
                     updateIsSeenStatus(widget.groupId, chatList[i].id);
                   }
                 }
+                //log('chat id ------------- ${chatId}');
                 // log('---------------- ${chatMembers}');
               }
               return Scrollbar(
@@ -759,6 +761,8 @@ class _BuildChatListState extends State<_BuildChatList> {
                           itemBuilder: (context, index) {
                             chatMap =
                                 chatList[index].data() as Map<String, dynamic>;
+                            chatId = chatList[index].id;
+                            log('chat id ------------- ${chatId}');
                             isSender = chatMap['sendBy'] ==
                                     auth.currentUser!.displayName
                                 ? true
@@ -778,11 +782,6 @@ class _BuildChatListState extends State<_BuildChatList> {
                                             as Map<String, dynamic>,
                                       ));
                                     },
-                                    // onHorizontalDragUpdate: (DragEndDetails) {
-                                    //   context.push(MessageInfoScreen(
-                                    //     chatMap: chatMap,
-                                    //   ));
-                                    // },
                                     child: SenderTile(
                                       message: chatMap['message'],
                                       messageType: chatMap['type'],
@@ -790,6 +789,7 @@ class _BuildChatListState extends State<_BuildChatList> {
                                       groupCreatedBy: groupCreatedBy,
                                       read: sentTime,
                                       isSeen: chatMap['isSeen'],
+                                      // isDelivered: chatMap['isDelivered'],
                                     ),
                                   )
                                 : ReceiverTile(
@@ -821,7 +821,6 @@ class ShowImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // print(imageUrl);
     return Scaffold(
       appBar: const CustomAppBar(
         title: '',

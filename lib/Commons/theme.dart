@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 import 'app_sizes.dart';
-import 'font_family.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {

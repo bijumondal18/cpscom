@@ -123,7 +123,7 @@ class ReceiverTile extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
-                        bottom: AppSizes.kDefaultPadding * 3,
+                        bottom: AppSizes.kDefaultPadding * 2,
                       ),
                       child: ChatBubble(
                         clipper:

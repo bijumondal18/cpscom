@@ -16,6 +16,24 @@ class MessageInfoScreen extends StatefulWidget {
 }
 
 class _MessageInfoScreenState extends State<MessageInfoScreen> {
+  List readByList = [];
+  List deliveredToList = [];
+  List chatMembersList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    chatMembersList = widget.chatMap['members'];
+    for(var i = 0; i<chatMembersList.length;i++){
+      if(chatMembersList[i]['isSeen'] == true){
+        readByList.add(chatMembersList[i]);
+      }
+      if(chatMembersList[i]['isDelivered'] == true){
+        deliveredToList.add(chatMembersList[i]);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,47 +76,45 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
           ),
           const CustomDivider(),
           SizedBox(
-              height: MediaQuery.of(context).size.height * 0.35,
               child: ListView.separated(
-                shrinkWrap: true,
-                padding:
-                    const EdgeInsets.only(top: AppSizes.kDefaultPadding / 2),
-                itemCount: widget.chatMap['members'].length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.kDefaultPadding,
-                        vertical: AppSizes.kDefaultPadding / 3),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: AppColors.shimmer,
-                          foregroundImage: NetworkImage(widget
-                              .chatMap['members'][index]['profile_picture']
-                              .toString()),
-                        ),
-                        const SizedBox(
-                          width: AppSizes.kDefaultPadding,
-                        ),
-                        Text(
-                          widget.chatMap['members'][index]['name'],
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .copyWith(fontWeight: FontWeight.w400),
-                        ),
-                      ],
+            shrinkWrap: true,
+            padding: const EdgeInsets.only(top: AppSizes.kDefaultPadding / 2),
+            itemCount: deliveredToList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.kDefaultPadding,
+                    vertical: AppSizes.kDefaultPadding / 3),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.shimmer,
+                      foregroundImage: NetworkImage(deliveredToList
+                              [index]['profile_picture']
+                          .toString()),
                     ),
-                  );
-                },
-                separatorBuilder: (BuildContext context, int index) {
-                  return const Padding(
-                    padding: EdgeInsets.only(left: 64),
-                    child: CustomDivider(),
-                  );
-                },
-              )),
+                    const SizedBox(
+                      width: AppSizes.kDefaultPadding,
+                    ),
+                    Text(
+                      deliveredToList[index]['name'],
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge!
+                          .copyWith(fontWeight: FontWeight.w400),
+                    ),
+                  ],
+                ),
+              );
+            },
+            separatorBuilder: (BuildContext context, int index) {
+              return const Padding(
+                padding: EdgeInsets.only(left: 64),
+                child: CustomDivider(),
+              );
+            },
+          )),
           const CustomDivider(),
           Container(
             color: AppColors.shimmer,
@@ -121,6 +137,46 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
             ),
           ),
           const CustomDivider(),
+          SizedBox(
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(top: AppSizes.kDefaultPadding / 2),
+              itemCount: readByList.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.kDefaultPadding,
+                      vertical: AppSizes.kDefaultPadding / 3),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: AppColors.shimmer,
+                        foregroundImage: NetworkImage(readByList[index]['profile_picture']
+                            .toString()),
+                      ),
+                      const SizedBox(
+                        width: AppSizes.kDefaultPadding,
+                      ),
+                      Text(
+                        readByList[index]['name'],
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge!
+                            .copyWith(fontWeight: FontWeight.w400),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              separatorBuilder: (BuildContext context, int index) {
+                return const Padding(
+                  padding: EdgeInsets.only(left: 64),
+                  child: CustomDivider(),
+                );
+              },
+            ),
+          )
         ],
       ),
     );

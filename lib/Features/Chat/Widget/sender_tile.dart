@@ -18,6 +18,7 @@ class SenderTile extends StatelessWidget {
   final String groupCreatedBy;
   final String read;
   bool? isSeen;
+  bool? isDelivered;
 
   SenderTile(
       {Key? key,
@@ -26,7 +27,8 @@ class SenderTile extends StatelessWidget {
       required this.sentTime,
       required this.groupCreatedBy,
       required this.read,
-      this.isSeen = false})
+      this.isSeen = false,
+      this.isDelivered = true})
       : super(key: key);
 
   @override
@@ -87,7 +89,7 @@ class SenderTile extends StatelessWidget {
                       const SizedBox(
                         width: AppSizes.kDefaultPadding / 2,
                       ),
-                      read != ''
+                      isDelivered == true
                           ? Icon(
                               Icons.done_all_rounded,
                               size: 16,

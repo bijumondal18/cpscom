@@ -8,7 +8,6 @@ import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 ///----Home chat card widgets----///
@@ -70,7 +69,6 @@ class HomeChatCard extends StatelessWidget {
                             auth.currentUser!.uid) {
                           isSeenByUser = chatMembersList[i]['isSeen'];
                         }
-
                       }
                     }
                   }
@@ -152,6 +150,12 @@ class HomeChatCard extends StatelessWidget {
                                                       .textTheme
                                                       .bodySmall!
                                                       .copyWith(
+                                                          color: isSeenByUser ==
+                                                                  true
+                                                              ? AppColors
+                                                                  .darkGrey
+                                                              : AppColors
+                                                                  .primary,
                                                           fontSize: 12,
                                                           fontWeight:
                                                               FontWeight.w500),
@@ -350,12 +354,11 @@ class MembersStackOnGroup extends StatelessWidget {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-                return Platform.isAndroid
-                    ? const CircularProgressIndicator()
-                    : const CupertinoActivityIndicator();
-              default:
+                return const CircularProgressIndicator.adaptive();
+              case ConnectionState.active:
+              case ConnectionState.done:
                 if (snapshot.hasData) {
-                  membersList = snapshot.data!['members'];
+                  membersList = snapshot.data?['members'];
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -365,7 +368,9 @@ class MembersStackOnGroup extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           ListView.builder(
-                              itemCount: 3,
+                              itemCount: membersList.length < 3
+                                  ? membersList.length
+                                  : 3,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               scrollDirection: Axis.horizontal,
