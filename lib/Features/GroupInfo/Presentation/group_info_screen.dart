@@ -104,7 +104,9 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
           .collection('groups')
           .doc(widget.groupId)
           .update({'profile_picture': imageUrl});
-      customSnackBar(context, 'Group Image Updated Successfully');
+      if (context.mounted) {
+        customSnackBar(context, 'Group Image Updated Successfully');
+      }
     } on FirebaseException catch (e) {
       if (kDebugMode) {
         print(e.message.toString());
