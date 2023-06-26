@@ -156,48 +156,54 @@ class _ChatScreenState extends State<ChatScreen> {
       extType = "gif";
     }
     int status = 1;
-    await _firestore
-        .collection('groups')
-        .doc(widget.groupId)
-        .collection('chats')
-        .doc(fileName)
-        .set({
-      "sendBy": _auth.currentUser!.displayName,
-      "sendById": _auth.currentUser!.uid,
-      "message": "",
-      'profile_picture': profilePicture,
-      "type": extType,
-      "isSeen": false,
-      "time": DateTime.now().millisecondsSinceEpoch,
-      "members": chatMembersList.toSet().toList(),
-    });
-    // Update last msg time with group time to show latest messaged group on top on the groups list
-    await FirebaseProvider.firestore
-        .collection('groups')
-        .doc(widget.groupId)
-        .update({"time": DateTime.now().millisecondsSinceEpoch});
+    try {
+      await _firestore
+          .collection('groups')
+          .doc(widget.groupId)
+          .collection('chats')
+          .doc(fileName)
+          .set({
+        "sendBy": _auth.currentUser!.displayName,
+        "sendById": _auth.currentUser!.uid,
+        "message": "",
+        'profile_picture': profilePicture,
+        "type": extType,
+        "isSeen": false,
+        "time": DateTime.now().millisecondsSinceEpoch,
+        "members": chatMembersList.toSet().toList(),
+      });
+      // Update last msg time with group time to show latest messaged group on top on the groups list
+      await FirebaseProvider.firestore
+          .collection('groups')
+          .doc(widget.groupId)
+          .update({"time": DateTime.now().millisecondsSinceEpoch});
 
-    var ref = FirebaseStorage.instance
-        .ref()
-        .child('cpscom_admin_images')
-        .child("$fileName.jpg");
-    var uploadTask = await ref.putFile(file).catchError((error) async {
-      await _firestore
-          .collection('groups')
-          .doc(widget.groupId)
-          .collection('chats')
-          .doc(fileName)
-          .delete();
-      status = 0;
-    });
-    if (status == 1) {
-      String imageUrl = await uploadTask.ref.getDownloadURL();
-      await _firestore
-          .collection('groups')
-          .doc(widget.groupId)
-          .collection('chats')
-          .doc(fileName)
-          .update({"message": imageUrl});
+      var ref = FirebaseStorage.instance
+          .ref()
+          .child('cpscom_admin_images')
+          .child("$fileName.jpg");
+      var uploadTask = await ref.putFile(file).catchError((error) async {
+        await _firestore
+            .collection('groups')
+            .doc(widget.groupId)
+            .collection('chats')
+            .doc(fileName)
+            .delete();
+        status = 0;
+      });
+      if (status == 1) {
+        String imageUrl = await uploadTask.ref.getDownloadURL();
+        await _firestore
+            .collection('groups')
+            .doc(widget.groupId)
+            .collection('chats')
+            .doc(fileName)
+            .update({"message": imageUrl});
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 
@@ -205,32 +211,38 @@ class _ChatScreenState extends State<ChatScreen> {
       String senderName) async {
     if (msg.trim().isNotEmpty) {
       Map<String, dynamic> chatData = {};
-      chatData = {
-        'sendBy': FirebaseProvider.auth.currentUser!.displayName,
-        'sendById': FirebaseProvider.auth.currentUser!.uid,
-        'profile_picture': profilePicture,
-        'message': msg,
-        'read': DateTime.now().millisecondsSinceEpoch,
-        'type': 'text',
-        'time': DateTime.now().millisecondsSinceEpoch,
-        "isSeen": false,
-        "members": chatMembersList.toSet().toList(),
-      };
+      try {
+        chatData = {
+          'sendBy': FirebaseProvider.auth.currentUser!.displayName,
+          'sendById': FirebaseProvider.auth.currentUser!.uid,
+          'profile_picture': profilePicture,
+          'message': msg,
+          'read': DateTime.now().millisecondsSinceEpoch,
+          'type': 'text',
+          'time': DateTime.now().millisecondsSinceEpoch,
+          "isSeen": false,
+          "members": chatMembersList.toSet().toList(),
+        };
 
-      await FirebaseProvider.firestore
-          .collection('groups')
-          .doc(groupId)
-          .collection('chats')
-          .add(chatData)
-          .then((value) {
-        sendPushNotification(senderName, msg);
-      });
+        await FirebaseProvider.firestore
+            .collection('groups')
+            .doc(groupId)
+            .collection('chats')
+            .add(chatData)
+            .then((value) {
+          sendPushNotification(senderName, msg);
+        });
 
-      // Update last msg time with group time to show latest messaged group on top on the groups list
-      await FirebaseProvider.firestore
-          .collection('groups')
-          .doc(groupId)
-          .update({"time": DateTime.now().millisecondsSinceEpoch});
+        // Update last msg time with group time to show latest messaged group on top on the groups list
+        await FirebaseProvider.firestore
+            .collection('groups')
+            .doc(groupId)
+            .update({"time": DateTime.now().millisecondsSinceEpoch});
+      } catch (e) {
+        if (kDebugMode) {
+          print(e.toString());
+        }
+      }
     }
   }
 
@@ -319,7 +331,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       "name": membersList[i]['name'],
                       "profile_picture": membersList[i]['profile_picture'],
                       "isSeen": false,
-                      "isDelivered": false,
+                      "isDelivered": true,
                     });
                     chatMembersList.removeWhere((element) =>
                         element['uid'] ==

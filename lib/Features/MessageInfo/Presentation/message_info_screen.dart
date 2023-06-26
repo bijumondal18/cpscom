@@ -78,6 +78,7 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
           SizedBox(
               child: ListView.separated(
             shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.only(top: AppSizes.kDefaultPadding / 2),
             itemCount: deliveredToList.length,
             itemBuilder: (context, index) {
@@ -140,6 +141,7 @@ class _MessageInfoScreenState extends State<MessageInfoScreen> {
           SizedBox(
             child: ListView.separated(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.only(top: AppSizes.kDefaultPadding / 2),
               itemCount: readByList.length,
               itemBuilder: (context, index) {

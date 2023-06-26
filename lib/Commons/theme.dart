@@ -31,8 +31,8 @@ class AppTheme {
             //    fontFamily: FontFamily.poppinsRegular
           ),
           foregroundColor: AppColors.black),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-          color: AppColors.lightGrey, circularTrackColor: AppColors.bg),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+          color: AppColors.primary.withOpacity(0.7)),
       checkboxTheme: CheckboxThemeData(
           shape: RoundedRectangleBorder(
               borderRadius:

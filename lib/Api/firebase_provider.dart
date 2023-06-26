@@ -59,91 +59,101 @@ class FirebaseProvider {
     String? profilePicture,
     List<Map<String, dynamic>> members,
   ) async {
-    var groupId = const Uuid().v1();
-    String uid = '';
-    await firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .collection('groups')
-        .doc(groupId)
-        .set({
-      "id": groupId,
-      "name": groupName,
-      "group_description": groupDescription,
-      "profile_picture": profilePicture,
-      "group_creator_uid": auth.currentUser!.uid,
-      "group_creator_name": auth.currentUser!.displayName,
-      "created_at": DateTime.now().millisecondsSinceEpoch,
-      'time': DateTime.now().millisecondsSinceEpoch,
-      "members": members
-    });
-
-    await firestore.collection('groups').doc(groupId).set({
-      "id": groupId,
-      "name": groupName,
-      "group_description": groupDescription,
-      "profile_picture": profilePicture,
-      "group_creator_uid": auth.currentUser!.uid,
-      "group_creator_name": auth.currentUser!.displayName,
-      "created_at": DateTime.now().millisecondsSinceEpoch,
-      'time': DateTime.now().millisecondsSinceEpoch,
-      "members": members
-    });
-
-    //add groups to all the members belongs to this group
-    for (int i = 0; i < members.length; i++) {
-      uid = members[i]['uid'];
-
+    try {
+      var groupId = const Uuid().v1();
+      String uid = '';
       await firestore
           .collection('users')
-          .doc(uid)
+          .doc(auth.currentUser!.uid)
           .collection('groups')
           .doc(groupId)
           .set({
+        "id": groupId,
         "name": groupName,
         "group_description": groupDescription,
-        "id": groupId,
+        "profile_picture": profilePicture,
         "group_creator_uid": auth.currentUser!.uid,
         "group_creator_name": auth.currentUser!.displayName,
-        "profile_picture": profilePicture,
-        "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
+        "created_at": DateTime.now().millisecondsSinceEpoch,
         'time': DateTime.now().millisecondsSinceEpoch,
         "members": members
       });
 
       await firestore.collection('groups').doc(groupId).set({
+        "id": groupId,
         "name": groupName,
         "group_description": groupDescription,
-        "id": groupId,
+        "profile_picture": profilePicture,
         "group_creator_uid": auth.currentUser!.uid,
         "group_creator_name": auth.currentUser!.displayName,
-        "profile_picture": profilePicture,
-        "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
+        "created_at": DateTime.now().millisecondsSinceEpoch,
         'time': DateTime.now().millisecondsSinceEpoch,
         "members": members
       });
+
+      //add groups to all the members belongs to this group
+      for (int i = 0; i < members.length; i++) {
+        uid = members[i]['uid'];
+
+        await firestore
+            .collection('users')
+            .doc(uid)
+            .collection('groups')
+            .doc(groupId)
+            .set({
+          "name": groupName,
+          "group_description": groupDescription,
+          "id": groupId,
+          "group_creator_uid": auth.currentUser!.uid,
+          "group_creator_name": auth.currentUser!.displayName,
+          "profile_picture": profilePicture,
+          "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
+          'time': DateTime.now().millisecondsSinceEpoch,
+          "members": members
+        });
+
+        await firestore.collection('groups').doc(groupId).set({
+          "name": groupName,
+          "group_description": groupDescription,
+          "id": groupId,
+          "group_creator_uid": auth.currentUser!.uid,
+          "group_creator_name": auth.currentUser!.displayName,
+          "profile_picture": profilePicture,
+          "created_at": DateTime.now().millisecondsSinceEpoch, //createdTime,
+          'time': DateTime.now().millisecondsSinceEpoch,
+          "members": members
+        });
+      }
+      //send initial message (XYZ Created this group) to newly created group chats
+      await firestore
+          .collection('groups')
+          .doc(groupId)
+          .collection('chats')
+          .add({
+        'message': 'created group "$groupName"',
+        'sendBy': auth.currentUser!.displayName,
+        'sendById': auth.currentUser!.uid,
+        'type': 'notify',
+        "profile_picture": profilePicture,
+        'time': DateTime.now().millisecondsSinceEpoch
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
-    //send initial message (XYZ Created this group) to newly created group chats
-    await firestore.collection('groups').doc(groupId).collection('chats').add({
-      'message': 'created group "$groupName"',
-      'sendBy': auth.currentUser!.displayName,
-      'sendById': auth.currentUser!.uid,
-      'type': 'notify',
-      "profile_picture": profilePicture,
-      'time': DateTime.now().millisecondsSinceEpoch
-    });
   }
 
   //get all groups from firebase firestore collection
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
-    var allGroupsList = firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .collection('groups')
-        .orderBy('created_at', descending: true)
-        .snapshots();
-    yield* allGroupsList;
-  }
+  // static Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
+  //   var allGroupsList = firestore
+  //       .collection('users')
+  //       .doc(auth.currentUser!.uid)
+  //       .collection('groups')
+  //       .orderBy('created_at', descending: true)
+  //       .snapshots();
+  //   yield* allGroupsList;
+  // }
 
   static String getConversationId(String id) => user.uid.hashCode <= id.hashCode
       ? '${user.uid}_$id'
@@ -151,42 +161,60 @@ class FirebaseProvider {
 
   //Get Last Message to a Group
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessages(
-      Group groups) {
-    return firestore
-        .collection('groups')
-        .doc(groups.id)
-        .collection('chats')
-        .orderBy('time', descending: true)
-        .limit(1)
-        .snapshots();
+      Group groups) async* {
+    try {
+      yield* firestore
+          .collection('groups')
+          .doc(groups.id)
+          .collection('chats')
+          .orderBy('time', descending: true)
+          .limit(1)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //get group details from firebase firestore collection
   static Stream<DocumentSnapshot<Map<String, dynamic>>> getGroupDetails(
       String groupId) async* {
-    var groupDetails = firestore
-        // .collection('users')
-        // .doc(auth.currentUser!.uid)
-        .collection('groups')
-        .doc(groupId)
-        .snapshots();
-    yield* groupDetails;
+    try {
+      var groupDetails =
+          firestore.collection('groups').doc(groupId).snapshots();
+      yield* groupDetails;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //get all users from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>>
       getAllUsersWithoutCurrentUser() async* {
-    var allUsersList = firestore
-        .collection('users')
-        .where('uid', isNotEqualTo: auth.currentUser!.uid)
-        .snapshots();
-    yield* allUsersList;
+    try {
+      yield* firestore
+          .collection('users')
+          .where('uid', isNotEqualTo: auth.currentUser!.uid)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //get all users from firebase firestore collection
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() async* {
-    var allUsersList = firestore.collection('users').snapshots();
-    yield* allUsersList;
+    try {
+      yield* firestore.collection('users').snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //get all users from firebase firestore collection
@@ -198,11 +226,17 @@ class FirebaseProvider {
   //get current user details from firebase firestore
   Stream<DocumentSnapshot<Map<String, dynamic>>>
       getCurrentUserDetails() async* {
-    getFirebaseMessagingToken();
-    yield* FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .snapshots();
+    try {
+      getFirebaseMessagingToken();
+      yield* FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //add current user to group in firebase firestore for group creation
@@ -243,8 +277,9 @@ class FirebaseProvider {
         .doc(groupId)
         .collection('chats')
         .doc(messageId)
-        .update({'isSeen': true,}).then(
-            (value) => 'Status Updated Successfully');
+        .update({
+      'isSeen': true,
+    }).then((value) => 'Status Updated Successfully');
   }
 
   //DELETE user from a group firebase firestore collection
@@ -268,41 +303,32 @@ class FirebaseProvider {
     String groupDesc,
     Map<String, dynamic> member,
   ) async {
-    var memberList = [];
-    memberList.add(member);
-
-    await firestore
-        .collection('users')
-        .doc(auth.currentUser!.uid)
-        .collection('groups')
-        .doc(groupId)
-        .update({
-      'members': FieldValue.arrayUnion([
-        {
-          'id': groupId,
-          'members': memberList,
-          'group_description': groupDesc,
-          'name': groupName,
-          'profile_picture': profilePicture,
-          'created_at': DateTime.now()
-              .millisecondsSinceEpoch, //FieldValue.serverTimestamp(),
-        }
-      ]) as List<Map<String, dynamic>> //memberList
-    });
-
-    // await firestore
-    //     .collection('users')
-    //     .doc(auth.currentUser!.uid)
-    //     .collection('groups')
-    //     .doc(groupId)
-    //     .set({
-    //   'id': groupId,
-    //   'members': memberList,
-    //   'group_description': groupDesc,
-    //   'name': groupName,
-    //   'profile_picture': profilePicture,
-    //   'created_at': FieldValue.serverTimestamp(),
-    // });
+    try {
+      var memberList = [];
+      memberList.add(member);
+      await firestore
+          .collection('users')
+          .doc(auth.currentUser!.uid)
+          .collection('groups')
+          .doc(groupId)
+          .update({
+        'members': FieldValue.arrayUnion([
+          {
+            'id': groupId,
+            'members': memberList,
+            'group_description': groupDesc,
+            'name': groupName,
+            'profile_picture': profilePicture,
+            'created_at': DateTime.now()
+                .millisecondsSinceEpoch, //FieldValue.serverTimestamp(),
+          }
+        ]) as List<Map<String, dynamic>> //memberList
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   // static Future<void> updateMessageReadStatus(Map<String, dynamic> read) async{
@@ -313,12 +339,18 @@ class FirebaseProvider {
   static Stream<QuerySnapshot> getChatsMessages(
     String groupId,
   ) async* {
-    yield* firestore
-        .collection('groups')
-        .doc(groupId)
-        .collection('chats')
-        .orderBy('time', descending: true)
-        .snapshots();
+    try {
+      yield* firestore
+          .collection('groups')
+          .doc(groupId)
+          .collection('chats')
+          .orderBy('time', descending: true)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //UPDATE GROUP TITLE in  firebase
@@ -388,24 +420,36 @@ class FirebaseProvider {
   static Stream<DocumentSnapshot> getGroupDescription(
     String groupId,
   ) async* {
-    yield* firestore
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('groups')
-        .doc(groupId)
-        .snapshots();
+    try {
+      yield* firestore
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('groups')
+          .doc(groupId)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   //GET LAST CHAT Message in a group firebase firestore collection
   static Stream<QuerySnapshot> getLastMessage(
     String groupId,
   ) async* {
-    yield* firestore
-        .collection('groups')
-        .doc(groupId)
-        .collection('chats')
-        .orderBy('time', descending: true)
-        .snapshots();
+    try {
+      yield* firestore
+          .collection('groups')
+          .doc(groupId)
+          .collection('chats')
+          .orderBy('time', descending: true)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   static Future<void> onSendMessages(
@@ -415,25 +459,31 @@ class FirebaseProvider {
     String pushToken,
     String senderName,
   ) async {
-    if (msg.trim().isNotEmpty) {
-      Map<String, dynamic> chatData = {
-        'sendBy': auth.currentUser!.displayName,
-        'sendById': auth.currentUser!.uid,
-        'profile_picture': profilePicture,
-        'message': msg,
-        'type': 'text',
-        'time': DateTime.now().millisecondsSinceEpoch, //Timestamp.now(),
-        "isSeen": false,
-      };
+    try {
+      if (msg.trim().isNotEmpty) {
+        Map<String, dynamic> chatData = {
+          'sendBy': auth.currentUser!.displayName,
+          'sendById': auth.currentUser!.uid,
+          'profile_picture': profilePicture,
+          'message': msg,
+          'type': 'text',
+          'time': DateTime.now().millisecondsSinceEpoch, //Timestamp.now(),
+          "isSeen": false,
+        };
 
-      await firestore
-          .collection('groups')
-          .doc(groupId)
-          .collection('chats')
-          .add(chatData)
-          .then((value) {
-        sendPushNotification(pushToken, senderName, msg);
-      });
+        await firestore
+            .collection('groups')
+            .doc(groupId)
+            .collection('chats')
+            .add(chatData)
+            .then((value) {
+          sendPushNotification(pushToken, senderName, msg);
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 

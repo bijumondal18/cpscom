@@ -1,27 +1,29 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
-import 'package:cpscom_admin/Features/Home/Presentation/build_desktop_view.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/build_mobile_view.dart';
-import 'package:cpscom_admin/Features/Home/Presentation/build_tablet_view.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_chat_card.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_header.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer';
 
 import '../../../Widgets/custom_text_field.dart';
 import '../../../Widgets/responsive.dart';
 import '../../Chat/Presentation/chat_screen.dart';
+import '../../Login/Presentation/login_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return const BuildMobileView();
@@ -58,11 +60,16 @@ class _BuildChatListState extends State<BuildChatList> {
 
   //get all groups from firebase firestore collection
   Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
-    var allGroupsList = firestore
-        .collection('groups')
-        .orderBy('created_at', descending: true)
-        .snapshots();
-    yield* allGroupsList;
+    try {
+      yield* firestore
+          .collection('groups')
+          .orderBy('created_at', descending: true)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    }
   }
 
   @override
@@ -149,6 +156,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                 finalGroupList.add(groupList[i]);
                               }
                             });
+                            // sorting groups by recent sent messages or time to show on top.
                             finalGroupList.sort((a, b) {
                               return b['time']
                                   .toString()

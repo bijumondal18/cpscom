@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 class CustomPageRoute extends PageRouteBuilder {
   final Widget widget;
@@ -28,9 +27,11 @@ class CustomPageRoute extends PageRouteBuilder {
 
 extension CustomNavigator on BuildContext {
   Future<dynamic> push(Widget page) async {
-    Navigator.of(this, rootNavigator: true ).push(CupertinoPageRoute(
-        //fullscreenDialog: true,
+    Navigator.of(this, rootNavigator: true).push(CupertinoPageRoute(
+        // fullscreenDialog: true,
+        maintainState: true,
         builder: (_) => page));
+
     // Navigator.push(this, CupertinoPageRoute(
     //     fullscreenDialog: true,
     //     builder: (_) => page));
@@ -38,9 +39,11 @@ extension CustomNavigator on BuildContext {
 
   //clear current navigation stack
   Future<dynamic> pushReplacement(Widget page) async {
-    Navigator.of(this, rootNavigator: true ).pushReplacement(CupertinoPageRoute(
-      //fullscreenDialog: true,
+    Navigator.of(this, rootNavigator: true).pushReplacement(CupertinoPageRoute(
+        // fullscreenDialog: true,
+        maintainState: true,
         builder: (_) => page));
+
     // Navigator.pushReplacement(this, CupertinoPageRoute(
     //     fullscreenDialog: true,
     //     builder: (_) => page));
@@ -48,9 +51,13 @@ extension CustomNavigator on BuildContext {
 
   //clear all the navigation history stack
   Future<dynamic> pushAndRemoveUntil(Widget page) async {
-    Navigator.of(this, rootNavigator: true ).pushAndRemoveUntil(CupertinoPageRoute(
-      //fullscreenDialog: true,
-        builder: (_) => page),(route)=> false);
+    Navigator.of(this, rootNavigator: true).pushAndRemoveUntil(
+        CupertinoPageRoute(
+            //fullscreenDialog: true,
+            maintainState: true,
+            builder: (_) => page),
+        (route) => false);
+
     // Navigator.pushAndRemoveUntil(this, CupertinoPageRoute(
     //   fullscreenDialog: true,
     //   builder: (_) => page,),(route)=> false);
