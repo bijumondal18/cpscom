@@ -149,8 +149,10 @@ class _BuildChatListState extends State<BuildChatList> {
                                 finalGroupList.add(groupList[i]);
                               }
                             });
-                            finalGroupList.sort((a,b){
-                              return b['time'].toString().compareTo(a['time'].toString());
+                            finalGroupList.sort((a, b) {
+                              return b['time']
+                                  .toString()
+                                  .compareTo(a['time'].toString());
                             });
                           }
                           return Scrollbar(
@@ -168,21 +170,10 @@ class _BuildChatListState extends State<BuildChatList> {
                                     return HomeChatCard(
                                         groupId: finalGroupList[index].id,
                                         onPressed: () {
-                                          Platform.isAndroid
-                                              ? Navigator.push(
-                                                  context,
-                                                  CustomPageRoute(
-                                                      widget: ChatScreen(
-                                                    groupId:
-                                                        finalGroupList[index]
-                                                            .id,
-                                                    isAdmin: widget.isAdmin,
-                                                  )))
-                                              : context.push(ChatScreen(
-                                                  groupId:
-                                                      finalGroupList[index].id,
-                                                  isAdmin: widget.isAdmin,
-                                                ));
+                                          context.push(ChatScreen(
+                                            groupId: finalGroupList[index].id,
+                                            isAdmin: widget.isAdmin,
+                                          ));
                                         },
                                         groupName: finalGroupList[index]
                                             ['name'],
@@ -210,21 +201,10 @@ class _BuildChatListState extends State<BuildChatList> {
                                     return HomeChatCard(
                                         groupId: finalGroupList[index].id,
                                         onPressed: () {
-                                          Platform.isAndroid
-                                              ? Navigator.push(
-                                                  context,
-                                                  CustomPageRoute(
-                                                      widget: ChatScreen(
-                                                    groupId:
-                                                        finalGroupList[index]
-                                                            .id,
-                                                    isAdmin: widget.isAdmin,
-                                                  )))
-                                              : context.push(ChatScreen(
-                                                  groupId:
-                                                      finalGroupList[index].id,
-                                                  isAdmin: widget.isAdmin,
-                                                ));
+                                          context.push(ChatScreen(
+                                            groupId: finalGroupList[index].id,
+                                            isAdmin: widget.isAdmin,
+                                          ));
                                         },
                                         groupName: finalGroupList[index]
                                             ['name'],
