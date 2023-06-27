@@ -28,13 +28,10 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:uuid/uuid.dart';
-import 'package:path/path.dart' as p;
 
 import '../../../Api/urls.dart';
 import '../../../Utils/app_preference.dart';
-import '../../GroupMedia/Presentation/group_media_screen.dart';
 
 final ScrollController _scrollController = ScrollController();
 // bool isDelivered = true;
@@ -82,11 +79,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (result != null) {
       PlatformFile file = result.files.first;
       extension = file.extension;
-      // print("chp--->$extension");
       List<File> files =
           result.paths.map((path) => File(path.toString())).toList();
       for (var i in files) {
-        // log('Image Path: ${i.path}');
         uploadImage(i, extension);
       }
     } else {
@@ -98,7 +93,6 @@ class _ChatScreenState extends State<ChatScreen> {
     List<XFile>? imageFileList = [];
     try {
       final images = await ImagePicker().pickMultiImage(
-          // source: ImageSource.gallery,
           maxHeight: 512,
           maxWidth: 512,
           imageQuality: 75);
@@ -108,7 +102,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
         final extension = imageFileList.first.path.split(".").last;
         for (var i in imageFileList) {
-          //log('Image Path: ${i.path}');
           await uploadImage(File(i.path), extension);
         }
       } else {
@@ -233,6 +226,8 @@ class _ChatScreenState extends State<ChatScreen> {
           sendPushNotification(senderName, msg);
         });
 
+        // msgController.clear();
+
         // Update last msg time with group time to show latest messaged group on top on the groups list
         await FirebaseProvider.firestore
             .collection('groups')
@@ -319,16 +314,22 @@ class _ChatScreenState extends State<ChatScreen> {
                   for (var i = 0; i < membersList.length; i++) {
                     // Add all the members in  the group to check who viewed the message
                     // isSeen by whom and isDelivered to whom
-                    chatMembersList.add({
-                      "uid": membersList[i]['uid'],
-                      "name": membersList[i]['name'],
-                      "profile_picture": membersList[i]['profile_picture'],
-                      "isSeen": false,
-                      "isDelivered": true,
-                    });
-                    chatMembersList.removeWhere((element) =>
-                        element['uid'] ==
-                        FirebaseProvider.auth.currentUser!.uid);
+                    try {
+                      chatMembersList.add({
+                        "uid": membersList[i]['uid'],
+                        "name": membersList[i]['name'],
+                        "profile_picture": membersList[i]['profile_picture'],
+                        "isSeen": false,
+                        "isDelivered": true,
+                      });
+                      chatMembersList.removeWhere((element) =>
+                          element['uid'] ==
+                          FirebaseProvider.auth.currentUser!.uid);
+                    } catch (e) {
+                      if (kDebugMode) {
+                        print(e.toString());
+                      }
+                    }
                   }
                   return SafeArea(
                     child: Scaffold(
@@ -420,6 +421,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             Expanded(
                               child: GestureDetector(
                                 onTap: () {
+                                  // To hide the keyboard on outside touch in the screen
                                   FocusScope.of(context)
                                       .requestFocus(FocusNode());
                                 },
@@ -750,7 +752,6 @@ class _BuildChatListState extends State<_BuildChatList> {
                 // log('---------------- ${chatMembers}');
               }
               return Scrollbar(
-
                 child: Column(
                   children: [
                     Expanded(
