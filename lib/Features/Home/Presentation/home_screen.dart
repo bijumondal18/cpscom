@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/build_mobile_view.dart';
@@ -67,7 +69,7 @@ class _BuildChatListState extends State<BuildChatList> {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -163,68 +165,83 @@ class _BuildChatListState extends State<BuildChatList> {
                                   .compareTo(a['time'].toString());
                             });
                           }
-                          return Scrollbar(
-                            child: ListView.builder(
-                                itemCount: finalGroupList.length,
-                                shrinkWrap: true,
-                                padding: const EdgeInsets.only(
-                                    top: AppSizes.kDefaultPadding),
-                                itemBuilder: (context, index) {
-                                  //for search groups
-                                  sentTime =
-                                      AppHelper.getStringTimeFromTimestamp(
-                                          finalGroupList[index]['created_at']);
-                                  if (groupName.isEmpty && groupDesc.isEmpty) {
-                                    return HomeChatCard(
-                                        groupId: finalGroupList[index].id,
-                                        onPressed: () {
-                                          context.push(ChatScreen(
-                                            groupId: finalGroupList[index].id,
-                                            isAdmin: widget.isAdmin,
-                                          ));
-                                        },
-                                        groupName: finalGroupList[index]
-                                            ['name'],
-                                        groupDesc: finalGroupList[index]
-                                            ['group_description'],
-                                        sentTime: sentTime,
-                                        imageUrl:
-                                            '${finalGroupList[index]['profile_picture']}');
-                                  } else if (finalGroupList[index]['name']
-                                          .toLowerCase()
-                                          .trim()
-                                          .toString()
-                                          .contains(groupName
-                                              .toLowerCase()
-                                              .trim()
-                                              .toString()) ||
-                                      finalGroupList[index]['group_description']
-                                          .toLowerCase()
-                                          .trim()
-                                          .toString()
-                                          .contains(groupName
-                                              .toLowerCase()
-                                              .trim()
-                                              .toString())) {
-                                    return HomeChatCard(
-                                        groupId: finalGroupList[index].id,
-                                        onPressed: () {
-                                          context.push(ChatScreen(
-                                            groupId: finalGroupList[index].id,
-                                            isAdmin: widget.isAdmin,
-                                          ));
-                                        },
-                                        groupName: finalGroupList[index]
-                                            ['name'],
-                                        groupDesc: finalGroupList[index]
-                                            ['group_description'],
-                                        sentTime: sentTime,
-                                        imageUrl:
-                                            '${finalGroupList[index]['profile_picture']}');
-                                  }
-                                  return const SizedBox();
-                                }),
-                          );
+                          return finalGroupList.isNotEmpty
+                              ? Scrollbar(
+                                  child: ListView.builder(
+                                      itemCount: finalGroupList.length,
+                                      shrinkWrap: true,
+                                      padding: const EdgeInsets.only(
+                                          top: AppSizes.kDefaultPadding),
+                                      itemBuilder: (context, index) {
+                                        //for search groups
+                                        sentTime = AppHelper
+                                            .getStringTimeFromTimestamp(
+                                                finalGroupList[index]
+                                                    ['created_at']);
+                                        if (groupName.isEmpty &&
+                                            groupDesc.isEmpty) {
+                                          return HomeChatCard(
+                                              groupId: finalGroupList[index].id,
+                                              onPressed: () {
+                                                context.push(ChatScreen(
+                                                  groupId:
+                                                      finalGroupList[index].id,
+                                                  isAdmin: widget.isAdmin,
+                                                ));
+                                              },
+                                              groupName: finalGroupList[index]
+                                                  ['name'],
+                                              groupDesc: finalGroupList[index]
+                                                  ['group_description'],
+                                              sentTime: sentTime,
+                                              imageUrl:
+                                                  '${finalGroupList[index]['profile_picture']}');
+                                        } else if (finalGroupList[index]['name']
+                                                .toLowerCase()
+                                                .trim()
+                                                .toString()
+                                                .contains(groupName
+                                                    .toLowerCase()
+                                                    .trim()
+                                                    .toString()) ||
+                                            finalGroupList[index]
+                                                    ['group_description']
+                                                .toLowerCase()
+                                                .trim()
+                                                .toString()
+                                                .contains(groupName
+                                                    .toLowerCase()
+                                                    .trim()
+                                                    .toString())) {
+                                          return HomeChatCard(
+                                              groupId: finalGroupList[index].id,
+                                              onPressed: () {
+                                                context.push(ChatScreen(
+                                                  groupId:
+                                                      finalGroupList[index].id,
+                                                  isAdmin: widget.isAdmin,
+                                                ));
+                                              },
+                                              groupName: finalGroupList[index]
+                                                  ['name'],
+                                              groupDesc: finalGroupList[index]
+                                                  ['group_description'],
+                                              sentTime: sentTime,
+                                              imageUrl:
+                                                  '${finalGroupList[index]['profile_picture']}');
+                                        }
+                                        return const SizedBox();
+                                      }),
+                                )
+                              : Center(
+                                  child: Text(
+                                    'No Groups Found',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2!
+                                        .copyWith(fontWeight: FontWeight.w400),
+                                  ),
+                                );
                         }
                       }
                       return const SizedBox();

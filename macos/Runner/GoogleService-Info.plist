@@ -3,21 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od.apps.googleusercontent.com</string>
+	<string>985033228014-s1tomr1pu3nq8ta76fki0pf495garjhs.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od</string>
+	<string>com.googleusercontent.apps.985033228014-s1tomr1pu3nq8ta76fki0pf495garjhs</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>985033228014-8cnacrvgi71ftkdpv4jftlkhf40jho92.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyBD5PV9skScSwOt4XpQfwSNQ-0aDnvnjvM</string>
+	<string>AIzaSyAFj8TKoqubHiHqa2Q0NaIt4wnBpr2K7gg</string>
 	<key>GCM_SENDER_ID</key>
-	<string>316305474905</string>
+	<string>985033228014</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.app.cpscomAdmin</string>
+	<string>us.csic.cpscom</string>
 	<key>PROJECT_ID</key>
-	<string>cps-com-c90aa</string>
+	<string>cpscom-aea2f</string>
 	<key>STORAGE_BUCKET</key>
-	<string>cps-com-c90aa.appspot.com</string>
+	<string>cpscom-aea2f.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:316305474905:ios:0f40cf123b5ffb730c7848</string>
+	<string>1:985033228014:ios:4cb538ff518d8e09b93dff</string>
 </dict>
 </plist>

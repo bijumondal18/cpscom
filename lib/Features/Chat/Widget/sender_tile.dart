@@ -17,6 +17,7 @@ class SenderTile extends StatelessWidget {
   final String sentTime;
   final String groupCreatedBy;
   final String read;
+  final VoidCallback? onTap;
   bool? isSeen;
   bool? isDelivered;
 
@@ -28,7 +29,8 @@ class SenderTile extends StatelessWidget {
       required this.groupCreatedBy,
       required this.read,
       this.isSeen = false,
-      this.isDelivered = true})
+      this.isDelivered = true,
+      this.onTap})
       : super(key: key);
 
   @override
@@ -49,16 +51,6 @@ class SenderTile extends StatelessWidget {
                     border: Border.all(width: 1, color: AppColors.lightGrey),
                     borderRadius:
                         BorderRadius.circular(AppSizes.cardCornerRadius / 2),
-                    boxShadow: const [
-                      BoxShadow(
-                          offset: Offset(1, 1),
-                          blurRadius: 1,
-                          color: AppColors.lightGrey),
-                      BoxShadow(
-                          offset: Offset(-1, -1),
-                          blurRadius: 1,
-                          color: AppColors.lightGrey)
-                    ],
                     color: AppColors.shimmer),
                 child: Text(
                   '$groupCreatedBy $message'.trim(),
@@ -67,110 +59,116 @@ class SenderTile extends StatelessWidget {
               ),
             ],
           )
-        : Padding(
-            padding: const EdgeInsets.only(
-                right: AppSizes.kDefaultPadding, top: AppSizes.kDefaultPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        sentTime,
-                        style: Theme.of(context)
-                            .textTheme
-                            .caption!
-                            .copyWith(fontSize: 12),
-                      ),
-                      const SizedBox(
-                        width: AppSizes.kDefaultPadding / 2,
-                      ),
-                      isDelivered == true
-                          ? Icon(
-                              Icons.done_all_rounded,
-                              size: 16,
-                              color: isSeen == true
-                                  ? AppColors.primary
-                                  : AppColors.grey,
-                            )
-                          : const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: AppColors.grey,
-                            )
-                    ],
-                  ),
-                ),
-                ChatBubble(
-                  clipper: ChatBubbleClipper3(type: BubbleType.sendBubble),
-                  backGroundColor: AppColors.secondary.withOpacity(0.3),
-                  alignment: Alignment.topRight,
-                  elevation: 0,
-                  margin:
-                      const EdgeInsets.only(top: AppSizes.kDefaultPadding / 4),
-                  child: Container(
-                    constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.65),
-                    child: messageType == 'img'
-                        ? GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          ShowImage(imageUrl: message)));
-                            },
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                  AppSizes.cardCornerRadius),
-                              child: CachedNetworkImage(
-                                imageUrl: message,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    const CircularProgressIndicator.adaptive(),
-                                errorWidget: (context, url, error) =>
-                                    const CircularProgressIndicator.adaptive(),
-                              ),
-                            ),
-                          )
-                        : messageType == 'text'
-                            ? Linkable(
-                                text: message.trim(),
-                                linkColor: Colors.blue,
+        : GestureDetector(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                  right: AppSizes.kDefaultPadding,
+                  top: AppSizes.kDefaultPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          sentTime,
+                          style: Theme.of(context)
+                              .textTheme
+                              .caption!
+                              .copyWith(fontSize: 12),
+                        ),
+                        const SizedBox(
+                          width: AppSizes.kDefaultPadding / 2,
+                        ),
+                        isDelivered == true
+                            ? Icon(
+                                Icons.done_all_rounded,
+                                size: 16,
+                                color: isSeen == true
+                                    ? AppColors.primary
+                                    : AppColors.grey,
                               )
-                            : messageType == 'pdf'
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                        AppSizes.cardCornerRadius),
-                                    child: Container(
-                                      constraints: BoxConstraints(
-                                          maxWidth: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.45,
-                                          maxHeight: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.30),
-                                      child: SfPdfViewer.network(
-                                        message,
-                                        canShowPaginationDialog: false,
-                                        canShowScrollHead: false,
-                                        canShowScrollStatus: false,
-                                        pageLayoutMode:
-                                            PdfPageLayoutMode.continuous,
-                                        canShowPasswordDialog: false,
-                                      ),
-                                    ),
-                                  )
-                                : const SizedBox(),
+                            : const Icon(
+                                Icons.check,
+                                size: 16,
+                                color: AppColors.grey,
+                              )
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  ChatBubble(
+                    clipper: ChatBubbleClipper3(type: BubbleType.sendBubble),
+                    backGroundColor: AppColors.secondary.withOpacity(0.3),
+                    alignment: Alignment.topRight,
+                    elevation: 0,
+                    margin: const EdgeInsets.only(
+                        top: AppSizes.kDefaultPadding / 4),
+                    child: Container(
+                      constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.65),
+                      child: messageType == 'img'
+                          ? GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>
+                                            ShowImage(imageUrl: message)));
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    AppSizes.cardCornerRadius),
+                                child: CachedNetworkImage(
+                                  imageUrl: message,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) =>
+                                      const CircularProgressIndicator
+                                          .adaptive(),
+                                  errorWidget: (context, url, error) =>
+                                      const CircularProgressIndicator
+                                          .adaptive(),
+                                ),
+                              ),
+                            )
+                          : messageType == 'text'
+                              ? Linkable(
+                                  text: message.trim(),
+                                  linkColor: Colors.blue,
+                                )
+                              : messageType == 'pdf'
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                          AppSizes.cardCornerRadius),
+                                      child: Container(
+                                        constraints: BoxConstraints(
+                                            maxWidth: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.45,
+                                            maxHeight: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.30),
+                                        child: SfPdfViewer.network(
+                                          message,
+                                          canShowPaginationDialog: false,
+                                          canShowScrollHead: false,
+                                          canShowScrollStatus: false,
+                                          pageLayoutMode:
+                                              PdfPageLayoutMode.continuous,
+                                          canShowPasswordDialog: false,
+                                        ),
+                                      ),
+                                    )
+                                  : const SizedBox(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
   }

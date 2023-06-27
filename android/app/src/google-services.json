@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "985033228014",
+    "project_id": "cpscom-aea2f",
+    "storage_bucket": "cpscom-aea2f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:985033228014:android:eea627ee03a8e6d2b93dff",
+        "android_client_info": {
+          "package_name": "us.csic.cpscom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "985033228014-7vmiikf89bv7hfn1siase6its7bsubo9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCo5IGoy8C9xhexGxkOO4i69xzsV11OSAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "985033228014-7vmiikf89bv7hfn1siase6its7bsubo9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "985033228014-m2eks9vv3q58al9r2q23ogkp3civh00m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.cpscomAdmin"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

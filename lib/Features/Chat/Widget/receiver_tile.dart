@@ -44,16 +44,6 @@ class ReceiverTile extends StatelessWidget {
                     border: Border.all(width: 1, color: AppColors.lightGrey),
                     borderRadius:
                         BorderRadius.circular(AppSizes.cardCornerRadius / 2),
-                    boxShadow: const [
-                      BoxShadow(
-                          offset: Offset(1, 1),
-                          blurRadius: 1,
-                          color: AppColors.lightGrey),
-                      BoxShadow(
-                          offset: Offset(-1, -1),
-                          blurRadius: 1,
-                          color: AppColors.lightGrey)
-                    ],
                     color: AppColors.shimmer),
                 child: Text(
                   '$groupCreatedBy $message',

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Utils/app_preference.dart';
@@ -22,7 +24,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           emit(LoginStateLoaded(mData!));
           preference.setIsLoggedIn(true);
           preference.setUserId(mData.uid);
-          print('uid : ${mData.uid}');
+          log('current user uid - ${mData.uid}');
         } else {
           emit(const LoginStateFailed('Invalid Username or Password'));
           emit(LoginStateInitial());

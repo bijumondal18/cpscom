@@ -31,11 +31,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Click photo from camera</string>
+	<string>Click photo from camera to upload users profile picture or send in a group</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Post videos to profile</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Choose photo from Library</string>
+	<string>Choose photo from Library to send in a group</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

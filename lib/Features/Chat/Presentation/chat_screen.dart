@@ -62,8 +62,8 @@ class _ChatScreenState extends State<ChatScreen> {
   String _mention = '';
   List<dynamic> _filteredSuggestions = [];
 
-  var extension;
-  var extType;
+  dynamic extension;
+  dynamic extType;
 
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -92,10 +92,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Future pickImageFromGallery() async {
     List<XFile>? imageFileList = [];
     try {
-      final images = await ImagePicker().pickMultiImage(
-          maxHeight: 512,
-          maxWidth: 512,
-          imageQuality: 75);
+      final images = await ImagePicker()
+          .pickMultiImage(maxHeight: 512, maxWidth: 512, imageQuality: 75);
       if (images.isNotEmpty) {
         setState(() {
           imageFileList.addAll(images);
@@ -109,7 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } on PlatformException catch (e) {
       if (kDebugMode) {
-        print('Failed to pick image: $e');
+        log('Failed to pick image: $e');
       }
     }
   }
@@ -128,7 +126,7 @@ class _ChatScreenState extends State<ChatScreen> {
       await uploadImage(imageFile!, extension);
     } on PlatformException catch (e) {
       if (kDebugMode) {
-        print('Failed to pick image: $e');
+        log('Failed to pick image: $e');
       }
     }
   }
@@ -195,7 +193,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -235,7 +233,7 @@ class _ChatScreenState extends State<ChatScreen> {
             .update({"time": DateTime.now().millisecondsSinceEpoch});
       } catch (e) {
         if (kDebugMode) {
-          print(e.toString());
+          log(e.toString());
         }
       }
     }
@@ -254,20 +252,17 @@ class _ChatScreenState extends State<ChatScreen> {
         var response = await post(Uri.parse(Urls.sendPushNotificationUrl),
             headers: <String, String>{
               HttpHeaders.contentTypeHeader: 'application/json',
-              HttpHeaders.authorizationHeader:
-                  'key=AAAASaVGhVk:APA91bGJOeV7_YE_rwJ8YKk0x_yTlUAHkb3MvC_UuiC_FHinYDPtfgPvxkFXnMEQQvaBQ9zYIHKcbWVRukUs7NHGsiLM8Crat79a24ZTDycIIvCzJiHiycLeb7nbAQGKeqQ6orCv_DRd'
+              HttpHeaders.authorizationHeader: AppStrings.serverKey
             },
             body: jsonEncode(body));
-        // if (response.statusCode == 200) {
-        //   isDelivered = true;
-        // }
+
         if (kDebugMode) {
-          print('status code send notification - ${response.statusCode}');
-          print('body send notification -  ${response.body}');
+          log('status code send notification - ${response.statusCode}');
+          log('body send notification -  ${response.body}');
         }
       } catch (e) {
         if (kDebugMode) {
-          print(e.toString());
+          log(e.toString());
         }
       }
     }
@@ -327,7 +322,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           FirebaseProvider.auth.currentUser!.uid);
                     } catch (e) {
                       if (kDebugMode) {
-                        print(e.toString());
+                        log(e.toString());
                       }
                     }
                   }
@@ -635,6 +630,8 @@ class _BuildChatListState extends State<_BuildChatList> {
   Map<String, dynamic>? chatMemberData = {};
   List<dynamic> updatedChatMemberList = [];
   int isSeenCount = 0;
+  dynamic lastChatMsg;
+  dynamic mem;
 
   //int isDeliveredCount = 0;
   String chatId = '';
@@ -658,10 +655,11 @@ class _BuildChatListState extends State<_BuildChatList> {
       };
 
       // remove item from chat members and update with new data
-      for (var i = 0; i < chatMembers.length; i++) {
+      for (var i = 0; i < mem.length; i++) {
         if (i == index) {
           updatedChatMemberList.removeAt(i);
           updatedChatMemberList.add(chatMemberData);
+          log('updated chat members - ${updatedChatMemberList[i]}');
         }
       }
     }
@@ -713,82 +711,74 @@ class _BuildChatListState extends State<_BuildChatList> {
                 chatList = snapshot.data!.docs;
                 for (var i = 0; i < chatList.length; i++) {
                   chatMap = chatList[i].data() as Map<String, dynamic>;
+
                   if (chatMap['type'] == 'text' ||
                       chatMap['type'] == 'img' ||
                       chatMap['type'] == 'pdf' ||
                       chatMap['type'] == 'doc' ||
                       chatMap['type'] == 'docx') {
+                    lastChatMsg = chatList[0].data() as Map<String, dynamic>;
+                    mem = lastChatMsg['members'];
                     chatMembers = chatMap['members'];
-                    for (var lastMsg = 0;
-                        lastMsg < chatMembers.length;
-                        lastMsg++) {
-                      if (chatMembers[lastMsg]['uid'] ==
-                          auth.currentUser!.uid) {
-                        chatMemberData = chatMembers[lastMsg];
-                        updatedChatMemberList = chatMembers;
-                        updateMessageSeenStatus(
-                            widget.groupId,
-                            chatList[i].id,
-                            chatMemberData?['uid'],
-                            chatMemberData?['profile_picture'],
-                            lastMsg);
+                    updatedChatMemberList = mem;
+                    // log('mem ------------ ${mem}');
+                    // log('chat members ------------ ${chatMembers}');
+                    isSeenCount = 0;
+                    for (var j = 0; j < mem.length; j++) {
+                      // log('mem ------------ ${mem[j]}');
+                      // log('isSeen of Members ------------ ${mem[j]['isSeen']}');
+                      // log('last msg ------------ ${chatList[0].id}');
+                      updateMessageSeenStatus(widget.groupId, chatList[0].id,
+                          mem[j]['uid'], mem[j]['profile_picture'], j);
+
+                      //check lst msg seen count
+                      if (mem[j]['isSeen'] == true) {
+                        isSeenCount += 1;
                       }
 
-                      if (chatMembers[lastMsg]['isSeen'] == true) {
-                        isSeenCount += 1;
-                      } else {
-                        isSeenCount = isSeenCount;
-                      }
+                      // log('isSeen count------ $isSeenCount');
+                    }
+                    if (isSeenCount == mem.length) {
+                      updateIsSeenStatus(widget.groupId, chatList[i].id);
                     }
                   }
-                  //if all members view the msg then only isSeen will be true;
-                  if (chatMembers.length == isSeenCount) {
-                    log('------------ $isSeenCount');
-                    //updateIsSeenStatus(widget.groupId, chatList[i].id);
-                  }
                 }
-
-                //log('chat id ------------- ${chatId}');
-                // log('---------------- ${chatMembers}');
-              }
-              return Scrollbar(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                          itemCount: chatList.length,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          controller: _scrollController,
-                          shrinkWrap: true,
-                          reverse: true,
-                          padding: const EdgeInsets.only(
-                              bottom: AppSizes.kDefaultPadding * 2),
-                          itemBuilder: (context, index) {
-                            chatMap =
-                                chatList[index].data() as Map<String, dynamic>;
-                            chatId = chatList[index].id;
-                            //log('chat id ------------- ${chatId}');
-                            isSender = chatMap['sendBy'] ==
-                                    auth.currentUser!.displayName
-                                ? true
-                                : false;
-                            sentTime = AppHelper.getStringTimeFromTimestamp(
-                                chatMap['time']);
-                            var groupCreatedBy =
-                                FirebaseProvider.auth.currentUser!.uid ==
-                                        chatMap['sendById']
-                                    ? 'You'
-                                    : chatMap['sendBy'];
-                            return isSender
-                                ? chatMap['type'] != 'notify'
-                                    ? GestureDetector(
-                                        onHorizontalDragEnd: (DragEndDetails) {
-                                          context.push(MessageInfoScreen(
-                                            chatMap: chatList[index].data()
-                                                as Map<String, dynamic>,
-                                          ));
-                                        },
-                                        child: SenderTile(
+                return Scrollbar(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                            itemCount: chatList.length,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            controller: _scrollController,
+                            shrinkWrap: true,
+                            reverse: true,
+                            padding: const EdgeInsets.only(
+                                bottom: AppSizes.kDefaultPadding * 2),
+                            itemBuilder: (context, index) {
+                              chatMap = chatList[index].data()
+                                  as Map<String, dynamic>;
+                              chatId = chatList[index].id;
+                              isSender = chatMap['sendBy'] ==
+                                      auth.currentUser!.displayName
+                                  ? true
+                                  : false;
+                              sentTime = AppHelper.getStringTimeFromTimestamp(
+                                  chatMap['time']);
+                              var groupCreatedBy =
+                                  FirebaseProvider.auth.currentUser!.uid ==
+                                          chatMap['sendById']
+                                      ? 'You'
+                                      : chatMap['sendBy'];
+                              return isSender
+                                  ? chatMap['type'] != 'notify'
+                                      ? SenderTile(
+                                          onTap: () {
+                                            context.push(MessageInfoScreen(
+                                              chatMap: chatList[index].data()
+                                                  as Map<String, dynamic>,
+                                            ));
+                                          },
                                           message: chatMap['message'],
                                           messageType: chatMap['type'],
                                           sentTime: sentTime,
@@ -796,30 +786,32 @@ class _BuildChatListState extends State<_BuildChatList> {
                                           read: sentTime,
                                           isSeen: chatMap['isSeen'],
                                           // isDelivered: chatMap['isDelivered'],
-                                        ),
-                                      )
-                                    : SenderTile(
-                                        message: chatMap['message'],
-                                        messageType: chatMap['type'],
-                                        sentTime: sentTime,
-                                        groupCreatedBy: groupCreatedBy,
-                                        read: sentTime,
-                                        isSeen: chatMap['isSeen'],
-                                        // isDelivered: chatMap['isDelivered'],
-                                      )
-                                : ReceiverTile(
-                                    message: chatMap['message'],
-                                    messageType: chatMap['type'],
-                                    sentTime: sentTime,
-                                    sentByName: chatMap['sendBy'],
-                                    sentByImageUrl: chatMap['profile_picture'],
-                                    groupCreatedBy: groupCreatedBy,
-                                  );
-                          }),
-                    ),
-                  ],
-                ),
-              );
+                                        )
+                                      : SenderTile(
+                                          message: chatMap['message'],
+                                          messageType: chatMap['type'],
+                                          sentTime: sentTime,
+                                          groupCreatedBy: groupCreatedBy,
+                                          read: sentTime,
+                                          isSeen: chatMap['isSeen'],
+                                          // isDelivered: chatMap['isDelivered'],
+                                        )
+                                  : ReceiverTile(
+                                      message: chatMap['message'],
+                                      messageType: chatMap['type'],
+                                      sentTime: sentTime,
+                                      sentByName: chatMap['sendBy'],
+                                      sentByImageUrl:
+                                          chatMap['profile_picture'],
+                                      groupCreatedBy: groupCreatedBy,
+                                    );
+                            }),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox();
           }
           // return const SizedBox();
         });

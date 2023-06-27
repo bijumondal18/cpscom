@@ -44,40 +44,39 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDC00Lt2TxVmxh77RFTj3ewc0FUc8vxEdo',
-    appId: '1:316305474905:web:0f297f4f81a039660c7848',
-    messagingSenderId: '316305474905',
-    projectId: 'cps-com-c90aa',
-    authDomain: 'cps-com-c90aa.firebaseapp.com',
-    storageBucket: 'cps-com-c90aa.appspot.com',
-    measurementId: 'G-B28FGGZ5ER',
+    apiKey: 'AIzaSyALDdPTyjaE6qad-Uc-hslCrR2PfknvhWE',
+    appId: '1:985033228014:web:b48e1ab07d656c29b93dff',
+    messagingSenderId: '985033228014',
+    projectId: 'cpscom-aea2f',
+    authDomain: 'cpscom-aea2f.firebaseapp.com',
+    storageBucket: 'cpscom-aea2f.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC5nrJfZuiJtwLXQLGs5CkRdWuF4SZ8yZE',
-    appId: '1:316305474905:android:89e4ff2f0f0110710c7848',
-    messagingSenderId: '316305474905',
-    projectId: 'cps-com-c90aa',
-    storageBucket: 'cps-com-c90aa.appspot.com',
+    apiKey: 'AIzaSyCo5IGoy8C9xhexGxkOO4i69xzsV11OSAY',
+    appId: '1:985033228014:android:eea627ee03a8e6d2b93dff',
+    messagingSenderId: '985033228014',
+    projectId: 'cpscom-aea2f',
+    storageBucket: 'cpscom-aea2f.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBD5PV9skScSwOt4XpQfwSNQ-0aDnvnjvM',
-    appId: '1:316305474905:ios:0f40cf123b5ffb730c7848',
-    messagingSenderId: '316305474905',
-    projectId: 'cps-com-c90aa',
-    storageBucket: 'cps-com-c90aa.appspot.com',
-    iosClientId: '316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od.apps.googleusercontent.com',
-    iosBundleId: 'com.app.cpscomAdmin',
+    apiKey: 'AIzaSyAFj8TKoqubHiHqa2Q0NaIt4wnBpr2K7gg',
+    appId: '1:985033228014:ios:4cb538ff518d8e09b93dff',
+    messagingSenderId: '985033228014',
+    projectId: 'cpscom-aea2f',
+    storageBucket: 'cpscom-aea2f.appspot.com',
+    iosClientId: '985033228014-s1tomr1pu3nq8ta76fki0pf495garjhs.apps.googleusercontent.com',
+    iosBundleId: 'us.csic.cpscom',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBD5PV9skScSwOt4XpQfwSNQ-0aDnvnjvM',
-    appId: '1:316305474905:ios:0f40cf123b5ffb730c7848',
-    messagingSenderId: '316305474905',
-    projectId: 'cps-com-c90aa',
-    storageBucket: 'cps-com-c90aa.appspot.com',
-    iosClientId: '316305474905-d9bq9t5mumiqlbcvfig84kentoobk5od.apps.googleusercontent.com',
+    apiKey: 'AIzaSyAFj8TKoqubHiHqa2Q0NaIt4wnBpr2K7gg',
+    appId: '1:985033228014:ios:527657c51795697eb93dff',
+    messagingSenderId: '985033228014',
+    projectId: 'cpscom-aea2f',
+    storageBucket: 'cpscom-aea2f.appspot.com',
+    iosClientId: '985033228014-m2eks9vv3q58al9r2q23ogkp3civh00m.apps.googleusercontent.com',
     iosBundleId: 'com.app.cpscomAdmin',
   );
 }
