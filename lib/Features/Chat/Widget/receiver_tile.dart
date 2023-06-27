@@ -126,6 +126,12 @@ class ReceiverTile extends StatelessWidget {
                         bottom: AppSizes.kDefaultPadding * 2,
                       ),
                       child: ChatBubble(
+                        padding: messageType == 'img' ||
+                                messageType == 'pdf' ||
+                                messageType == 'docx' ||
+                                messageType == 'doc'
+                            ? EdgeInsets.zero
+                            : null,
                         clipper:
                             ChatBubbleClipper3(type: BubbleType.receiverBubble),
                         backGroundColor: AppColors.lightGrey,
@@ -151,7 +157,7 @@ class ReceiverTile extends StatelessWidget {
                                         AppSizes.cardCornerRadius),
                                     child: CachedNetworkImage(
                                       imageUrl: message,
-                                      fit: BoxFit.cover,
+                                      fit: BoxFit.contain,
                                       placeholder: (context, url) =>
                                           const CircularProgressIndicator
                                               .adaptive(),
@@ -170,14 +176,26 @@ class ReceiverTile extends StatelessWidget {
                                       ? ClipRRect(
                                           borderRadius: BorderRadius.circular(
                                               AppSizes.cardCornerRadius),
-                                          child: SfPdfViewer.network(
-                                            message,
-                                            canShowPaginationDialog: false,
-                                            canShowScrollHead: false,
-                                            canShowScrollStatus: false,
-                                            pageLayoutMode:
-                                                PdfPageLayoutMode.single,
-                                            canShowPasswordDialog: false,
+                                          child: Container(
+                                            constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.55,
+                                                maxHeight:
+                                                    MediaQuery.of(context)
+                                                            .size
+                                                            .width *
+                                                        0.30),
+                                            child: SfPdfViewer.network(
+                                              message,
+                                              canShowPaginationDialog: false,
+                                              canShowScrollHead: false,
+                                              canShowScrollStatus: false,
+                                              pageLayoutMode:
+                                                  PdfPageLayoutMode.continuous,
+                                              canShowPasswordDialog: false,
+                                            ),
                                           ),
                                         )
                                       : const SizedBox(),

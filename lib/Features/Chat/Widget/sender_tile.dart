@@ -162,7 +162,7 @@ class SenderTile extends StatelessWidget {
                                         canShowScrollHead: false,
                                         canShowScrollStatus: false,
                                         pageLayoutMode:
-                                            PdfPageLayoutMode.single,
+                                            PdfPageLayoutMode.continuous,
                                         canShowPasswordDialog: false,
                                       ),
                                     ),

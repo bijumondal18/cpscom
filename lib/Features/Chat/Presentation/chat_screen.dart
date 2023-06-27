@@ -249,17 +249,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> sendPushNotification(String senderName, String msg) async {
     for (var i = 0; i < membersList.length; i++) {
       // notification will sent to all the users of the group except current user.
-      List<String> toSendNotificationIds = [];
-
       try {
-        // notification will sent to all the users of the group except current user.
-        if (membersList[i]['uid'] != FirebaseProvider.auth.currentUser!.uid) {
-          toSendNotificationIds.add(membersList[i]['pushToken']);
-        }
-
         final body = {
           "priority": "high",
-          "to": toSendNotificationIds.toString(),
+          "to": membersList[i]['pushToken'],
           "data": <String, dynamic>{"title": senderName, "body": msg},
           "notification": <String, dynamic>{"title": senderName, "body": msg}
         };
@@ -749,7 +742,7 @@ class _BuildChatListState extends State<_BuildChatList> {
                   //if all members view the msg then only isSeen will be true;
                   if (chatMembers.length == isSeenCount) {
                     log('------------ $isSeenCount');
-                    updateIsSeenStatus(widget.groupId, chatList[i].id);
+                    //updateIsSeenStatus(widget.groupId, chatList[i].id);
                   }
                 }
 
@@ -757,6 +750,7 @@ class _BuildChatListState extends State<_BuildChatList> {
                 // log('---------------- ${chatMembers}');
               }
               return Scrollbar(
+
                 child: Column(
                   children: [
                     Expanded(
