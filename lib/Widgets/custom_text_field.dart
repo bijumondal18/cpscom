@@ -17,9 +17,12 @@ class CustomTextField extends StatelessWidget {
   final bool? isBorder;
   final bool? obscureText;
   final Widget? suffixIcon;
+  final FocusNode? focusNode;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
   final String? Function(String?)? onChanged;
+  final Map<String, dynamic>? replyMessage;
+  final VoidCallback? onCancelReply;
 
   const CustomTextField({
     Key? key,
@@ -36,7 +39,7 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.onChanged,
     this.autoFocus = false,
-    this.isBorder = true,
+    this.isBorder = true, this.focusNode, this.replyMessage, this.onCancelReply,
   }) : super(key: key);
 
   @override
@@ -55,6 +58,7 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       autofocus: autoFocus!,
+      focusNode: focusNode,
       decoration: isBorder!
           ? InputDecoration(
               suffixIcon: suffixIcon,

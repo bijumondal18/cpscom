@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../Commons/app_colors.dart';
 import '../../../Commons/app_sizes.dart';
+import '../../../Models/message.dart';
 
 class ReceiverTile extends StatelessWidget {
   final String message;
@@ -16,6 +17,7 @@ class ReceiverTile extends StatelessWidget {
   final String sentByName;
   final String sentByImageUrl;
   final String groupCreatedBy;
+  final ValueChanged<Map<String, dynamic>> onSwipedMessage;
 
   const ReceiverTile(
       {Key? key,
@@ -24,7 +26,8 @@ class ReceiverTile extends StatelessWidget {
       required this.sentTime,
       required this.sentByName,
       this.sentByImageUrl = '',
-      required this.groupCreatedBy})
+      required this.groupCreatedBy,
+      required this.onSwipedMessage})
       : super(key: key);
 
   @override

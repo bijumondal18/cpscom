@@ -12,6 +12,7 @@ import 'package:cpscom_admin/Features/Chat/Widget/sender_tile.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Model/image_picker_model.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
 import 'package:cpscom_admin/Features/MessageInfo/Presentation/message_info_screen.dart';
+import 'package:cpscom_admin/Models/message.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Utils/custom_bottom_modal_sheet.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
@@ -28,6 +29,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:swipe_to/swipe_to.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../Api/urls.dart';
@@ -35,6 +37,9 @@ import '../../../Utils/app_preference.dart';
 
 final ScrollController _scrollController = ScrollController();
 // bool isDelivered = true;
+
+FocusNode focusNode = FocusNode();
+Map<String, dynamic> chatMap = <String, dynamic>{};
 
 class ChatScreen extends StatefulWidget {
   // final Group group;
@@ -64,6 +69,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   dynamic extension;
   dynamic extType;
+
+
 
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -267,10 +274,13 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
   }
+  late _BuildChatListState __buildChatList;
 
   @override
   void initState() {
     msgController = TextEditingController();
+    __buildChatList = _BuildChatListState();
+
     // msgController.addListener(() {
     //   setState(() {
     //     //final text = msgController.text;
@@ -446,14 +456,22 @@ class _ChatScreenState extends State<ChatScreen> {
                                           child: Row(
                                             children: [
                                               Expanded(
-                                                child: CustomTextField(
-                                                  controller: msgController,
-                                                  hintText: 'Type a message',
-                                                  maxLines: 4,
-                                                  keyboardType:
-                                                      TextInputType.multiline,
-                                                  minLines: 1,
-                                                  isBorder: false,
+                                                child: Column(
+                                                  children: [
+                                                    //BuildReplyWidget(),
+                                                    CustomTextField(
+                                                      controller: msgController,
+                                                      hintText: 'Type a message',
+                                                      maxLines: 4,
+                                                      focusNode: focusNode,
+                                                      keyboardType:
+                                                          TextInputType.multiline,
+                                                      minLines: 1,
+                                                      isBorder: false,
+                                                      onCancelReply:__buildChatList.onCancelReply,
+                                                      replyMessage: chatMap,
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                               InkWell(
@@ -612,16 +630,15 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class _BuildChatList extends StatefulWidget {
-  final String groupId;
+  final String? groupId;
 
-  const _BuildChatList({Key? key, required this.groupId}) : super(key: key);
+  const _BuildChatList({Key? key, this.groupId}) : super(key: key);
 
   @override
   State<_BuildChatList> createState() => _BuildChatListState();
 }
 
 class _BuildChatListState extends State<_BuildChatList> {
-  Map<String, dynamic> chatMap = <String, dynamic>{};
   List<QueryDocumentSnapshot> chatList = [];
   bool isSender = false;
   String sentTime = '';
@@ -632,6 +649,8 @@ class _BuildChatListState extends State<_BuildChatList> {
   int isSeenCount = 0;
   dynamic lastChatMsg;
   dynamic mem;
+
+  late Map<String, dynamic>? replyMessage;
 
   //int isDeliveredCount = 0;
   String chatId = '';
@@ -696,10 +715,26 @@ class _BuildChatListState extends State<_BuildChatList> {
   //   }).then((value) => 'Status Updated Successfully');
   // }
 
+  void onSwipedMessage(Map<String, dynamic> message) {
+    log("-------------- ${message['message']}");
+  }
+
+  void replyToMessage(Map<String, dynamic> message) {
+    setState(() {
+      replyMessage = message;
+    });
+  }
+
+  void onCancelReply() {
+    setState(() {
+      replyMessage = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: FirebaseProvider.getChatsMessages(widget.groupId),
+        stream: FirebaseProvider.getChatsMessages(widget.groupId!),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
@@ -723,24 +758,24 @@ class _BuildChatListState extends State<_BuildChatList> {
                     updatedChatMemberList = mem;
                     // log('mem ------------ ${mem}');
                     // log('chat members ------------ ${chatMembers}');
-                    isSeenCount = 0;
-                    for (var j = 0; j < mem.length; j++) {
-                      // log('mem ------------ ${mem[j]}');
-                      // log('isSeen of Members ------------ ${mem[j]['isSeen']}');
-                      // log('last msg ------------ ${chatList[0].id}');
-                      updateMessageSeenStatus(widget.groupId, chatList[0].id,
-                          mem[j]['uid'], mem[j]['profile_picture'], j);
-
-                      //check lst msg seen count
-                      if (mem[j]['isSeen'] == true) {
-                        isSeenCount += 1;
-                      }
-
-                      // log('isSeen count------ $isSeenCount');
-                    }
-                    if (isSeenCount == mem.length) {
-                      updateIsSeenStatus(widget.groupId, chatList[i].id);
-                    }
+                    // isSeenCount = 0;
+                    // for (var j = 0; j < mem.length; j++) {
+                    //   // log('mem ------------ ${mem[j]}');
+                    //   // log('isSeen of Members ------------ ${mem[j]['isSeen']}');
+                    //   // log('last msg ------------ ${chatList[0].id}');
+                    //   // updateMessageSeenStatus(widget.groupId, chatList[0].id,
+                    //   //     mem[j]['uid'], mem[j]['profile_picture'], j);
+                    //
+                    //   //check lst msg seen count
+                    //   // if (mem[j]['isSeen'] == true) {
+                    //   //   isSeenCount += 1;
+                    //   // }
+                    //
+                    //   // log('isSeen count------ $isSeenCount');
+                    // }
+                    // if (isSeenCount == mem.length) {
+                    //  // updateIsSeenStatus(widget.groupId, chatList[i].id);
+                    // }
                   }
                 }
                 return Scrollbar(
@@ -757,6 +792,8 @@ class _BuildChatListState extends State<_BuildChatList> {
                                 bottom: AppSizes.kDefaultPadding * 2),
                             itemBuilder: (context, index) {
                               chatMap = chatList[index].data()
+                                  as Map<String, dynamic>;
+                              replyMessage = chatList[index].data()
                                   as Map<String, dynamic>;
                               chatId = chatList[index].id;
                               isSender = chatMap['sendBy'] ==
@@ -796,15 +833,38 @@ class _BuildChatListState extends State<_BuildChatList> {
                                           isSeen: chatMap['isSeen'],
                                           // isDelivered: chatMap['isDelivered'],
                                         )
-                                  : ReceiverTile(
-                                      message: chatMap['message'],
-                                      messageType: chatMap['type'],
-                                      sentTime: sentTime,
-                                      sentByName: chatMap['sendBy'],
-                                      sentByImageUrl:
-                                          chatMap['profile_picture'],
-                                      groupCreatedBy: groupCreatedBy,
-                                    );
+                                  : chatMap['type'] != 'notify'
+                                      ? SwipeTo(
+                                          onRightSwipe: () => onSwipedMessage(
+                                              chatList[index].data()
+                                                  as Map<String, dynamic>),
+                                          child: ReceiverTile(
+                                            onSwipedMessage: (message) {
+                                              replyToMessage(message);
+                                              AppHelper.openKeyboard(
+                                                  context, focusNode);
+                                            },
+                                            message: chatMap['message'],
+                                            messageType: chatMap['type'],
+                                            sentTime: sentTime,
+                                            sentByName: chatMap['sendBy'],
+                                            sentByImageUrl:
+                                                chatMap['profile_picture'],
+                                            groupCreatedBy: groupCreatedBy,
+                                          ),
+                                        )
+                                      : ReceiverTile(
+                                          onSwipedMessage: (chatMap) {
+                                            //replyToMessage(chatMap);
+                                          },
+                                          message: chatMap['message'],
+                                          messageType: chatMap['type'],
+                                          sentTime: sentTime,
+                                          sentByName: chatMap['sendBy'],
+                                          sentByImageUrl:
+                                              chatMap['profile_picture'],
+                                          groupCreatedBy: groupCreatedBy,
+                                        );
                             }),
                       ),
                     ],

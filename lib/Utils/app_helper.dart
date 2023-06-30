@@ -11,6 +11,10 @@ class AppHelper {
     return outputDate;
   }
 
+  static void openKeyboard (BuildContext context, FocusNode focusNode) {
+    FocusScope.of(context).requestFocus(focusNode);
+  }
+
   static String getStringDateFromTimestamp(int timestamp) {
     DateTime inputDate =
         DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: false);
