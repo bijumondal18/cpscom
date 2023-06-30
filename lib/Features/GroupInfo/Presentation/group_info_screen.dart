@@ -438,8 +438,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                 children: [
                                                   Expanded(
                                                     child: Text(
-                                                      snapshot.data![
-                                                          'group_description'],
+                                                      '${snapshot.data?['group_description']}',
                                                       maxLines: 5,
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -451,7 +450,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                                   .black),
                                                     ),
                                                   ),
-                                                  snapshot.data![
+                                                  snapshot.data?[
                                                               'group_creator_uid'] ==
                                                           FirebaseProvider.auth
                                                               .currentUser!.uid
@@ -484,7 +483,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                             .textTheme
                                             .bodyText1,
                                       ),
-                                      snapshot.data!['group_creator_uid'] ==
+                                      snapshot.data?['group_creator_uid'] ==
                                               FirebaseProvider
                                                   .auth.currentUser!.uid
                                           ? InkWell(
@@ -530,7 +529,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                       return ParticipantsCardWidget(
                                           member: membersList[index],
                                           creatorId: snapshot
-                                              .data!['group_creator_uid'],
+                                              .data?['group_creator_uid'],
                                           isUserAdmin: widget.isAdmin,
                                           onDeleteButtonPressed: () {
                                             widget.isAdmin == true
