@@ -70,8 +70,6 @@ class _ChatScreenState extends State<ChatScreen> {
   dynamic extension;
   dynamic extType;
 
-
-
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
@@ -274,6 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     }
   }
+
   late _BuildChatListState __buildChatList;
 
   @override
@@ -461,14 +460,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     //BuildReplyWidget(),
                                                     CustomTextField(
                                                       controller: msgController,
-                                                      hintText: 'Type a message',
+                                                      hintText:
+                                                          'Type a message',
                                                       maxLines: 4,
                                                       focusNode: focusNode,
                                                       keyboardType:
-                                                          TextInputType.multiline,
+                                                          TextInputType
+                                                              .multiline,
                                                       minLines: 1,
                                                       isBorder: false,
-                                                      onCancelReply:__buildChatList.onCancelReply,
+                                                      onCancelReply:
+                                                          __buildChatList
+                                                              .onCancelReply,
                                                       replyMessage: chatMap,
                                                     ),
                                                   ],
@@ -674,11 +677,13 @@ class _BuildChatListState extends State<_BuildChatList> {
       };
 
       // remove item from chat members and update with new data
-      for (var i = 0; i < mem.length; i++) {
-        if (i == index) {
-          updatedChatMemberList.removeAt(i);
-          updatedChatMemberList.add(chatMemberData);
-          log('updated chat members - ${updatedChatMemberList[i]}');
+      if (updatedChatMemberList != null && mem.length != null) {
+        for (var i = 0; i < mem.length; i++) {
+          if (i == index) {
+            updatedChatMemberList.removeAt(i);
+            updatedChatMemberList.add(chatMemberData);
+            log('updated chat members - ${updatedChatMemberList[i]}');
+          }
         }
       }
     }
@@ -755,7 +760,9 @@ class _BuildChatListState extends State<_BuildChatList> {
                     lastChatMsg = chatList[0].data() as Map<String, dynamic>;
                     mem = lastChatMsg['members'];
                     chatMembers = chatMap['members'];
-                    updatedChatMemberList = mem;
+                    if(mem != null){
+                      updatedChatMemberList = mem;
+                    }
                     // log('mem ------------ ${mem}');
                     // log('chat members ------------ ${chatMembers}');
                     // isSeenCount = 0;
