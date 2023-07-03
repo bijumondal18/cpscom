@@ -30,6 +30,7 @@ import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:swipe_to/swipe_to.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../Api/urls.dart';
@@ -40,6 +41,7 @@ final ScrollController _scrollController = ScrollController();
 
 FocusNode focusNode = FocusNode();
 Map<String, dynamic> chatMap = <String, dynamic>{};
+bool isReplying = false;
 
 class ChatScreen extends StatefulWidget {
   // final Group group;
@@ -461,7 +463,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       hintText:
                                                           'Type a message',
                                                       maxLines: 4,
-                                                      isReplying: false,
+                                                      isReplying: isReplying,
                                                       focusNode: focusNode,
                                                       keyboardType:
                                                           TextInputType
@@ -722,6 +724,7 @@ class _BuildChatListState extends State<_BuildChatList> {
   void onSwipedMessage(Map<String, dynamic> message) {
     log("-------------- ${message['message']}");
     log("-------------- ${message['sendBy']}");
+    isReplying = true;
     AppHelper.openKeyboard(context, focusNode);
   }
 
@@ -736,7 +739,6 @@ class _BuildChatListState extends State<_BuildChatList> {
       replyMessage = null;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -842,40 +844,43 @@ class _BuildChatListState extends State<_BuildChatList> {
                                           isSeen: chatMap['isSeen'],
                                           // isDelivered: chatMap['isDelivered'],
                                         )
-                                  : chatMap['type'] != 'notify'
-                                      ? SwipeTo(
-                                          onRightSwipe: () {
-                                            onSwipedMessage(
-                                                chatList[index].data()
-                                                    as Map<String, dynamic>);
-                                            AppHelper.openKeyboard(
-                                                context, focusNode);
-                                          },
-                                          child: ReceiverTile(
-                                            onSwipedMessage: (message) {
-                                              replyToMessage(message);
-                                            },
-                                            message: chatMap['message'],
-                                            messageType: chatMap['type'],
-                                            sentTime: sentTime,
-                                            sentByName: chatMap['sendBy'],
-                                            sentByImageUrl:
-                                                chatMap['profile_picture'],
-                                            groupCreatedBy: groupCreatedBy,
-                                          ),
-                                        )
-                                      : ReceiverTile(
-                                          onSwipedMessage: (chatMap) {
-                                            //replyToMessage(chatMap);
-                                          },
-                                          message: chatMap['message'],
-                                          messageType: chatMap['type'],
-                                          sentTime: sentTime,
-                                          sentByName: chatMap['sendBy'],
-                                          sentByImageUrl:
-                                              chatMap['profile_picture'],
-                                          groupCreatedBy: groupCreatedBy,
-                                        );
+                                  :
+                                  // : chatMap['type'] != 'notify'
+                                  //     ? SwipeTo(
+                                  //         onRightSwipe: () {
+                                  //           onSwipedMessage(
+                                  //               chatList[index].data()
+                                  //                   as Map<String, dynamic>);
+                                  //           AppHelper.openKeyboard(
+                                  //               context, focusNode);
+                                  //         },
+                                  //         child: ReceiverTile(
+                                  //           onSwipedMessage: (message) {
+                                  //             replyToMessage(chatList[index].data()
+                                  //             as Map<String, dynamic>);
+                                  //           },
+                                  //           message: chatMap['message'],
+                                  //           messageType: chatMap['type'],
+                                  //           sentTime: sentTime,
+                                  //           sentByName: chatMap['sendBy'],
+                                  //           sentByImageUrl:
+                                  //               chatMap['profile_picture'],
+                                  //           groupCreatedBy: groupCreatedBy,
+                                  //         ),
+                                  //       )
+                                  //     :
+                                  ReceiverTile(
+                                      onSwipedMessage: (chatMap) {
+                                        //replyToMessage(chatMap);
+                                      },
+                                      message: chatMap['message'],
+                                      messageType: chatMap['type'],
+                                      sentTime: sentTime,
+                                      sentByName: chatMap['sendBy'],
+                                      sentByImageUrl:
+                                          chatMap['profile_picture'],
+                                      groupCreatedBy: groupCreatedBy,
+                                    );
                             }),
                       ),
                     ],
@@ -905,5 +910,23 @@ class ShowImage extends StatelessWidget {
       ),
       body: PhotoView(imageProvider: NetworkImage(imageUrl)),
     );
+  }
+}
+
+class ShowPdf extends StatelessWidget {
+  final String pdfPath;
+
+  const ShowPdf({
+    required this.pdfPath,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: const CustomAppBar(
+          title: '',
+        ),
+        body: SfPdfViewer.network(pdfPath, scrollDirection: PdfScrollDirection.vertical,));
   }
 }

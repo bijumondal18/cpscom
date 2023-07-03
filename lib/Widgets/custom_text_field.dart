@@ -52,43 +52,55 @@ class CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        isReplying == true
-            ? Container(
-                width: MediaQuery.of(context).size.width,
-                margin:
-                    const EdgeInsets.only(bottom: AppSizes.kDefaultPadding / 2),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 30,
-                      width: 4,
-                      color: AppColors.primary,
-                      margin: const EdgeInsets.only(
-                          right: AppSizes.kDefaultPadding / 2),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(replyMessage!['sendBy']),
-                          const SizedBox(
-                            height: AppSizes.kDefaultPadding / 4,
-                          ),
-                          Text(replyMessage!['message']),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          EvaIcons.close,
-                          size: 24,
-                          color: AppColors.darkGrey,
-                        ))
-                  ],
-                ),
-              )
-            : const SizedBox(),
+        // isReplying == true
+        //     ? Container(
+        //         width: MediaQuery.of(context).size.width,
+        //         margin:
+        //             const EdgeInsets.only(bottom: AppSizes.kDefaultPadding / 2),
+        //         child: Row(
+        //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //           children: [
+        //             Container(
+        //               height: 30,
+        //               width: 4,
+        //               color: AppColors.primary,
+        //               margin: const EdgeInsets.only(
+        //                   right: AppSizes.kDefaultPadding / 2),
+        //             ),
+        //             Expanded(
+        //               child: Column(
+        //                 crossAxisAlignment: CrossAxisAlignment.start,
+        //                 children: [
+        //                   Text(
+        //                     replyMessage!['sendBy'],
+        //                     maxLines: 1,
+        //                     overflow: TextOverflow.ellipsis,
+        //                     style: Theme.of(context)
+        //                         .textTheme
+        //                         .bodyLarge!
+        //                         .copyWith(color: AppColors.primary),
+        //                   ),
+        //                   const SizedBox(
+        //                     height: AppSizes.kDefaultPadding / 4,
+        //                   ),
+        //                   Text(replyMessage!['message'],
+        //                       maxLines: 1,
+        //                       overflow: TextOverflow.ellipsis,
+        //                       style: Theme.of(context).textTheme.bodyMedium),
+        //                 ],
+        //               ),
+        //             ),
+        //             IconButton(
+        //                 onPressed: onCancelReply,
+        //                 icon: const Icon(
+        //                   EvaIcons.close,
+        //                   size: 24,
+        //                   color: AppColors.darkGrey,
+        //                 ))
+        //           ],
+        //         ),
+        //       )
+        //     : const SizedBox(),
         TextFormField(
           textCapitalization: TextCapitalization.sentences,
           //first letter will be capital

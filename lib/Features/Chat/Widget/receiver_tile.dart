@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/Chat/Presentation/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
@@ -32,6 +33,7 @@ class ReceiverTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
     return messageType == 'notify'
         ? Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -139,11 +141,7 @@ class ReceiverTile extends StatelessWidget {
                           child: messageType == 'img'
                               ? GestureDetector(
                                   onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                ShowImage(imageUrl: message)));
+                                    context.push(ShowImage(imageUrl: message));
                                   },
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(
@@ -167,30 +165,43 @@ class ReceiverTile extends StatelessWidget {
                                     )
                                   : messageType == 'pdf'
                                       ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                              AppSizes.cardCornerRadius),
-                                          child: Container(
-                                            constraints: BoxConstraints(
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.55,
-                                                maxHeight:
-                                                    MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.30),
+                                        borderRadius: BorderRadius.circular(
+                                            AppSizes.cardCornerRadius),
+                                        child: Container(
+                                          constraints: BoxConstraints(
+                                              maxWidth:
+                                                  MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.55,
+                                              maxHeight:
+                                                  MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.30),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              context.push(ShowPdf(
+                                                pdfPath: message,
+                                              ));
+                                            },
                                             child: SfPdfViewer.network(
+                                              key: _pdfViewerKey,
                                               message,
-                                              canShowPaginationDialog: false,
+                                              canShowPaginationDialog:
+                                                  false,
+                                              enableHyperlinkNavigation: false,
                                               canShowScrollHead: false,
+                                              enableDoubleTapZooming: false,
                                               canShowScrollStatus: false,
                                               pageLayoutMode:
-                                                  PdfPageLayoutMode.continuous,
+                                                  PdfPageLayoutMode
+                                                      .single,
                                               canShowPasswordDialog: false,
                                             ),
                                           ),
-                                        )
+                                        ),
+                                      )
                                       : const SizedBox(),
                         ),
                       ),
