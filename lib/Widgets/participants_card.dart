@@ -10,6 +10,7 @@ import '../Commons/app_strings.dart';
 
 class ParticipantsCardWidget extends StatelessWidget {
   final bool? isUserAdmin;
+  final bool? isUserSuperAdmin;
   final Map<String, dynamic> member;
   final String? creatorId;
   final VoidCallback onDeleteButtonPressed;
@@ -20,6 +21,7 @@ class ParticipantsCardWidget extends StatelessWidget {
     required this.member,
     this.isUserAdmin = false,
     this.creatorId,
+    this.isUserSuperAdmin,
   }) : super(key: key);
 
   @override
@@ -69,7 +71,8 @@ class ParticipantsCardWidget extends StatelessWidget {
               style: Theme.of(context).textTheme.caption!.copyWith(
                   color: AppColors.darkGrey, fontWeight: FontWeight.w400),
             )
-          : creatorId == FirebaseProvider.auth.currentUser!.uid
+          : (creatorId == FirebaseProvider.auth.currentUser!.uid ||
+                  isUserSuperAdmin == true)
               ? IconButton(
                   onPressed: () => onDeleteButtonPressed.call(),
                   icon: const Icon(

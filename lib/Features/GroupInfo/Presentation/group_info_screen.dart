@@ -42,6 +42,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   File? image;
   String imageUrl = "";
+  String superAdminUid = '';
 
   Future pickImageFromGallery() async {
     try {
@@ -127,13 +128,20 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                 case ConnectionState.done:
                   if (snapshot.hasData) {
                     membersList = snapshot.data!['members'];
+                    for (var i = 0; i < membersList.length; i++) {
+                      if (membersList[i]['isSuperAdmin'] == true) {
+                        superAdminUid = membersList[i]['uid'];
+                      }
+                    }
                     return Scaffold(
                       backgroundColor: AppColors.bg,
                       appBar: CustomAppBar(
                         title: 'Group Info',
                         actions: [
                           snapshot.data!['group_creator_uid'] ==
-                                  FirebaseProvider.auth.currentUser!.uid
+                                      FirebaseProvider.auth.currentUser!.uid ||
+                                  superAdminUid ==
+                                      FirebaseProvider.auth.currentUser!.uid
                               ? PopupMenuButton(
                                   icon: const Icon(
                                     EvaIcons.moreVerticalOutline,
@@ -223,7 +231,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                   height: 106,
                                                   fit: BoxFit.cover,
                                                   imageUrl:
-                                                      '${snapshot.data!['profile_picture']}',
+                                                      '${snapshot.data?['profile_picture']}',
                                                   placeholder: (context, url) =>
                                                       const CircleAvatar(
                                                         radius: 66,
@@ -255,103 +263,112 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                       Positioned(
                                         right: 0,
                                         bottom: 0,
-                                        child:
-                                            snapshot.data![
+                                        child: snapshot.data![
                                                         'group_creator_uid'] ==
+                                                    FirebaseProvider.auth
+                                                        .currentUser!.uid ||
+                                                superAdminUid ==
                                                     FirebaseProvider
                                                         .auth.currentUser!.uid
-                                                ? GestureDetector(
-                                                    onTap: () {
-                                                      showCustomBottomSheet(
-                                                          context,
-                                                          '',
-                                                          SizedBox(
-                                                            height: 150,
-                                                            child: ListView
-                                                                .builder(
-                                                                    shrinkWrap:
-                                                                        true,
-                                                                    padding: const EdgeInsets
-                                                                            .all(
-                                                                        AppSizes
-                                                                            .kDefaultPadding),
-                                                                    itemCount:
-                                                                        imagePickerList
-                                                                            .length,
-                                                                    scrollDirection:
-                                                                        Axis
-                                                                            .horizontal,
-                                                                    itemBuilder:
-                                                                        (context,
-                                                                            index) {
-                                                                      return GestureDetector(
-                                                                        onTap:
-                                                                            () {
-                                                                          switch (
-                                                                              index) {
-                                                                            case 0:
-                                                                              pickImageFromGallery();
-                                                                              break;
-                                                                            case 1:
-                                                                              pickImageFromCamera();
-                                                                              break;
-                                                                          }
-                                                                          Navigator.pop(
-                                                                              context);
-                                                                        },
-                                                                        child:
-                                                                            Padding(
-                                                                          padding:
-                                                                              const EdgeInsets.only(left: AppSizes.kDefaultPadding * 2),
-                                                                          child:
-                                                                              Column(
-                                                                            children: [
-                                                                              Container(
-                                                                                width: 60,
-                                                                                height: 60,
-                                                                                padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
-                                                                                decoration: BoxDecoration(border: Border.all(width: 1, color: AppColors.lightGrey), color: AppColors.white, shape: BoxShape.circle),
-                                                                                child: imagePickerList[index].icon,
-                                                                              ),
-                                                                              const SizedBox(
-                                                                                height: AppSizes.kDefaultPadding / 2,
-                                                                              ),
-                                                                              Text(
-                                                                                '${imagePickerList[index].title}',
-                                                                                style: Theme.of(context).textTheme.bodyMedium,
-                                                                              ),
-                                                                            ],
-                                                                          ),
-                                                                        ),
-                                                                      );
-                                                                    }),
-                                                          ));
-                                                    },
-                                                    child: Container(
-                                                      width: 40,
-                                                      height: 40,
-                                                      padding: const EdgeInsets
-                                                          .all(AppSizes
-                                                              .kDefaultPadding /
+                                            ? GestureDetector(
+                                                onTap: () {
+                                                  showCustomBottomSheet(
+                                                      context,
+                                                      '',
+                                                      SizedBox(
+                                                        height: 150,
+                                                        child: ListView.builder(
+                                                            shrinkWrap: true,
+                                                            padding:
+                                                                const EdgeInsets
+                                                                        .all(
+                                                                    AppSizes
+                                                                        .kDefaultPadding),
+                                                            itemCount:
+                                                                imagePickerList
+                                                                    .length,
+                                                            scrollDirection:
+                                                                Axis.horizontal,
+                                                            itemBuilder:
+                                                                (context,
+                                                                    index) {
+                                                              return GestureDetector(
+                                                                onTap: () {
+                                                                  switch (
+                                                                      index) {
+                                                                    case 0:
+                                                                      pickImageFromGallery();
+                                                                      break;
+                                                                    case 1:
+                                                                      pickImageFromCamera();
+                                                                      break;
+                                                                  }
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                },
+                                                                child: Padding(
+                                                                  padding: const EdgeInsets
+                                                                          .only(
+                                                                      left: AppSizes
+                                                                              .kDefaultPadding *
+                                                                          2),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      Container(
+                                                                        width:
+                                                                            60,
+                                                                        height:
+                                                                            60,
+                                                                        padding:
+                                                                            const EdgeInsets.all(AppSizes.kDefaultPadding),
+                                                                        decoration: BoxDecoration(
+                                                                            border:
+                                                                                Border.all(width: 1, color: AppColors.lightGrey),
+                                                                            color: AppColors.white,
+                                                                            shape: BoxShape.circle),
+                                                                        child: imagePickerList[index]
+                                                                            .icon,
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            AppSizes.kDefaultPadding /
+                                                                                2,
+                                                                      ),
+                                                                      Text(
+                                                                        '${imagePickerList[index].title}',
+                                                                        style: Theme.of(context)
+                                                                            .textTheme
+                                                                            .bodyMedium,
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }),
+                                                      ));
+                                                },
+                                                child: Container(
+                                                  width: 40,
+                                                  height: 40,
+                                                  padding: const EdgeInsets.all(
+                                                      AppSizes.kDefaultPadding /
                                                           1.3),
-                                                      decoration: BoxDecoration(
-                                                          border: Border.all(
-                                                              width: 1,
-                                                              color: AppColors
-                                                                  .lightGrey),
-                                                          color:
-                                                              AppColors.white,
-                                                          shape:
-                                                              BoxShape.circle),
-                                                      child: Image.asset(
-                                                        AppImages.cameraIcon,
-                                                        width: 36,
-                                                        height: 36,
-                                                        fit: BoxFit.contain,
-                                                      ),
-                                                    ),
-                                                  )
-                                                : Container(),
+                                                  decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                          width: 1,
+                                                          color: AppColors
+                                                              .lightGrey),
+                                                      color: AppColors.white,
+                                                      shape: BoxShape.circle),
+                                                  child: Image.asset(
+                                                    AppImages.cameraIcon,
+                                                    width: 36,
+                                                    height: 36,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              )
+                                            : Container(),
                                       )
                                     ],
                                   ),
@@ -373,100 +390,100 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 ],
                               ),
                             ),
-                            (snapshot.data!['group_creator_uid'] !=
-                                        FirebaseProvider
-                                            .auth.currentUser!.uid &&
-                                    snapshot.data!['group_description'] == '')
-                                ? const SizedBox()
-                                : (snapshot.data!['group_creator_uid'] ==
+                            ((snapshot.data!['group_creator_uid'] !=
                                             FirebaseProvider
-                                                .auth.currentUser!.uid &&
-                                        snapshot.data!['group_description'] ==
-                                            '')
-                                    ? GestureDetector(
-                                        onTap: () => context.push(
-                                            ChangeGroupDescription(
-                                                groupId: widget.groupId)),
-                                        child: CustomCard(
-                                          margin: const EdgeInsets.all(
-                                              AppSizes.kDefaultPadding),
-                                          padding: const EdgeInsets.all(
-                                              AppSizes.kDefaultPadding),
-                                          child: Text(
-                                            'Add Group Description',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyText2!
-                                                .copyWith(
-                                                    color: AppColors.primary,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                          ),
-                                        ),
-                                      )
-                                    : GestureDetector(
-                                        onTap: () {
-                                          snapshot.data!['group_creator_uid'] ==
+                                                .auth.currentUser!.uid ||
+                                        superAdminUid ==
+                                            FirebaseProvider
+                                                .auth.currentUser!.uid) &&
+                                    snapshot.data!['group_description'] == '')
+                                ? GestureDetector(
+                                    onTap: () => context.push(
+                                        ChangeGroupDescription(
+                                            groupId: widget.groupId)),
+                                    child: CustomCard(
+                                      margin: const EdgeInsets.all(
+                                          AppSizes.kDefaultPadding),
+                                      padding: const EdgeInsets.all(
+                                          AppSizes.kDefaultPadding),
+                                      child: Text(
+                                        'Add Group Description',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2!
+                                            .copyWith(
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                  )
+                                : GestureDetector(
+                                    onTap: () {
+                                      snapshot.data!['group_creator_uid'] ==
+                                                  FirebaseProvider
+                                                      .auth.currentUser!.uid ||
+                                              superAdminUid ==
                                                   FirebaseProvider
                                                       .auth.currentUser!.uid
-                                              ? context
-                                                  .push(ChangeGroupDescription(
-                                                  groupId: widget.groupId,
-                                                ))
-                                              : null;
-                                        },
-                                        child: CustomCard(
-                                          margin: const EdgeInsets.all(
-                                              AppSizes.kDefaultPadding),
-                                          padding: const EdgeInsets.all(
-                                              AppSizes.kDefaultPadding),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          ? context.push(ChangeGroupDescription(
+                                              groupId: widget.groupId,
+                                            ))
+                                          : null;
+                                    },
+                                    child: CustomCard(
+                                      margin: const EdgeInsets.all(
+                                          AppSizes.kDefaultPadding),
+                                      padding: const EdgeInsets.all(
+                                          AppSizes.kDefaultPadding),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Group Description',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyText1,
+                                          ),
+                                          const SizedBox(
+                                            height: AppSizes.kDefaultPadding,
+                                          ),
+                                          Row(
                                             children: [
-                                              Text(
-                                                'Group Description',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyText1,
+                                              Expanded(
+                                                child: Text(
+                                                  '${snapshot.data?['group_description']}',
+                                                  maxLines: 5,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyText2!
+                                                      .copyWith(
+                                                          color:
+                                                              AppColors.black),
+                                                ),
                                               ),
-                                              const SizedBox(
-                                                height:
-                                                    AppSizes.kDefaultPadding,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      '${snapshot.data?['group_description']}',
-                                                      maxLines: 5,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyText2!
-                                                          .copyWith(
-                                                              color: AppColors
-                                                                  .black),
-                                                    ),
-                                                  ),
-                                                  snapshot.data?[
-                                                              'group_creator_uid'] ==
+                                              snapshot.data?['group_creator_uid'] ==
+                                                          FirebaseProvider
+                                                              .auth
+                                                              .currentUser!
+                                                              .uid ||
+                                                      superAdminUid ==
                                                           FirebaseProvider.auth
                                                               .currentUser!.uid
-                                                      ? const Icon(
-                                                          EvaIcons
-                                                              .arrowIosForward,
-                                                          size: 24,
-                                                          color: AppColors.grey,
-                                                        )
-                                                      : const SizedBox()
-                                                ],
-                                              ),
+                                                  ? const Icon(
+                                                      EvaIcons.arrowIosForward,
+                                                      size: 24,
+                                                      color: AppColors.grey,
+                                                    )
+                                                  : const SizedBox()
                                             ],
                                           ),
-                                        ),
+                                        ],
                                       ),
+                                    ),
+                                  ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -484,8 +501,11 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                             .bodyText1,
                                       ),
                                       snapshot.data?['group_creator_uid'] ==
-                                              FirebaseProvider
-                                                  .auth.currentUser!.uid
+                                                  FirebaseProvider
+                                                      .auth.currentUser!.uid ||
+                                              superAdminUid ==
+                                                  FirebaseProvider
+                                                      .auth.currentUser!.uid
                                           ? InkWell(
                                               onTap: () {
                                                 // context.push(const AddParticipantsScreen());
@@ -526,13 +546,23 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                     shrinkWrap: true,
                                     padding: EdgeInsets.zero,
                                     itemBuilder: (context, index) {
+                                      bool isUserSuperAdmin = false;
+                                      if (superAdminUid ==
+                                          FirebaseProvider
+                                              .auth.currentUser!.uid) {
+                                        isUserSuperAdmin = true;
+                                      }
                                       return ParticipantsCardWidget(
                                           member: membersList[index],
                                           creatorId: snapshot
                                               .data?['group_creator_uid'],
+                                          isUserSuperAdmin: isUserSuperAdmin,
                                           isUserAdmin: widget.isAdmin,
                                           onDeleteButtonPressed: () {
-                                            widget.isAdmin == true
+                                            widget.isAdmin == true ||
+                                                    superAdminUid ==
+                                                        FirebaseProvider.auth
+                                                            .currentUser!.uid
                                                 ? showDialog(
                                                     context: context,
                                                     barrierDismissible: false,

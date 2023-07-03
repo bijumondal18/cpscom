@@ -33,12 +33,15 @@ class _SplashScreenState extends State<SplashScreen> {
         listener: (context, state) async {
           if (state is GetStartedStateLoaded) {
             if (await preference.isLoggedIn() == true) {
-              context.pushReplacement(const HomeScreen());
+              if (context.mounted) {
+                context.pushReplacement(const HomeScreen());
+              }
             } else {
-              context.pushReplacement(WelcomeScreen(
-                stateLoaded: state,
-              ));
-              //context.pushReplacement(const LoginScreen());
+              if (context.mounted) {
+                context.pushReplacement(WelcomeScreen(
+                  stateLoaded: state,
+                ));
+              }
             }
           }
           if (state is GetStartedStateFailed) {}

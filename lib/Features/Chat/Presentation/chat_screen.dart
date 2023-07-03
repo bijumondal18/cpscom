@@ -206,6 +206,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> onSendMessages(String groupId, String msg, String profilePicture,
       String senderName) async {
     if (msg.trim().isNotEmpty) {
+      msgController.clear();
       Map<String, dynamic> chatData = {};
       try {
         chatData = {
@@ -228,8 +229,6 @@ class _ChatScreenState extends State<ChatScreen> {
             .then((value) {
           sendPushNotification(senderName, msg);
         });
-
-        // msgController.clear();
 
         // Update last msg time with group time to show latest messaged group on top on the groups list
         await FirebaseProvider.firestore
@@ -426,8 +425,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: GestureDetector(
                                 onTap: () {
                                   // To hide the keyboard on outside touch in the screen
-                                  FocusScope.of(context)
-                                      .requestFocus(FocusNode());
+                                  FocusScope.of(context).unfocus();
                                 },
                                 child: _BuildChatList(
                                   groupId: widget.groupId,
@@ -463,6 +461,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       hintText:
                                                           'Type a message',
                                                       maxLines: 4,
+                                                      isReplying: false,
                                                       focusNode: focusNode,
                                                       keyboardType:
                                                           TextInputType
@@ -722,6 +721,8 @@ class _BuildChatListState extends State<_BuildChatList> {
 
   void onSwipedMessage(Map<String, dynamic> message) {
     log("-------------- ${message['message']}");
+    log("-------------- ${message['sendBy']}");
+    AppHelper.openKeyboard(context, focusNode);
   }
 
   void replyToMessage(Map<String, dynamic> message) {
@@ -735,6 +736,7 @@ class _BuildChatListState extends State<_BuildChatList> {
       replyMessage = null;
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -760,25 +762,25 @@ class _BuildChatListState extends State<_BuildChatList> {
                     lastChatMsg = chatList[0].data() as Map<String, dynamic>;
                     mem = lastChatMsg['members'];
                     chatMembers = chatMap['members'];
-                    if(mem != null){
+                    if (mem != null) {
                       updatedChatMemberList = mem;
                     }
                     // log('mem ------------ ${mem}');
                     // log('chat members ------------ ${chatMembers}');
                     // isSeenCount = 0;
                     // for (var j = 0; j < mem.length; j++) {
-                    //   // log('mem ------------ ${mem[j]}');
-                    //   // log('isSeen of Members ------------ ${mem[j]['isSeen']}');
-                    //   // log('last msg ------------ ${chatList[0].id}');
-                    //   // updateMessageSeenStatus(widget.groupId, chatList[0].id,
-                    //   //     mem[j]['uid'], mem[j]['profile_picture'], j);
+                    //   updateMessageSeenStatus(
+                    //       '${widget.groupId}',
+                    //       chatList[0].id,
+                    //       mem[j]['uid'],
+                    //       mem[j]['profile_picture'],
+                    //       j);
                     //
                     //   //check lst msg seen count
                     //   // if (mem[j]['isSeen'] == true) {
                     //   //   isSeenCount += 1;
                     //   // }
                     //
-                    //   // log('isSeen count------ $isSeenCount');
                     // }
                     // if (isSeenCount == mem.length) {
                     //  // updateIsSeenStatus(widget.groupId, chatList[i].id);
@@ -842,14 +844,16 @@ class _BuildChatListState extends State<_BuildChatList> {
                                         )
                                   : chatMap['type'] != 'notify'
                                       ? SwipeTo(
-                                          onRightSwipe: () => onSwipedMessage(
-                                              chatList[index].data()
-                                                  as Map<String, dynamic>),
+                                          onRightSwipe: () {
+                                            onSwipedMessage(
+                                                chatList[index].data()
+                                                    as Map<String, dynamic>);
+                                            AppHelper.openKeyboard(
+                                                context, focusNode);
+                                          },
                                           child: ReceiverTile(
                                             onSwipedMessage: (message) {
                                               replyToMessage(message);
-                                              AppHelper.openKeyboard(
-                                                  context, focusNode);
                                             },
                                             message: chatMap['message'],
                                             messageType: chatMap['type'],

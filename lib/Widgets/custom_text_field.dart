@@ -1,5 +1,6 @@
 import 'package:cpscom_admin/Commons/app_sizes.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -18,6 +19,7 @@ class CustomTextField extends StatelessWidget {
   final bool? obscureText;
   final Widget? suffixIcon;
   final FocusNode? focusNode;
+  final bool? isReplying;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
   final String? Function(String?)? onChanged;
@@ -39,51 +41,96 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.onChanged,
     this.autoFocus = false,
-    this.isBorder = true, this.focusNode, this.replyMessage, this.onCancelReply,
+    this.isBorder = true,
+    this.focusNode,
+    this.replyMessage,
+    this.onCancelReply,
+    this.isReplying = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      textCapitalization: TextCapitalization.sentences,
-      //first letter will be capital
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      readOnly: readOnly ?? false,
-      validator: validator,
-      obscureText: obscureText ?? false,
-      minLines: minLines ?? 1,
-      maxLines: maxLines ?? 1,
-      keyboardType: keyboardType ?? TextInputType.text,
-      cursorColor: AppColors.primary,
-      controller: controller,
-      onChanged: onChanged,
-      autofocus: autoFocus!,
-      focusNode: focusNode,
-      decoration: isBorder!
-          ? InputDecoration(
-              suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: AppSizes.kDefaultPadding),
-              //border: InputBorder.none,
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.lightGrey),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.lightGrey),
-              ),
-              hintText: hintText ?? '',
-              hintStyle: Theme.of(context).textTheme.bodyText2,
-              labelStyle: Theme.of(context).textTheme.bodyText2,
-              errorText: controller.text == "" ? errorText : null)
-          : InputDecoration(
-              suffixIcon: suffixIcon,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: AppSizes.kDefaultPadding),
-              hintText: hintText ?? '',
-              hintStyle: Theme.of(context).textTheme.bodyText2,
-              labelStyle: Theme.of(context).textTheme.bodyText2,
-              errorText: controller.text == "" ? errorText : null),
+    return Column(
+      children: [
+        isReplying == true
+            ? Container(
+                width: MediaQuery.of(context).size.width,
+                margin:
+                    const EdgeInsets.only(bottom: AppSizes.kDefaultPadding / 2),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 30,
+                      width: 4,
+                      color: AppColors.primary,
+                      margin: const EdgeInsets.only(
+                          right: AppSizes.kDefaultPadding / 2),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(replyMessage!['sendBy']),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding / 4,
+                          ),
+                          Text(replyMessage!['message']),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          EvaIcons.close,
+                          size: 24,
+                          color: AppColors.darkGrey,
+                        ))
+                  ],
+                ),
+              )
+            : const SizedBox(),
+        TextFormField(
+          textCapitalization: TextCapitalization.sentences,
+          //first letter will be capital
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          readOnly: readOnly ?? false,
+          validator: validator,
+          obscureText: obscureText ?? false,
+          minLines: minLines ?? 1,
+          maxLines: maxLines ?? 1,
+          keyboardType: keyboardType ?? TextInputType.text,
+          cursorColor: AppColors.primary,
+          controller: controller,
+          onChanged: onChanged,
+          autofocus: autoFocus!,
+          focusNode: focusNode,
+          decoration: isBorder!
+              ? InputDecoration(
+                  suffixIcon: suffixIcon,
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppSizes.kDefaultPadding),
+                  //border: InputBorder.none,
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.lightGrey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.lightGrey),
+                  ),
+                  hintText: hintText ?? '',
+                  hintStyle: Theme.of(context).textTheme.bodyText2,
+                  labelStyle: Theme.of(context).textTheme.bodyText2,
+                  errorText: controller.text == "" ? errorText : null)
+              : InputDecoration(
+                  suffixIcon: suffixIcon,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: AppSizes.kDefaultPadding),
+                  hintText: hintText ?? '',
+                  hintStyle: Theme.of(context).textTheme.bodyText2,
+                  labelStyle: Theme.of(context).textTheme.bodyText2,
+                  errorText: controller.text == "" ? errorText : null),
+        ),
+      ],
     );
   }
 }
