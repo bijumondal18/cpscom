@@ -29,11 +29,6 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
@@ -43,7 +38,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
           title: 'Enter New Title',
         ),
         body: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
               padding: const EdgeInsets.all(AppSizes.kDefaultPadding),
@@ -73,9 +68,13 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                         switch (snapshot.connectionState) {
                           case ConnectionState.none:
                           case ConnectionState.waiting:
-                          default:
+                          case ConnectionState.active:
+                          case ConnectionState.done:
                             if (snapshot.hasData) {
-                              titleController.text = snapshot.data!['name'];
+                              if (snapshot.data?['name'] != null ||
+                                  snapshot.data?['name'] != '') {
+                                titleController.text = snapshot.data?['name'];
+                              }
                               return CustomTextField(
                                 controller: titleController,
                                 hintText: 'Group Title',
@@ -94,8 +93,9 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                 ],
               ),
             ),
+            const Spacer(),
             SafeArea(
-              child: Padding(
+              child: Container(
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.kDefaultPadding * 2),
                 child: Column(
@@ -106,12 +106,12 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                           if (_formKey.currentState!.validate()) {
                             FirebaseProvider.updateGroupTitle(
                                 widget.groupId, titleController.text);
-                              context.pop(
-                                  GroupInfoScreen(groupId: widget.groupId));
-                              customSnackBar(
-                                context,
-                                'Group Title Updated Successfully',
-                              );
+                            context
+                                .pop(GroupInfoScreen(groupId: widget.groupId));
+                            customSnackBar(
+                              context,
+                              'Group Title Updated Successfully',
+                            );
                           }
                         }),
                     Container(

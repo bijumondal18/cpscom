@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -137,7 +138,7 @@ class FirebaseProvider {
       });
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -170,7 +171,7 @@ class FirebaseProvider {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -184,7 +185,7 @@ class FirebaseProvider {
       yield* groupDetails;
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -199,7 +200,7 @@ class FirebaseProvider {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -210,7 +211,7 @@ class FirebaseProvider {
       yield* firestore.collection('users').snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -232,7 +233,7 @@ class FirebaseProvider {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -324,7 +325,7 @@ class FirebaseProvider {
       });
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -346,7 +347,7 @@ class FirebaseProvider {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -427,7 +428,7 @@ class FirebaseProvider {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -445,7 +446,7 @@ class FirebaseProvider {
           .snapshots();
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -480,7 +481,7 @@ class FirebaseProvider {
       }
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }
@@ -503,9 +504,9 @@ class FirebaseProvider {
             .collection('users')
             .doc(FirebaseAuth.instance.currentUser!.uid)
             .update({'pushToken': value});
-        //print('push token - $value');
+        //log('push token - $value');
         await preference.setPushToken(value);
-        //print('push token from preference - ${await preference.getPushToken()}');
+        //log('push token from preference - ${await preference.getPushToken()}');
       }
     });
   }
@@ -525,12 +526,12 @@ class FirebaseProvider {
           },
           body: jsonEncode(body));
       if (kDebugMode) {
-        print('status code send notification - ${response.statusCode}');
-        print('body send notification -  ${response.body}');
+        log('status code send notification - ${response.statusCode}');
+        log('body send notification -  ${response.body}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print(e.toString());
+        log(e.toString());
       }
     }
   }

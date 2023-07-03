@@ -84,7 +84,7 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                             case ConnectionState.done:
                               if (snapshot.hasData) {
                                 descController.text =
-                                    snapshot.data!['group_description'];
+                                    snapshot.data?['group_description'];
                                 return CustomTextField(
                                   controller: descController,
                                   hintText: 'Enter Group Description Here...',
@@ -112,38 +112,12 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                         onPressed: () {
                           FirebaseProvider.updateGroupDescription(
                               widget.groupId, descController.text);
-                            customSnackBar(
-                              context,
-                              'Group Description Updated Successfully',
-                            );
-                            context.pop(
-                                GroupInfoScreen(groupId: widget.groupId),
-                                descController.text);
-
-                          // if (_formKey.currentState!.validate()) {
-                          // FirebaseFirestore.instance
-                          //     .collection('users')
-                          //     .doc(FirebaseAuth.instance.currentUser!.uid)
-                          //     .collection('groups')
-                          //     .doc(widget.groupId)
-                          //     .update({
-                          //   "group_description": descController.text
-                          // }).then((value) {
-                          //   customSnackBar(
-                          //     context,
-                          //     'Group Description Updated Successfully',
-                          //   );
-                          //   context.pop(
-                          //       GroupInfoScreen(groupId: widget.groupId),
-                          //       descController.text);
-                          // });
-                          // FirebaseFirestore.instance
-                          //     .collection('groups')
-                          //     .doc(widget.groupId)
-                          //     .update({
-                          //   "group_description": descController.text
-                          // });
-                          //}
+                          customSnackBar(
+                            context,
+                            'Group Description Updated Successfully',
+                          );
+                          context.pop(GroupInfoScreen(groupId: widget.groupId),
+                              descController.text);
                         }),
                     Container(
                       alignment: Alignment.center,
