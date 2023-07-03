@@ -35,6 +35,7 @@ class SenderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
     return messageType == 'notify'
         ? Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -155,11 +156,15 @@ class SenderTile extends StatelessWidget {
                                                 0.30),
                                         child: SfPdfViewer.network(
                                           message,
-                                          canShowPaginationDialog: false,
+                                          canShowPaginationDialog:
+                                          false,
+                                          enableHyperlinkNavigation: false,
                                           canShowScrollHead: false,
+                                          enableDoubleTapZooming: false,
                                           canShowScrollStatus: false,
                                           pageLayoutMode:
-                                              PdfPageLayoutMode.continuous,
+                                          PdfPageLayoutMode
+                                              .single,
                                           canShowPasswordDialog: false,
                                         ),
                                       ),

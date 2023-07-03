@@ -274,8 +274,8 @@ class HomeChatCard extends StatelessWidget {
                                                               alignment:
                                                                   Alignment
                                                                       .center,
-                                                              width: 18,
-                                                              height: 18,
+                                                              width: 10,
+                                                              height: 10,
                                                               decoration: BoxDecoration(
                                                                   shape: BoxShape
                                                                       .circle,
@@ -285,7 +285,7 @@ class HomeChatCard extends StatelessWidget {
                                                                           0.9)),
                                                               child: FittedBox(
                                                                 child: Text(
-                                                                  '1',
+                                                                  '',
                                                                   style: Theme.of(
                                                                           context)
                                                                       .textTheme

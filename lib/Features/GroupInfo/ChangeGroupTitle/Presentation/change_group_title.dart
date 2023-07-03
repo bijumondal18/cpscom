@@ -38,7 +38,7 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
           title: 'Enter New Title',
         ),
         body: Column(
-          //mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
               padding: const EdgeInsets.all(AppSizes.kDefaultPadding),

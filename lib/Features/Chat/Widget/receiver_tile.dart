@@ -185,7 +185,8 @@ class ReceiverTile extends StatelessWidget {
                                                 pdfPath: message,
                                               ));
                                             },
-                                            child: SfPdfViewer.network(
+                                            child:
+                                            SfPdfViewer.network(
                                               key: _pdfViewerKey,
                                               message,
                                               canShowPaginationDialog:

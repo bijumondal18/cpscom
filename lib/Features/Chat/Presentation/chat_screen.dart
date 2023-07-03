@@ -838,15 +838,25 @@ class _BuildChatListState extends State<_BuildChatList> {
                                           isSeen: chatMap['isSeen'],
                                           // isDelivered: chatMap['isDelivered'],
                                         )
-                                      : SenderTile(
-                                          message: chatMap['message'],
-                                          messageType: chatMap['type'],
-                                          sentTime: sentTime,
-                                          groupCreatedBy: groupCreatedBy,
-                                          read: sentTime,
-                                          isSeen: chatMap['isSeen'],
-                                          // isDelivered: chatMap['isDelivered'],
-                                        )
+                                      : chatMap['type'] != 'pdf'
+                                          ? SenderTile(
+                                              message: chatMap['message'],
+                                              messageType: chatMap['type'],
+                                              sentTime: sentTime,
+                                              groupCreatedBy: groupCreatedBy,
+                                              read: sentTime,
+                                              isSeen: chatMap['isSeen'],
+                                              // isDelivered: chatMap['isDelivered'],
+                                            )
+                                          : SenderTile(
+                                              message: chatMap['message'],
+                                              messageType: chatMap['type'],
+                                              sentTime: sentTime,
+                                              groupCreatedBy: groupCreatedBy,
+                                              read: sentTime,
+                                              isSeen: chatMap['isSeen'],
+                                              // isDelivered: chatMap['isDelivered'],
+                                            )
                                   :
                                   // : chatMap['type'] != 'notify'
                                   //     ? SwipeTo(
@@ -930,6 +940,9 @@ class ShowPdf extends StatelessWidget {
         appBar: const CustomAppBar(
           title: '',
         ),
-        body: SfPdfViewer.network(pdfPath, scrollDirection: PdfScrollDirection.vertical,));
+        body: SfPdfViewer.network(
+          pdfPath,
+          scrollDirection: PdfScrollDirection.vertical,
+        ));
   }
 }
