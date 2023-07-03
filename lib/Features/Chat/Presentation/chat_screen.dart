@@ -248,6 +248,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> sendPushNotification(String senderName, String msg) async {
     for (var i = 0; i < membersList.length; i++) {
       // notification will sent to all the users of the group except current user.
+      // if(membersList[i]['uid'] == _auth.currentUser!.uid){
+      //   membersList.removeAt(i);
+      // }
       try {
         final body = {
           "priority": "high",
@@ -678,7 +681,7 @@ class _BuildChatListState extends State<_BuildChatList> {
       };
 
       // remove item from chat members and update with new data
-      if (updatedChatMemberList != null && mem.length != null) {
+      if (mem.length != null) {
         for (var i = 0; i < mem.length; i++) {
           if (i == index) {
             updatedChatMemberList.removeAt(i);

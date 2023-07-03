@@ -22,7 +22,7 @@ class _BuildMobileViewState extends State<BuildMobileView> {
       .doc(FirebaseProvider.auth.currentUser!.uid)
       .get();
 
-  bool? isAdmin;
+  bool isAdmin = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +34,12 @@ class _BuildMobileViewState extends State<BuildMobileView> {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
-              default:
+              case ConnectionState.active:
+              case ConnectionState.done:
                 if (snapshot.hasData) {
-                  isAdmin = snapshot.data?['isAdmin'];
+                  if(snapshot.data?['isAdmin'] != null){
+                    isAdmin = snapshot.data!['isAdmin'];
+                  }
                   return Scaffold(
                     body:  SafeArea(
                       bottom: false,
@@ -47,7 +50,7 @@ class _BuildMobileViewState extends State<BuildMobileView> {
                       //   ],
                       // ),
                       child: BuildChatList(
-                        isAdmin: isAdmin ?? false,
+                        isAdmin: isAdmin,
                       ),
                     ),
                     floatingActionButton: isAdmin == true
