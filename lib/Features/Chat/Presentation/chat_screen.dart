@@ -26,6 +26,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_view/photo_view.dart';
@@ -942,9 +943,26 @@ class ShowPdf extends StatelessWidget {
         appBar: const CustomAppBar(
           title: '',
         ),
-        body: SfPdfViewer.network(
+        body: const PDF()
+            .cachedFromUrl(
           pdfPath,
-          scrollDirection: PdfScrollDirection.vertical,
-        ));
+          maxAgeCacheObject:
+          const Duration(
+              days: 30),
+          //duration of cache
+          placeholder: (progress) =>
+              Center(
+                  child: Text(
+                      '$progress %')),
+          errorWidget: (error) =>
+          const Center(
+              child: Text(
+                  'Loading...')),
+        )
+        // SfPdfViewer.network(
+        //   pdfPath,
+        //   scrollDirection: PdfScrollDirection.vertical,
+        // )
+    );
   }
 }
