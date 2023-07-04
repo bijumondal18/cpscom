@@ -390,7 +390,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 ],
                               ),
                             ),
-                            ((snapshot.data!['group_creator_uid'] !=
+                            ((snapshot.data!['group_creator_uid'] ==
                                             FirebaseProvider
                                                 .auth.currentUser!.uid ||
                                         superAdminUid ==
