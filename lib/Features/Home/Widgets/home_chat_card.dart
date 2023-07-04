@@ -283,18 +283,6 @@ class HomeChatCard extends StatelessWidget {
                                                                       .primary
                                                                       .withOpacity(
                                                                           0.9)),
-                                                              child: FittedBox(
-                                                                child: Text(
-                                                                  '',
-                                                                  style: Theme.of(
-                                                                          context)
-                                                                      .textTheme
-                                                                      .caption!
-                                                                      .copyWith(
-                                                                          color:
-                                                                              AppColors.white),
-                                                                ),
-                                                              ),
                                                             )
                                                           : const SizedBox()
                                                       : const SizedBox()

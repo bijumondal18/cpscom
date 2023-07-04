@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/Home/Presentation/build_mobile_view.dart';
 import 'package:cpscom_admin/Features/Home/Widgets/home_chat_card.dart';
@@ -17,6 +19,7 @@ import '../../../Widgets/custom_text_field.dart';
 import '../../../Widgets/responsive.dart';
 import '../../Chat/Presentation/chat_screen.dart';
 import '../../Login/Presentation/login_screen.dart';
+import '../../MyProfile/Presentation/my_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -26,12 +29,50 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late FirebaseProvider firebaseProvider;
+  late TextEditingController searchController;
+
+  List<QueryDocumentSnapshot> groupList = [];
+  List<QueryDocumentSnapshot> finalGroupList = [];
+  Map<String, dynamic> data = {};
+  List<dynamic> groupMembers = [];
+  String groupName = '';
+  String groupDesc = '';
+  String sentTime = '';
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getAllGroups() async* {
+    try {
+      yield* FirebaseProvider.firestore
+          .collection('groups')
+          .orderBy('created_at', descending: true)
+          .snapshots();
+    } catch (e) {
+      if (kDebugMode) {
+        log(e.toString());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    searchController.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    firebaseProvider = FirebaseProvider();
+    searchController = TextEditingController();
+  }
+
   @override
   Widget build(BuildContext context) {
     return const BuildMobileView();
   }
 }
 
+/////////////////////////////////////////////
 class BuildChatList extends StatefulWidget {
   final bool isAdmin;
 
@@ -86,7 +127,8 @@ class _BuildChatListState extends State<BuildChatList> {
         Container(
           padding:
               const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
-          margin: const EdgeInsets.all(AppSizes.kDefaultPadding),
+          margin:
+              const EdgeInsets.symmetric(horizontal: AppSizes.kDefaultPadding),
           decoration: BoxDecoration(
               color: AppColors.bg,
               border: Border.all(width: 1, color: AppColors.bg),
@@ -171,7 +213,7 @@ class _BuildChatListState extends State<BuildChatList> {
                                       itemCount: finalGroupList.length,
                                       shrinkWrap: true,
                                       padding: const EdgeInsets.only(
-                                          top: AppSizes.kDefaultPadding),
+                                          top: AppSizes.kDefaultPadding / 2),
                                       itemBuilder: (context, index) {
                                         //for search groups
                                         sentTime = AppHelper

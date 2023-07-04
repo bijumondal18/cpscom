@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/Chat/Presentation/chat_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:linkable/linkable.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
@@ -164,45 +165,72 @@ class ReceiverTile extends StatelessWidget {
                                       linkColor: Colors.blue,
                                     )
                                   : messageType == 'pdf'
-                                      ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                            AppSizes.cardCornerRadius),
-                                        child: Container(
-                                          constraints: BoxConstraints(
-                                              maxWidth:
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.55,
-                                              maxHeight:
-                                                  MediaQuery.of(context)
-                                                          .size
-                                                          .width *
-                                                      0.30),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              context.push(ShowPdf(
-                                                pdfPath: message,
-                                              ));
-                                            },
-                                            child:
-                                            SfPdfViewer.network(
-                                              key: _pdfViewerKey,
-                                              message,
-                                              canShowPaginationDialog:
-                                                  false,
-                                              enableHyperlinkNavigation: false,
-                                              canShowScrollHead: false,
-                                              enableDoubleTapZooming: false,
-                                              canShowScrollStatus: false,
-                                              pageLayoutMode:
-                                                  PdfPageLayoutMode
-                                                      .single,
-                                              canShowPasswordDialog: false,
-                                            ),
-                                          ),
-                                        ),
-                                      )
+                                      ? message != null
+                                          ? Stack(
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius
+                                                      .circular(AppSizes
+                                                          .cardCornerRadius),
+                                                  child: Container(
+                                                    constraints: BoxConstraints(
+                                                        maxWidth: MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width *
+                                                            0.45,
+                                                        maxHeight:
+                                                            MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.30),
+                                                    child: const PDF()
+                                                        .cachedFromUrl(
+                                                      message,
+                                                      maxAgeCacheObject:
+                                                          const Duration(
+                                                              days: 30),
+                                                      //duration of cache
+                                                      placeholder: (progress) =>
+                                                          Center(
+                                                              child: Text(
+                                                                  '$progress %')),
+                                                      errorWidget: (error) =>
+                                                          const Center(
+                                                              child: Text(
+                                                                  'Loading...')),
+                                                    ),
+                                                  ),
+                                                ),
+                                                message != null
+                                                    ? GestureDetector(
+                                                        onTap: () {
+                                                          context.push(ShowPdf(
+                                                            pdfPath: message,
+                                                          ));
+                                                        },
+                                                        child: Container(
+                                                          color: AppColors
+                                                              .transparent,
+                                                          constraints: BoxConstraints(
+                                                              maxWidth: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
+                                                                  0.45,
+                                                              maxHeight:
+                                                                  MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      0.30),
+                                                        ),
+                                                      )
+                                                    : const SizedBox(),
+                                              ],
+                                            )
+                                          : const SizedBox()
                                       : const SizedBox(),
                         ),
                       ),

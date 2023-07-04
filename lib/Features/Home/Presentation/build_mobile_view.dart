@@ -43,12 +43,6 @@ class _BuildMobileViewState extends State<BuildMobileView> {
                   return Scaffold(
                     body:  SafeArea(
                       bottom: false,
-                      // child: Column(
-                      //   children: [
-                      //     HomeHeader(),
-                      //     Expanded(child: BuildGroupList()),
-                      //   ],
-                      // ),
                       child: BuildChatList(
                         isAdmin: isAdmin,
                       ),

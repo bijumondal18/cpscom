@@ -51,7 +51,7 @@ class AppTheme {
         headline1: TextStyle(
             color: AppColors.black,
             fontSize: AppSizes.headline1,
-            fontWeight: FontWeight.w900),
+            fontWeight: FontWeight.w700),
         headline2: TextStyle(
             color: AppColors.black,
             fontSize: AppSizes.headline2,
