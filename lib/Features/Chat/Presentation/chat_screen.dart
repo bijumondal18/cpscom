@@ -43,6 +43,8 @@ final ScrollController _scrollController = ScrollController();
 FocusNode focusNode = FocusNode();
 Map<String, dynamic> chatMap = <String, dynamic>{};
 bool isReplying = false;
+String replyWhom = '';
+String replyText = '';
 
 class ChatScreen extends StatefulWidget {
   // final Group group;
@@ -211,19 +213,40 @@ class _ChatScreenState extends State<ChatScreen> {
     if (msg.trim().isNotEmpty) {
       msgController.clear();
       Map<String, dynamic> chatData = {};
+      Map<String, dynamic> reply = {};
       try {
-        chatData = {
-          'sendBy': FirebaseProvider.auth.currentUser!.displayName,
-          'sendById': FirebaseProvider.auth.currentUser!.uid,
-          'profile_picture': profilePicture,
-          'message': msg,
-          'read': DateTime.now().millisecondsSinceEpoch,
-          'type': 'text',
-          'time': DateTime.now().millisecondsSinceEpoch,
-          "isSeen": false,
-          "members": chatMembersList.toSet().toList(),
-        };
+        if (isReplying == true) {
+          reply = {
+            "replyWhom": replyWhom,
+            'message': replyText,
+            'type': 'text',
+          };
 
+          chatData = {
+            'sendBy': FirebaseProvider.auth.currentUser!.displayName,
+            'sendById': FirebaseProvider.auth.currentUser!.uid,
+            'profile_picture': profilePicture,
+            'message': msg,
+            'read': DateTime.now().millisecondsSinceEpoch,
+            'type': 'text',
+            'reply': reply,
+            'time': DateTime.now().millisecondsSinceEpoch,
+            "isSeen": false,
+            "members": chatMembersList.toSet().toList(),
+          };
+        } else {
+          chatData = {
+            'sendBy': FirebaseProvider.auth.currentUser!.displayName,
+            'sendById': FirebaseProvider.auth.currentUser!.uid,
+            'profile_picture': profilePicture,
+            'message': msg,
+            'read': DateTime.now().millisecondsSinceEpoch,
+            'type': 'text',
+            'time': DateTime.now().millisecondsSinceEpoch,
+            "isSeen": false,
+            "members": chatMembersList.toSet().toList(),
+          };
+        }
         await FirebaseProvider.firestore
             .collection('groups')
             .doc(groupId)
@@ -249,7 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> sendPushNotification(String senderName, String msg) async {
     for (var i = 0; i < membersList.length; i++) {
       // notification will sent to all the users of the group except current user.
-      if(membersList[i]['uid'] == _auth.currentUser!.uid){
+      if (membersList[i]['uid'] == _auth.currentUser!.uid) {
         membersList.removeAt(i);
       }
       try {
@@ -278,12 +301,12 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  late _BuildChatListState __buildChatList;
+  late _BuildMessagesListState __buildChatList;
 
   @override
   void initState() {
     msgController = TextEditingController();
-    __buildChatList = _BuildChatListState();
+    __buildChatList = _BuildMessagesListState();
 
     // msgController.addListener(() {
     //   setState(() {
@@ -305,8 +328,6 @@ class _ChatScreenState extends State<ChatScreen> {
     // });
     super.initState();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -435,7 +456,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   // To hide the keyboard on outside touch in the screen
                                   FocusScope.of(context).unfocus();
                                 },
-                                child: _BuildChatList(
+                                child: _BuildMessagesList(
                                   groupId: widget.groupId,
                                 ),
                               ),
@@ -639,16 +660,16 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-class _BuildChatList extends StatefulWidget {
+class _BuildMessagesList extends StatefulWidget {
   final String? groupId;
 
-  const _BuildChatList({Key? key, this.groupId}) : super(key: key);
+  const _BuildMessagesList({Key? key, this.groupId}) : super(key: key);
 
   @override
-  State<_BuildChatList> createState() => _BuildChatListState();
+  State<_BuildMessagesList> createState() => _BuildMessagesListState();
 }
 
-class _BuildChatListState extends State<_BuildChatList> {
+class _BuildMessagesListState extends State<_BuildMessagesList> {
   List<QueryDocumentSnapshot> chatList = [];
   bool isSender = false;
   String sentTime = '';
@@ -728,10 +749,11 @@ class _BuildChatListState extends State<_BuildChatList> {
   // }
 
   void onSwipedMessage(Map<String, dynamic> message) {
-    log("-------------- ${message['message']}");
-    log("-------------- ${message['sendBy']}");
+    log("-------------- ${message['sendBy']} - ${message['message']}");
     isReplying = true;
-    AppHelper.openKeyboard(context, focusNode);
+    replyWhom = message['sendBy'];
+    replyText = message['message'];
+    // AppHelper.openKeyboard(context, focusNode);
   }
 
   void replyToMessage(Map<String, dynamic> message) {
@@ -860,43 +882,42 @@ class _BuildChatListState extends State<_BuildChatList> {
                                               isSeen: chatMap['isSeen'],
                                               // isDelivered: chatMap['isDelivered'],
                                             )
-                                  :
-                                  // : chatMap['type'] != 'notify'
-                                  //     ? SwipeTo(
-                                  //         onRightSwipe: () {
-                                  //           onSwipedMessage(
-                                  //               chatList[index].data()
-                                  //                   as Map<String, dynamic>);
-                                  //           AppHelper.openKeyboard(
-                                  //               context, focusNode);
-                                  //         },
-                                  //         child: ReceiverTile(
-                                  //           onSwipedMessage: (message) {
-                                  //             replyToMessage(chatList[index].data()
-                                  //             as Map<String, dynamic>);
-                                  //           },
-                                  //           message: chatMap['message'],
-                                  //           messageType: chatMap['type'],
-                                  //           sentTime: sentTime,
-                                  //           sentByName: chatMap['sendBy'],
-                                  //           sentByImageUrl:
-                                  //               chatMap['profile_picture'],
-                                  //           groupCreatedBy: groupCreatedBy,
-                                  //         ),
-                                  //       )
-                                  //     :
-                                  ReceiverTile(
-                                      onSwipedMessage: (chatMap) {
-                                        //replyToMessage(chatMap);
-                                      },
-                                      message: chatMap['message'],
-                                      messageType: chatMap['type'],
-                                      sentTime: sentTime,
-                                      sentByName: chatMap['sendBy'],
-                                      sentByImageUrl:
-                                          chatMap['profile_picture'],
-                                      groupCreatedBy: groupCreatedBy,
-                                    );
+                                  : chatMap['type'] != 'notify'
+                                      ? SwipeTo(
+                                          onRightSwipe: () {
+                                            onSwipedMessage(
+                                                chatList[index].data()
+                                                    as Map<String, dynamic>);
+                                            AppHelper.openKeyboard(
+                                                context, focusNode);
+                                          },
+                                          child: ReceiverTile(
+                                            onSwipedMessage: (message) {
+                                              replyToMessage(
+                                                  chatList[index].data()
+                                                      as Map<String, dynamic>);
+                                            },
+                                            message: chatMap['message'],
+                                            messageType: chatMap['type'],
+                                            sentTime: sentTime,
+                                            sentByName: chatMap['sendBy'],
+                                            sentByImageUrl:
+                                                chatMap['profile_picture'],
+                                            groupCreatedBy: groupCreatedBy,
+                                          ),
+                                        )
+                                      : ReceiverTile(
+                                          onSwipedMessage: (chatMap) {
+                                            //replyToMessage(chatMap);
+                                          },
+                                          message: chatMap['message'],
+                                          messageType: chatMap['type'],
+                                          sentTime: sentTime,
+                                          sentByName: chatMap['sendBy'],
+                                          sentByImageUrl:
+                                              chatMap['profile_picture'],
+                                          groupCreatedBy: groupCreatedBy,
+                                        );
                             }),
                       ),
                     ],
@@ -943,26 +964,17 @@ class ShowPdf extends StatelessWidget {
         appBar: const CustomAppBar(
           title: '',
         ),
-        body: const PDF()
-            .cachedFromUrl(
+        body: const PDF().cachedFromUrl(
           pdfPath,
-          maxAgeCacheObject:
-          const Duration(
-              days: 30),
+          maxAgeCacheObject: const Duration(days: 30),
           //duration of cache
-          placeholder: (progress) =>
-              Center(
-                  child: Text(
-                      '$progress %')),
-          errorWidget: (error) =>
-          const Center(
-              child: Text(
-                  'Loading...')),
+          placeholder: (progress) => Center(child: Text('$progress %')),
+          errorWidget: (error) => const Center(child: Text('Loading...')),
         )
         // SfPdfViewer.network(
         //   pdfPath,
         //   scrollDirection: PdfScrollDirection.vertical,
         // )
-    );
+        );
   }
 }

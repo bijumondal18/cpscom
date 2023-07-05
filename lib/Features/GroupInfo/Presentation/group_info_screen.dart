@@ -390,100 +390,115 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                 ],
                               ),
                             ),
-                            ((snapshot.data!['group_creator_uid'] ==
-                                            FirebaseProvider
-                                                .auth.currentUser!.uid ||
-                                        superAdminUid ==
-                                            FirebaseProvider
-                                                .auth.currentUser!.uid) &&
+                            (snapshot.data!['group_creator_uid'] !=
+                                        FirebaseProvider
+                                            .auth.currentUser!.uid &&
+                                    superAdminUid !=
+                                        FirebaseProvider
+                                            .auth.currentUser!.uid &&
                                     snapshot.data!['group_description'] == '')
-                                ? GestureDetector(
-                                    onTap: () => context.push(
-                                        ChangeGroupDescription(
-                                            groupId: widget.groupId)),
-                                    child: CustomCard(
-                                      margin: const EdgeInsets.all(
-                                          AppSizes.kDefaultPadding),
-                                      padding: const EdgeInsets.all(
-                                          AppSizes.kDefaultPadding),
-                                      child: Text(
-                                        'Add Group Description',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2!
-                                            .copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w500),
-                                      ),
-                                    ),
-                                  )
-                                : GestureDetector(
-                                    onTap: () {
-                                      snapshot.data!['group_creator_uid'] ==
-                                                  FirebaseProvider
-                                                      .auth.currentUser!.uid ||
-                                              superAdminUid ==
-                                                  FirebaseProvider
-                                                      .auth.currentUser!.uid
-                                          ? context.push(ChangeGroupDescription(
-                                              groupId: widget.groupId,
-                                            ))
-                                          : null;
-                                    },
-                                    child: CustomCard(
-                                      margin: const EdgeInsets.all(
-                                          AppSizes.kDefaultPadding),
-                                      padding: const EdgeInsets.all(
-                                          AppSizes.kDefaultPadding),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Group Description',
+                                ? const SizedBox()
+                                : ((snapshot.data!['group_creator_uid'] ==
+                                                FirebaseProvider
+                                                    .auth.currentUser!.uid ||
+                                            superAdminUid ==
+                                                FirebaseProvider
+                                                    .auth.currentUser!.uid) &&
+                                        snapshot.data!['group_description'] ==
+                                            '')
+                                    ? GestureDetector(
+                                        onTap: () => context.push(
+                                            ChangeGroupDescription(
+                                                groupId: widget.groupId)),
+                                        child: CustomCard(
+                                          margin: const EdgeInsets.all(
+                                              AppSizes.kDefaultPadding),
+                                          padding: const EdgeInsets.all(
+                                              AppSizes.kDefaultPadding),
+                                          child: Text(
+                                            'Add Group Description',
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .bodyText1,
+                                                .bodyText2!
+                                                .copyWith(
+                                                    color: AppColors.primary,
+                                                    fontWeight:
+                                                        FontWeight.w500),
                                           ),
-                                          const SizedBox(
-                                            height: AppSizes.kDefaultPadding,
-                                          ),
-                                          Row(
+                                        ),
+                                      )
+                                    : GestureDetector(
+                                        onTap: () {
+                                          snapshot.data!['group_creator_uid'] ==
+                                                      FirebaseProvider.auth
+                                                          .currentUser!.uid ||
+                                                  superAdminUid ==
+                                                      FirebaseProvider
+                                                          .auth.currentUser!.uid
+                                              ? context
+                                                  .push(ChangeGroupDescription(
+                                                  groupId: widget.groupId,
+                                                ))
+                                              : null;
+                                        },
+                                        child: CustomCard(
+                                          margin: const EdgeInsets.all(
+                                              AppSizes.kDefaultPadding),
+                                          padding: const EdgeInsets.all(
+                                              AppSizes.kDefaultPadding),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Expanded(
-                                                child: Text(
-                                                  '${snapshot.data?['group_description']}',
-                                                  maxLines: 5,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyText2!
-                                                      .copyWith(
-                                                          color:
-                                                              AppColors.black),
-                                                ),
+                                              Text(
+                                                'Group Description',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyText1,
                                               ),
-                                              snapshot.data?['group_creator_uid'] ==
-                                                          FirebaseProvider
-                                                              .auth
-                                                              .currentUser!
-                                                              .uid ||
-                                                      superAdminUid ==
-                                                          FirebaseProvider.auth
-                                                              .currentUser!.uid
-                                                  ? const Icon(
-                                                      EvaIcons.arrowIosForward,
-                                                      size: 24,
-                                                      color: AppColors.grey,
-                                                    )
-                                                  : const SizedBox()
+                                              const SizedBox(
+                                                height:
+                                                    AppSizes.kDefaultPadding,
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      '${snapshot.data?['group_description']}',
+                                                      maxLines: 5,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyText2!
+                                                          .copyWith(
+                                                              color: AppColors
+                                                                  .black),
+                                                    ),
+                                                  ),
+                                                  snapshot.data?['group_creator_uid'] ==
+                                                              FirebaseProvider
+                                                                  .auth
+                                                                  .currentUser!
+                                                                  .uid ||
+                                                          superAdminUid ==
+                                                              FirebaseProvider
+                                                                  .auth
+                                                                  .currentUser!
+                                                                  .uid
+                                                      ? const Icon(
+                                                          EvaIcons
+                                                              .arrowIosForward,
+                                                          size: 24,
+                                                          color: AppColors.grey,
+                                                        )
+                                                      : const SizedBox()
+                                                ],
+                                              ),
                                             ],
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
