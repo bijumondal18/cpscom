@@ -266,7 +266,9 @@ class _ChatScreenState extends State<ChatScreen> {
             .doc(groupId)
             .update({"time": DateTime.now().millisecondsSinceEpoch});
 
-        isReplying = false;
+        setState(() {
+          isReplying = false;
+        });
       } catch (e) {
         if (kDebugMode) {
           log(e.toString());
@@ -464,6 +466,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                 },
                                 child: _BuildMessagesList(
                                   groupId: widget.groupId,
+                                  onTap: () {
+                                    setState(() {
+                                      isReplying = true;
+                                    });
+                                  },
                                 ),
                               ),
                             ),
@@ -491,6 +498,112 @@ class _ChatScreenState extends State<ChatScreen> {
                                                 child: Column(
                                                   children: [
                                                     //BuildReplyWidget(),
+                                                    isReplying == true
+                                                        ? Container(
+                                                            height: 50,
+                                                            constraints:
+                                                                BoxConstraints(
+                                                              maxWidth:
+                                                                  MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width,
+                                                            ),
+                                                            decoration: const BoxDecoration(
+                                                                color: AppColors
+                                                                    .bg,
+                                                                borderRadius: BorderRadius.only(
+                                                                    topRight: Radius.circular(
+                                                                        AppSizes
+                                                                            .cardCornerRadius),
+                                                                    bottomRight:
+                                                                        Radius.circular(
+                                                                            AppSizes.cardCornerRadius))),
+                                                            child: Row(
+                                                              children: [
+                                                                const SizedBox(
+                                                                  width: AppSizes
+                                                                          .kDefaultPadding /
+                                                                      4,
+                                                                ),
+                                                                Container(
+                                                                  height: 50,
+                                                                  width: 2,
+                                                                  color: AppColors
+                                                                      .primary,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: AppSizes
+                                                                          .kDefaultPadding /
+                                                                      2,
+                                                                ),
+                                                                Expanded(
+                                                                  child:
+                                                                      Padding(
+                                                                    padding:
+                                                                        const EdgeInsets.all(
+                                                                            8.0),
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      children: [
+                                                                        Expanded(
+                                                                          child:
+                                                                              Text(
+                                                                            replyWhom,
+                                                                            maxLines:
+                                                                                1,
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                            style:
+                                                                                Theme.of(context).textTheme.bodyMedium!.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                        ),
+                                                                        const SizedBox(
+                                                                          height:
+                                                                              AppSizes.kDefaultPadding / 4,
+                                                                        ),
+                                                                        Text(
+                                                                          replyText,
+                                                                          maxLines:
+                                                                              1,
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                          style: Theme.of(context)
+                                                                              .textTheme
+                                                                              .bodyMedium!
+                                                                              .copyWith(color: AppColors.darkGrey),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                IconButton(
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                          () {
+                                                                        isReplying =
+                                                                            false;
+                                                                      });
+                                                                    },
+                                                                    icon:
+                                                                        const Icon(
+                                                                      Icons
+                                                                          .close,
+                                                                      size: 24,
+                                                                      color: AppColors
+                                                                          .darkGrey,
+                                                                    ))
+                                                              ],
+                                                            ),
+                                                          )
+                                                        : const SizedBox(),
+                                                    isReplying == true
+                                                        ? const CustomDivider()
+                                                        : const SizedBox(),
                                                     CustomTextField(
                                                       controller: msgController,
                                                       hintText:
@@ -668,8 +781,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
 class _BuildMessagesList extends StatefulWidget {
   final String? groupId;
+  final Function? onTap;
 
-  const _BuildMessagesList({Key? key, this.groupId}) : super(key: key);
+  const _BuildMessagesList({Key? key, this.groupId, this.onTap})
+      : super(key: key);
 
   @override
   State<_BuildMessagesList> createState() => _BuildMessagesListState();
@@ -756,7 +871,10 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
 
   void onSwipedMessage(Map<String, dynamic> message) {
     log("-------------- ${message['sendBy']} - ${message['message']}");
-    isReplying = true;
+    setState(() {
+      isReplying = true;
+    });
+
     replyWhom = message['sendBy'];
     replyText = message['message'];
     // AppHelper.openKeyboard(context, focusNode);
@@ -922,28 +1040,27 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
                                                     as Map<String, dynamic>);
                                           }),
                                         )
-
-                                          : SwipeTo(
-                                              onRightSwipe: () {
-                                                onSwipedMessage(chatList[index]
-                                                        .data()
+                                      : SwipeTo(
+                                          onRightSwipe: () {
+                                            onSwipedMessage(
+                                                chatList[index].data()
                                                     as Map<String, dynamic>);
-                                                AppHelper.openKeyboard(
-                                                    context, focusNode);
-                                              },
-                                              child: ReceiverTile(
-                                                onSwipedMessage: (chatMap) {
-                                                  //replyToMessage(chatMap);
-                                                },
-                                                message: chatMap['message'],
-                                                messageType: chatMap['type'],
-                                                sentTime: sentTime,
-                                                sentByName: chatMap['sendBy'],
-                                                sentByImageUrl:
-                                                    chatMap['profile_picture'],
-                                                groupCreatedBy: groupCreatedBy,
-                                              ),
-                                            );
+                                            AppHelper.openKeyboard(
+                                                context, focusNode);
+                                          },
+                                          child: ReceiverTile(
+                                            onSwipedMessage: (chatMap) {
+                                              //replyToMessage(chatMap);
+                                            },
+                                            message: chatMap['message'],
+                                            messageType: chatMap['type'],
+                                            sentTime: sentTime,
+                                            sentByName: chatMap['sendBy'],
+                                            sentByImageUrl:
+                                                chatMap['profile_picture'],
+                                            groupCreatedBy: groupCreatedBy,
+                                          ),
+                                        );
                             }),
                       ),
                     ],
