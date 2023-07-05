@@ -94,6 +94,13 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
-    return ThemeData();
+    return ThemeData(
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.dark(
+        background: AppColors.black,
+        primary: Colors.grey[900]!,
+        secondary: Colors.grey[800]!
+      )
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:cpscom_admin/Commons/app_strings.dart';
+import 'package:cpscom_admin/Features/Home/Presentation/home_screen.dart';
 import 'package:cpscom_admin/global_bloc.dart';
 import 'package:cpscom_admin/local_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -146,7 +147,7 @@ class _MyAppState extends State<MyApp> {
         title: AppStrings.appName,
         theme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
-        home: const SplashScreen(),
+        home: const HomeScreen(),
       ),
     );
   }

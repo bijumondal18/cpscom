@@ -893,7 +893,12 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
                                           // () {},
                                           chatMap['isSeen'],
                                           true)
-                                  : chatMap['type'] != 'notify'
+                                  : chatMap['type'] != 'notify' &&
+                                          chatMap['type'] == 'text' &&
+                                          chatMap['type'] == 'text' &&
+                                          (chatMap['reply'] != null &&
+                                              chatMap['reply']['type'] ==
+                                                  'reply')
                                       ? SwipeTo(
                                           onRightSwipe: () {
                                             onSwipedMessage(
@@ -902,33 +907,43 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
                                             AppHelper.openKeyboard(
                                                 context, focusNode);
                                           },
-                                          child: ReceiverTile(
-                                            onSwipedMessage: (message) {
-                                              replyToMessage(
-                                                  chatList[index].data()
-                                                      as Map<String, dynamic>);
-                                            },
-                                            message: chatMap['message'],
-                                            messageType: chatMap['type'],
-                                            sentTime: sentTime,
-                                            sentByName: chatMap['sendBy'],
-                                            sentByImageUrl:
-                                                chatMap['profile_picture'],
-                                            groupCreatedBy: groupCreatedBy,
-                                          ),
-                                        )
-                                      : ReceiverTile(
-                                          onSwipedMessage: (chatMap) {
-                                            //replyToMessage(chatMap);
-                                          },
-                                          message: chatMap['message'],
-                                          messageType: chatMap['type'],
-                                          sentTime: sentTime,
-                                          sentByName: chatMap['sendBy'],
-                                          sentByImageUrl:
+                                          child: _replyReceiverTile(
+                                              chatMap['message'],
+                                              chatMap['type'],
+                                              sentTime,
+                                              chatMap['sendBy'],
                                               chatMap['profile_picture'],
-                                          groupCreatedBy: groupCreatedBy,
-                                        );
+                                              groupCreatedBy,
+                                              chatMap['reply']['replyWhom'],
+                                              chatMap['reply']['message'],
+                                              (message) {
+                                            replyToMessage(
+                                                chatList[index].data()
+                                                    as Map<String, dynamic>);
+                                          }),
+                                        )
+
+                                          : SwipeTo(
+                                              onRightSwipe: () {
+                                                onSwipedMessage(chatList[index]
+                                                        .data()
+                                                    as Map<String, dynamic>);
+                                                AppHelper.openKeyboard(
+                                                    context, focusNode);
+                                              },
+                                              child: ReceiverTile(
+                                                onSwipedMessage: (chatMap) {
+                                                  //replyToMessage(chatMap);
+                                                },
+                                                message: chatMap['message'],
+                                                messageType: chatMap['type'],
+                                                sentTime: sentTime,
+                                                sentByName: chatMap['sendBy'],
+                                                sentByImageUrl:
+                                                    chatMap['profile_picture'],
+                                                groupCreatedBy: groupCreatedBy,
+                                              ),
+                                            );
                             }),
                       ),
                     ],
@@ -939,6 +954,297 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
           }
           // return const SizedBox();
         });
+  }
+
+  Widget _replyReceiverTile(
+      String message,
+      String messageType,
+      String sentTime,
+      String sentByName,
+      String sentByImageUrl,
+      String groupCreatedBy,
+      String replyWhom,
+      String replyText,
+      ValueChanged<Map<String, dynamic>> onSwipedMessage) {
+    return messageType == 'notify'
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(
+                    vertical: AppSizes.kDefaultPadding),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.kDefaultPadding,
+                    vertical: AppSizes.kDefaultPadding / 2),
+                decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: AppColors.lightGrey),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+                    color: AppColors.shimmer),
+                child: Text(
+                  '$groupCreatedBy $message',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          )
+        : Padding(
+            padding: const EdgeInsets.only(
+                left: AppSizes.kDefaultPadding / 4,
+                top: AppSizes.kDefaultPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: AppSizes.kDefaultPadding * 4 - 2),
+                  child: Row(
+                    children: [
+                      Text(
+                        sentByName,
+                        style: Theme.of(context).textTheme.caption!.copyWith(
+                            fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        ', $sentTime',
+                        style: Theme.of(context)
+                            .textTheme
+                            .caption!
+                            .copyWith(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.cardCornerRadius * 3),
+                      child: CachedNetworkImage(
+                          width: 30,
+                          height: 30,
+                          fit: BoxFit.cover,
+                          imageUrl: sentByImageUrl,
+                          placeholder: (context, url) => const CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppColors.bg,
+                              ),
+                          errorWidget: (context, url, error) => CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppColors.bg,
+                                child: Text(
+                                  sentByName
+                                      .substring(0, 1)
+                                      .toString()
+                                      .toUpperCase(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(fontWeight: FontWeight.w600),
+                                ),
+                              )),
+                    ),
+                    const SizedBox(
+                      width: AppSizes.kDefaultPadding / 2,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: AppSizes.kDefaultPadding * 2,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 50,
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.45,
+                            ),
+                            decoration: const BoxDecoration(
+                                color: AppColors.bg,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(
+                                        AppSizes.cardCornerRadius),
+                                    bottomRight: Radius.circular(
+                                        AppSizes.cardCornerRadius))),
+                            child: Row(
+                              children: [
+                                const SizedBox(
+                                  width: AppSizes.kDefaultPadding / 4,
+                                ),
+                                Container(
+                                  height: 50,
+                                  width: 2,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(
+                                  width: AppSizes.kDefaultPadding / 2,
+                                ),
+                                Flexible(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            replyWhom,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .copyWith(
+                                                    color: AppColors.primary,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: AppSizes.kDefaultPadding / 4,
+                                        ),
+                                        Text(
+                                          replyText,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium!
+                                              .copyWith(
+                                                  color: AppColors.darkGrey),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ChatBubble(
+                            padding: messageType == 'img' ||
+                                    messageType == 'pdf' ||
+                                    messageType == 'docx' ||
+                                    messageType == 'doc'
+                                ? EdgeInsets.zero
+                                : null,
+                            clipper: ChatBubbleClipper3(
+                                type: BubbleType.receiverBubble),
+                            backGroundColor: AppColors.lightGrey,
+                            alignment: Alignment.topLeft,
+                            elevation: 0,
+                            margin: const EdgeInsets.only(
+                                top: AppSizes.kDefaultPadding / 4),
+                            child: Container(
+                              constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.65),
+                              child: messageType == 'img'
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        context
+                                            .push(ShowImage(imageUrl: message));
+                                      },
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                            AppSizes.cardCornerRadius),
+                                        child: CachedNetworkImage(
+                                          imageUrl: message,
+                                          fit: BoxFit.contain,
+                                          placeholder: (context, url) =>
+                                              const CircularProgressIndicator
+                                                  .adaptive(),
+                                          errorWidget: (context, url, error) =>
+                                              const CircularProgressIndicator
+                                                  .adaptive(),
+                                        ),
+                                      ),
+                                    )
+                                  : messageType == 'text'
+                                      ? Linkable(
+                                          text: message,
+                                          linkColor: Colors.blue,
+                                        )
+                                      : messageType == 'pdf'
+                                          ? message != null
+                                              ? Stack(
+                                                  children: [
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius
+                                                          .circular(AppSizes
+                                                              .cardCornerRadius),
+                                                      child: Container(
+                                                        constraints: BoxConstraints(
+                                                            maxWidth: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.45,
+                                                            maxHeight:
+                                                                MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width *
+                                                                    0.30),
+                                                        child: const PDF()
+                                                            .cachedFromUrl(
+                                                          message,
+                                                          maxAgeCacheObject:
+                                                              const Duration(
+                                                                  days: 30),
+                                                          //duration of cache
+                                                          placeholder:
+                                                              (progress) => Center(
+                                                                  child: Text(
+                                                                      '$progress %')),
+                                                          errorWidget: (error) =>
+                                                              const Center(
+                                                                  child: Text(
+                                                                      'Loading...')),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    message != null
+                                                        ? GestureDetector(
+                                                            onTap: () {
+                                                              context
+                                                                  .push(ShowPdf(
+                                                                pdfPath:
+                                                                    message,
+                                                              ));
+                                                            },
+                                                            child: Container(
+                                                              color: AppColors
+                                                                  .transparent,
+                                                              constraints: BoxConstraints(
+                                                                  maxWidth: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      0.45,
+                                                                  maxHeight: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      0.30),
+                                                            ),
+                                                          )
+                                                        : const SizedBox(),
+                                                  ],
+                                                )
+                                              : const SizedBox()
+                                          : const SizedBox(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
   }
 
   Widget _senderTile(

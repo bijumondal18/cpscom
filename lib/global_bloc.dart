@@ -1,10 +1,7 @@
-import 'package:cpscom_admin/Features/GroupInfo/Bloc/image_upload_bloc.dart';
-import 'package:cpscom_admin/Features/Home/Repository/groups_repository.dart';
 import 'package:cpscom_admin/Features/Splash/Bloc/get_started_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'Features/Home/Bloc/group_bloc.dart';
 
 class GlobalBloc extends StatelessWidget {
   final Widget child;
@@ -16,8 +13,6 @@ class GlobalBloc extends StatelessWidget {
     return MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => GetStartedBloc()),
-          //BlocProvider(create: (_) => ImageUploadBloc()),
-          //BlocProvider(create: (_) => GroupBloc(groupsRepository: GroupsRepository())..add(const LoadGroups({'uid':'NSXX7LbApfcMFafWio2QdQ0xeGhzWaiyQwQ1'}))),
         ],
         child: child);
   }
