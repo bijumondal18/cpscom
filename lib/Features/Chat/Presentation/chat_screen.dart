@@ -313,9 +313,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void initState() {
-    msgController = TextEditingController();
-    __buildChatList = _BuildMessagesListState();
-
     // msgController.addListener(() {
     //   setState(() {
     //     //final text = msgController.text;
@@ -335,6 +332,8 @@ class _ChatScreenState extends State<ChatScreen> {
     //   });
     // });
     super.initState();
+    msgController = TextEditingController();
+    __buildChatList = _BuildMessagesListState();
   }
 
   @override
@@ -588,6 +587,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                         isReplying =
                                                                             false;
                                                                       });
+                                                                      FocusScope.of(context).unfocus();
                                                                     },
                                                                     icon:
                                                                         const Icon(
