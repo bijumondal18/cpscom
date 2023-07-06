@@ -147,7 +147,7 @@ class _MyAppState extends State<MyApp> {
         title: AppStrings.appName,
         theme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
-        home: const HomeScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

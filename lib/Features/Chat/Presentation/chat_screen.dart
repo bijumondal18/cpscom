@@ -587,7 +587,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                         isReplying =
                                                                             false;
                                                                       });
-                                                                      FocusScope.of(context).unfocus();
+                                                                      FocusScope.of(
+                                                                              context)
+                                                                          .unfocus();
                                                                     },
                                                                     icon:
                                                                         const Icon(
@@ -991,26 +993,44 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
                                           (chatMap['reply'] != null &&
                                               chatMap['reply']['type'] ==
                                                   'reply')
-                                      ? _replySenderTile(
-                                          chatMap['message'],
-                                          chatMap['type'],
-                                          sentTime,
-                                          groupCreatedBy,
-                                          sentTime,
-                                          chatMap['reply']['replyWhom'],
-                                          chatMap['reply']['message'],
-                                          // () {},
-                                          chatMap['isSeen'],
-                                          true)
-                                      : _senderTile(
-                                          chatMap['message'],
-                                          chatMap['type'],
-                                          sentTime,
-                                          groupCreatedBy,
-                                          sentTime,
-                                          // () {},
-                                          chatMap['isSeen'],
-                                          true)
+                                      ? SwipeTo(
+                                          onRightSwipe: () {
+                                            onSwipedMessage(
+                                                chatList[index].data()
+                                                    as Map<String, dynamic>);
+                                            AppHelper.openKeyboard(
+                                                context, focusNode);
+                                          },
+                                          child: _replySenderTile(
+                                              chatMap['message'],
+                                              chatMap['type'],
+                                              sentTime,
+                                              groupCreatedBy,
+                                              sentTime,
+                                              chatMap['reply']['replyWhom'],
+                                              chatMap['reply']['message'],
+                                              // () {},
+                                              chatMap['isSeen'],
+                                              true),
+                                        )
+                                      : SwipeTo(
+                                          onRightSwipe: () {
+                                            onSwipedMessage(
+                                                chatList[index].data()
+                                                    as Map<String, dynamic>);
+                                            AppHelper.openKeyboard(
+                                                context, focusNode);
+                                          },
+                                          child: _senderTile(
+                                              chatMap['message'],
+                                              chatMap['type'],
+                                              sentTime,
+                                              groupCreatedBy,
+                                              sentTime,
+                                              // () {},
+                                              chatMap['isSeen'],
+                                              true),
+                                        )
                                   : chatMap['type'] != 'notify' &&
                                           chatMap['type'] == 'text' &&
                                           chatMap['type'] == 'text' &&
