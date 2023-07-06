@@ -79,6 +79,111 @@ class _ChatScreenState extends State<ChatScreen> {
   dynamic extension;
   dynamic extType;
 
+  ////////////
+  List<QueryDocumentSnapshot> chatList = [];
+  bool isSender = false;
+  String sentTime = '';
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  List<dynamic> chatMembers = [];
+  Map<String, dynamic>? chatMemberData = {};
+  List<dynamic> updatedChatMemberList = [];
+  int isSeenCount = 0;
+  dynamic lastChatMsg;
+  dynamic mem;
+
+  late Map<String, dynamic>? replyMessage;
+
+  //int isDeliveredCount = 0;
+  String chatId = '';
+
+  //get current user details from firebase firestore
+  Future<void> updateMessageSeenStatus(
+      String groupId,
+      String messageId,
+      String uid,
+      String profilePicture,
+      int index,
+      ) async {
+    // Update chat member data for seen and delivered
+    if (uid == auth.currentUser!.uid) {
+      chatMemberData = {
+        "isSeen": true,
+        "isDelivered": true,
+        "uid": auth.currentUser!.uid,
+        "profile_picture": profilePicture,
+        "name": auth.currentUser!.displayName,
+      };
+
+      // remove item from chat members and update with new data
+      if (mem.length != null) {
+        for (var i = 0; i < mem.length; i++) {
+          if (i == index) {
+            updatedChatMemberList.removeAt(i);
+            updatedChatMemberList.add(chatMemberData);
+            log('updated chat members - ${updatedChatMemberList[i]}');
+          }
+        }
+      }
+    }
+
+    // update new data to firebase firestore
+    await FirebaseProvider.firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('chats')
+        .doc(messageId)
+        .update({'members': updatedChatMemberList}).then(
+            (value) => 'Message Seen Status Updated ');
+  }
+
+  Future<void> updateIsSeenStatus(String groupId, String messageId) async {
+    await FirebaseProvider.firestore
+        .collection('groups')
+        .doc(groupId)
+        .collection('chats')
+        .doc(messageId)
+        .update({
+      'isSeen': true,
+    });
+  }
+
+  // Future<void> updateIsDeliveredStatus(String groupId, String messageId) async {
+  //   await FirebaseProvider.firestore
+  //       .collection('groups')
+  //       .doc(groupId)
+  //       .collection('chats')
+  //       .doc(messageId)
+  //       .update({
+  //     'isDelivered': true,
+  //   }).then((value) => 'Status Updated Successfully');
+  // }
+
+  void onSwipedMessage(Map<String, dynamic> message) {
+    log("-------------- ${message['sendBy']} - ${message['message']}");
+    setState(() {
+      isReplying = true;
+    });
+    replyWhom = message['sendBy'];
+    replyText = message['message'];
+    FocusScope.of(context).unfocus();
+    AppHelper.openKeyboard(context, focusNode);
+  }
+
+  void replyToMessage(Map<String, dynamic> message) {
+    setState(() {
+      replyMessage = message;
+      isReplying = true;
+    });
+  }
+
+  void onCancelReply() {
+    setState(() {
+      replyMessage = null;
+      isReplying = false;
+    });
+  }
+
+  ////////////
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
@@ -238,6 +343,9 @@ class _ChatScreenState extends State<ChatScreen> {
             "isSeen": false,
             "members": chatMembersList.toSet().toList(),
           };
+          setState(() {
+            isReplying = false;
+          });
         } else {
           chatData = {
             'sendBy': FirebaseProvider.auth.currentUser!.displayName,
@@ -250,6 +358,9 @@ class _ChatScreenState extends State<ChatScreen> {
             "isSeen": false,
             "members": chatMembersList.toSet().toList(),
           };
+          setState(() {
+            isReplying = false;
+          });
         }
         await FirebaseProvider.firestore
             .collection('groups')
@@ -265,11 +376,10 @@ class _ChatScreenState extends State<ChatScreen> {
             .collection('groups')
             .doc(groupId)
             .update({"time": DateTime.now().millisecondsSinceEpoch});
-
+      } catch (e) {
         setState(() {
           isReplying = false;
         });
-      } catch (e) {
         if (kDebugMode) {
           log(e.toString());
         }
@@ -309,7 +419,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  late _BuildMessagesListState __buildChatList;
+  // late _BuildMessagesListState __buildChatList;
 
   @override
   void initState() {
@@ -333,7 +443,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // });
     super.initState();
     msgController = TextEditingController();
-    __buildChatList = _BuildMessagesListState();
+    // __buildChatList = _BuildMessagesListState();
   }
 
   @override
@@ -463,14 +573,217 @@ class _ChatScreenState extends State<ChatScreen> {
                                   // To hide the keyboard on outside touch in the screen
                                   FocusScope.of(context).unfocus();
                                 },
-                                child: _BuildMessagesList(
-                                  groupId: widget.groupId,
-                                  onTap: () {
-                                    setState(() {
-                                      isReplying = true;
-                                    });
-                                  },
-                                ),
+                                child: StreamBuilder(
+                                    stream: FirebaseProvider.getChatsMessages(widget.groupId!),
+                                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                      switch (snapshot.connectionState) {
+                                        case ConnectionState.none:
+                                        case ConnectionState.waiting:
+                                          return const Center(child: CircularProgressIndicator.adaptive());
+                                        case ConnectionState.active:
+                                        case ConnectionState.done:
+                                          if (snapshot.hasData) {
+                                            chatList = snapshot.data!.docs;
+                                            for (var i = 0; i < chatList.length; i++) {
+                                              chatMap = chatList[i].data() as Map<String, dynamic>;
+                                              if (chatMap['type'] == 'text' ||
+                                                  chatMap['type'] == 'img' ||
+                                                  chatMap['type'] == 'pdf' ||
+                                                  chatMap['type'] == 'doc' ||
+                                                  chatMap['type'] == 'docx') {
+                                                lastChatMsg = chatList[0].data() as Map<String, dynamic>;
+                                                mem = lastChatMsg['members'];
+                                                chatMembers = chatMap['members'];
+                                                if (mem != null) {
+                                                  updatedChatMemberList = mem;
+                                                }
+                                                // log('mem ------------ ${mem}');
+                                                // log('chat members ------------ ${chatMembers}');
+                                                // isSeenCount = 0;
+                                                // for (var j = 0; j < mem.length; j++) {
+                                                //   updateMessageSeenStatus(
+                                                //       '${widget.groupId}',
+                                                //       chatList[0].id,
+                                                //       mem[j]['uid'],
+                                                //       mem[j]['profile_picture'],
+                                                //       j);
+                                                //
+                                                //   //check lst msg seen count
+                                                //   // if (mem[j]['isSeen'] == true) {
+                                                //   //   isSeenCount += 1;
+                                                //   // }
+                                                //
+                                                // }
+                                                // if (isSeenCount == mem.length) {
+                                                //  // updateIsSeenStatus(widget.groupId, chatList[i].id);
+                                                // }
+                                              }
+                                            }
+                                            return Scrollbar(
+                                              child: Column(
+                                                children: [
+                                                  Expanded(
+                                                    child: ListView.builder(
+                                                        itemCount: chatList.length,
+                                                        physics: const AlwaysScrollableScrollPhysics(),
+                                                        controller: _scrollController,
+                                                        shrinkWrap: true,
+                                                        reverse: true,
+                                                        padding: const EdgeInsets.only(
+                                                            bottom: AppSizes.kDefaultPadding * 2),
+                                                        itemBuilder: (context, index) {
+                                                          chatMap = chatList[index].data()
+                                                          as Map<String, dynamic>;
+                                                          replyMessage = chatList[index].data()
+                                                          as Map<String, dynamic>;
+                                                          chatId = chatList[index].id;
+                                                          isSender = chatMap['sendBy'] ==
+                                                              auth.currentUser!.displayName
+                                                              ? true
+                                                              : false;
+                                                          sentTime = AppHelper.getStringTimeFromTimestamp(
+                                                              chatMap['time']);
+                                                          var groupCreatedBy =
+                                                          FirebaseProvider.auth.currentUser!.uid ==
+                                                              chatMap['sendById']
+                                                              ? 'You'
+                                                              : chatMap['sendBy'];
+                                                          return isSender
+                                                              ?
+                                                          // chatMap['type'] != 'notify' &&
+                                                          //                 chatMap['type'] != 'pdf' ||
+                                                          //             (chatMap['reply'] != null &&
+                                                          //                 chatMap['reply']['type'] !=
+                                                          //                     'reply')
+                                                          //         ? _senderTile(
+                                                          //             chatMap['message'],
+                                                          //             chatMap['type'],
+                                                          //             sentTime,
+                                                          //             groupCreatedBy,
+                                                          //             sentTime,
+                                                          //             // () {},
+                                                          //             chatMap['isSeen'],
+                                                          //             chatMap['isDelivered'])
+                                                          //         :
+                                                          chatMap['type'] == 'text' &&
+                                                              chatMap['type'] != 'notify' &&
+                                                              (chatMap['reply'] != null &&
+                                                                  chatMap['reply']['type'] ==
+                                                                      'reply')
+                                                              ? SwipeTo(
+                                                            onRightSwipe: () {
+                                                              onSwipedMessage(
+                                                                  chatList[index].data()
+                                                                  as Map<String, dynamic>);
+                                                              // FocusScope.of(context).unfocus();
+                                                              // AppHelper.openKeyboard(
+                                                              //     context, focusNode);
+                                                            },
+                                                            child: _replySenderTile(
+                                                                chatMap['message'],
+                                                                chatMap['type'],
+                                                                sentTime,
+                                                                groupCreatedBy,
+                                                                sentTime,
+                                                                chatMap['reply']['replyWhom'],
+                                                                chatMap['reply']['message'],
+                                                                // () {},
+                                                                chatMap['isSeen'],
+                                                                true),
+                                                          )
+                                                              : SwipeTo(
+                                                            onRightSwipe: () {
+                                                              onSwipedMessage(
+                                                                  chatList[index].data()
+                                                                  as Map<String, dynamic>);
+                                                              // FocusScope.of(context).unfocus();
+                                                              // AppHelper.openKeyboard(
+                                                              //     context, focusNode);
+                                                            },
+                                                            child: _senderTile(
+                                                                chatMap['message'],
+                                                                chatMap['type'],
+                                                                sentTime,
+                                                                groupCreatedBy,
+                                                                sentTime,
+                                                                // () {},
+                                                                chatMap['isSeen'],
+                                                                true),
+                                                          )
+                                                              : chatMap['type'] != 'notify' &&
+                                                              chatMap['type'] == 'text' &&
+                                                              (chatMap['reply'] != null &&
+                                                                  chatMap['reply']['type'] ==
+                                                                      'reply')
+                                                              ? SwipeTo(
+                                                            onRightSwipe: () {
+                                                              onSwipedMessage(
+                                                                  chatList[index].data()
+                                                                  as Map<String, dynamic>);
+                                                              // FocusScope.of(context).unfocus();
+                                                              // AppHelper.openKeyboard(
+                                                              //     context, focusNode);
+                                                            },
+                                                            child: _replyReceiverTile(
+                                                                chatMap['message'],
+                                                                chatMap['type'],
+                                                                sentTime,
+                                                                chatMap['sendBy'],
+                                                                chatMap['profile_picture'],
+                                                                groupCreatedBy,
+                                                                chatMap['reply']['replyWhom'],
+                                                                chatMap['reply']['message'],
+                                                                    (message) {
+                                                                  replyToMessage(
+                                                                      chatList[index].data()
+                                                                      as Map<String, dynamic>);
+                                                                }),
+                                                          )
+                                                              : chatMap['type'] != 'notify'
+                                                              ? SwipeTo(
+                                                            onRightSwipe: () {
+                                                              onSwipedMessage(chatList[index]
+                                                                  .data()
+                                                              as Map<String, dynamic>);
+                                                              // FocusScope.of(context).unfocus();
+                                                              // AppHelper.openKeyboard(
+                                                              //     context, focusNode);
+                                                            },
+                                                            child: ReceiverTile(
+                                                              onSwipedMessage: (chatMap) {
+                                                                replyToMessage(chatMap);
+                                                              },
+                                                              message: chatMap['message'],
+                                                              messageType: chatMap['type'],
+                                                              sentTime: sentTime,
+                                                              sentByName: chatMap['sendBy'],
+                                                              sentByImageUrl:
+                                                              chatMap['profile_picture'],
+                                                              groupCreatedBy: groupCreatedBy,
+                                                            ),
+                                                          )
+                                                              : ReceiverTile(
+                                                            onSwipedMessage: (chatMap) {
+                                                              replyToMessage(chatMap);
+                                                            },
+                                                            message: chatMap['message'],
+                                                            messageType: chatMap['type'],
+                                                            sentTime: sentTime,
+                                                            sentByName: chatMap['sendBy'],
+                                                            sentByImageUrl:
+                                                            chatMap['profile_picture'],
+                                                            groupCreatedBy: groupCreatedBy,
+                                                          );
+                                                        }),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                          return const SizedBox();
+                                      }
+                                      // return const SizedBox();
+                                    }),
                               ),
                             ),
                             Stack(
@@ -619,8 +932,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       minLines: 1,
                                                       isBorder: false,
                                                       onCancelReply:
-                                                          __buildChatList
-                                                              .onCancelReply,
+                                                          onCancelReply,
                                                       replyMessage: chatMap,
                                                     ),
                                                   ],
@@ -758,14 +1070,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ],
                                   ),
                                 ),
-                                // str.length > 1
-                                //     ? ListView.builder(
-                                //         shrinkWrap: true,
-                                //         itemCount: chatMembersList.length,
-                                //         itemBuilder: (context, index) {
-                                //           return Text('fdf');
-                                //         })
-                                //     : const SizedBox()
                               ],
                             ),
                           ],
@@ -778,319 +1082,6 @@ class _ChatScreenState extends State<ChatScreen> {
             return const SizedBox();
           }),
     );
-  }
-}
-
-class _BuildMessagesList extends StatefulWidget {
-  final String? groupId;
-  final Function? onTap;
-
-  const _BuildMessagesList({Key? key, this.groupId, this.onTap})
-      : super(key: key);
-
-  @override
-  State<_BuildMessagesList> createState() => _BuildMessagesListState();
-}
-
-class _BuildMessagesListState extends State<_BuildMessagesList> {
-  List<QueryDocumentSnapshot> chatList = [];
-  bool isSender = false;
-  String sentTime = '';
-  final FirebaseAuth auth = FirebaseAuth.instance;
-  List<dynamic> chatMembers = [];
-  Map<String, dynamic>? chatMemberData = {};
-  List<dynamic> updatedChatMemberList = [];
-  int isSeenCount = 0;
-  dynamic lastChatMsg;
-  dynamic mem;
-
-  late Map<String, dynamic>? replyMessage;
-
-  //int isDeliveredCount = 0;
-  String chatId = '';
-
-  //get current user details from firebase firestore
-  Future<void> updateMessageSeenStatus(
-    String groupId,
-    String messageId,
-    String uid,
-    String profilePicture,
-    int index,
-  ) async {
-    // Update chat member data for seen and delivered
-    if (uid == auth.currentUser!.uid) {
-      chatMemberData = {
-        "isSeen": true,
-        "isDelivered": true,
-        "uid": auth.currentUser!.uid,
-        "profile_picture": profilePicture,
-        "name": auth.currentUser!.displayName,
-      };
-
-      // remove item from chat members and update with new data
-      if (mem.length != null) {
-        for (var i = 0; i < mem.length; i++) {
-          if (i == index) {
-            updatedChatMemberList.removeAt(i);
-            updatedChatMemberList.add(chatMemberData);
-            log('updated chat members - ${updatedChatMemberList[i]}');
-          }
-        }
-      }
-    }
-
-    // update new data to firebase firestore
-    await FirebaseProvider.firestore
-        .collection('groups')
-        .doc(groupId)
-        .collection('chats')
-        .doc(messageId)
-        .update({'members': updatedChatMemberList}).then(
-            (value) => 'Message Seen Status Updated ');
-  }
-
-  Future<void> updateIsSeenStatus(String groupId, String messageId) async {
-    await FirebaseProvider.firestore
-        .collection('groups')
-        .doc(groupId)
-        .collection('chats')
-        .doc(messageId)
-        .update({
-      'isSeen': true,
-    });
-  }
-
-  // Future<void> updateIsDeliveredStatus(String groupId, String messageId) async {
-  //   await FirebaseProvider.firestore
-  //       .collection('groups')
-  //       .doc(groupId)
-  //       .collection('chats')
-  //       .doc(messageId)
-  //       .update({
-  //     'isDelivered': true,
-  //   }).then((value) => 'Status Updated Successfully');
-  // }
-
-  void onSwipedMessage(Map<String, dynamic> message) {
-    log("-------------- ${message['sendBy']} - ${message['message']}");
-    setState(() {
-      isReplying = true;
-    });
-
-    replyWhom = message['sendBy'];
-    replyText = message['message'];
-    // AppHelper.openKeyboard(context, focusNode);
-  }
-
-  void replyToMessage(Map<String, dynamic> message) {
-    setState(() {
-      replyMessage = message;
-    });
-  }
-
-  void onCancelReply() {
-    setState(() {
-      replyMessage = null;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: FirebaseProvider.getChatsMessages(widget.groupId!),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-            case ConnectionState.waiting:
-              return const Center(child: CircularProgressIndicator.adaptive());
-            case ConnectionState.active:
-            case ConnectionState.done:
-              if (snapshot.hasData) {
-                chatList = snapshot.data!.docs;
-                for (var i = 0; i < chatList.length; i++) {
-                  chatMap = chatList[i].data() as Map<String, dynamic>;
-
-                  if (chatMap['type'] == 'text' ||
-                      chatMap['type'] == 'img' ||
-                      chatMap['type'] == 'pdf' ||
-                      chatMap['type'] == 'doc' ||
-                      chatMap['type'] == 'docx') {
-                    lastChatMsg = chatList[0].data() as Map<String, dynamic>;
-                    mem = lastChatMsg['members'];
-                    chatMembers = chatMap['members'];
-                    if (mem != null) {
-                      updatedChatMemberList = mem;
-                    }
-                    // log('mem ------------ ${mem}');
-                    // log('chat members ------------ ${chatMembers}');
-                    // isSeenCount = 0;
-                    // for (var j = 0; j < mem.length; j++) {
-                    //   updateMessageSeenStatus(
-                    //       '${widget.groupId}',
-                    //       chatList[0].id,
-                    //       mem[j]['uid'],
-                    //       mem[j]['profile_picture'],
-                    //       j);
-                    //
-                    //   //check lst msg seen count
-                    //   // if (mem[j]['isSeen'] == true) {
-                    //   //   isSeenCount += 1;
-                    //   // }
-                    //
-                    // }
-                    // if (isSeenCount == mem.length) {
-                    //  // updateIsSeenStatus(widget.groupId, chatList[i].id);
-                    // }
-                  }
-                }
-                return Scrollbar(
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                            itemCount: chatList.length,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            controller: _scrollController,
-                            shrinkWrap: true,
-                            reverse: true,
-                            padding: const EdgeInsets.only(
-                                bottom: AppSizes.kDefaultPadding * 2),
-                            itemBuilder: (context, index) {
-                              chatMap = chatList[index].data()
-                                  as Map<String, dynamic>;
-                              replyMessage = chatList[index].data()
-                                  as Map<String, dynamic>;
-                              chatId = chatList[index].id;
-                              isSender = chatMap['sendBy'] ==
-                                      auth.currentUser!.displayName
-                                  ? true
-                                  : false;
-                              sentTime = AppHelper.getStringTimeFromTimestamp(
-                                  chatMap['time']);
-                              var groupCreatedBy =
-                                  FirebaseProvider.auth.currentUser!.uid ==
-                                          chatMap['sendById']
-                                      ? 'You'
-                                      : chatMap['sendBy'];
-                              return isSender
-                                  ?
-                                  // chatMap['type'] != 'notify' &&
-                                  //                 chatMap['type'] != 'pdf' ||
-                                  //             (chatMap['reply'] != null &&
-                                  //                 chatMap['reply']['type'] !=
-                                  //                     'reply')
-                                  //         ? _senderTile(
-                                  //             chatMap['message'],
-                                  //             chatMap['type'],
-                                  //             sentTime,
-                                  //             groupCreatedBy,
-                                  //             sentTime,
-                                  //             // () {},
-                                  //             chatMap['isSeen'],
-                                  //             chatMap['isDelivered'])
-                                  //         :
-                                  chatMap['type'] == 'text' &&
-                                          (chatMap['reply'] != null &&
-                                              chatMap['reply']['type'] ==
-                                                  'reply')
-                                      ? SwipeTo(
-                                          onRightSwipe: () {
-                                            onSwipedMessage(
-                                                chatList[index].data()
-                                                    as Map<String, dynamic>);
-                                            AppHelper.openKeyboard(
-                                                context, focusNode);
-                                          },
-                                          child: _replySenderTile(
-                                              chatMap['message'],
-                                              chatMap['type'],
-                                              sentTime,
-                                              groupCreatedBy,
-                                              sentTime,
-                                              chatMap['reply']['replyWhom'],
-                                              chatMap['reply']['message'],
-                                              // () {},
-                                              chatMap['isSeen'],
-                                              true),
-                                        )
-                                      : SwipeTo(
-                                          onRightSwipe: () {
-                                            onSwipedMessage(
-                                                chatList[index].data()
-                                                    as Map<String, dynamic>);
-                                            AppHelper.openKeyboard(
-                                                context, focusNode);
-                                          },
-                                          child: _senderTile(
-                                              chatMap['message'],
-                                              chatMap['type'],
-                                              sentTime,
-                                              groupCreatedBy,
-                                              sentTime,
-                                              // () {},
-                                              chatMap['isSeen'],
-                                              true),
-                                        )
-                                  : chatMap['type'] != 'notify' &&
-                                          chatMap['type'] == 'text' &&
-                                          chatMap['type'] == 'text' &&
-                                          (chatMap['reply'] != null &&
-                                              chatMap['reply']['type'] ==
-                                                  'reply')
-                                      ? SwipeTo(
-                                          onRightSwipe: () {
-                                            onSwipedMessage(
-                                                chatList[index].data()
-                                                    as Map<String, dynamic>);
-                                            AppHelper.openKeyboard(
-                                                context, focusNode);
-                                          },
-                                          child: _replyReceiverTile(
-                                              chatMap['message'],
-                                              chatMap['type'],
-                                              sentTime,
-                                              chatMap['sendBy'],
-                                              chatMap['profile_picture'],
-                                              groupCreatedBy,
-                                              chatMap['reply']['replyWhom'],
-                                              chatMap['reply']['message'],
-                                              (message) {
-                                            replyToMessage(
-                                                chatList[index].data()
-                                                    as Map<String, dynamic>);
-                                          }),
-                                        )
-                                      : SwipeTo(
-                                          onRightSwipe: () {
-                                            onSwipedMessage(
-                                                chatList[index].data()
-                                                    as Map<String, dynamic>);
-                                            AppHelper.openKeyboard(
-                                                context, focusNode);
-                                          },
-                                          child: ReceiverTile(
-                                            onSwipedMessage: (chatMap) {
-                                              //replyToMessage(chatMap);
-                                            },
-                                            message: chatMap['message'],
-                                            messageType: chatMap['type'],
-                                            sentTime: sentTime,
-                                            sentByName: chatMap['sendBy'],
-                                            sentByImageUrl:
-                                                chatMap['profile_picture'],
-                                            groupCreatedBy: groupCreatedBy,
-                                          ),
-                                        );
-                            }),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return const SizedBox();
-          }
-          // return const SizedBox();
-        });
   }
 
   Widget _replyReceiverTile(
@@ -1105,283 +1096,283 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
       ValueChanged<Map<String, dynamic>> onSwipedMessage) {
     return messageType == 'notify'
         ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(
-                    vertical: AppSizes.kDefaultPadding),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.kDefaultPadding,
-                    vertical: AppSizes.kDefaultPadding / 2),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: AppColors.lightGrey),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.cardCornerRadius / 2),
-                    color: AppColors.shimmer),
-                child: Text(
-                  '$groupCreatedBy $message',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          )
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(
+              vertical: AppSizes.kDefaultPadding),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.kDefaultPadding,
+              vertical: AppSizes.kDefaultPadding / 2),
+          decoration: BoxDecoration(
+              border: Border.all(width: 1, color: AppColors.lightGrey),
+              borderRadius:
+              BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+              color: AppColors.shimmer),
+          child: Text(
+            '$groupCreatedBy $message',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    )
         : Padding(
+      padding: const EdgeInsets.only(
+          left: AppSizes.kDefaultPadding / 4,
+          top: AppSizes.kDefaultPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
             padding: const EdgeInsets.only(
-                left: AppSizes.kDefaultPadding / 4,
-                top: AppSizes.kDefaultPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+                left: AppSizes.kDefaultPadding * 4 - 2),
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: AppSizes.kDefaultPadding * 4 - 2),
-                  child: Row(
-                    children: [
-                      Text(
-                        sentByName,
-                        style: Theme.of(context).textTheme.caption!.copyWith(
-                            fontSize: 12, fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        ', $sentTime',
+                Text(
+                  sentByName,
+                  style: Theme.of(context).textTheme.caption!.copyWith(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  ', $sentTime',
+                  style: Theme.of(context)
+                      .textTheme
+                      .caption!
+                      .copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius:
+                BorderRadius.circular(AppSizes.cardCornerRadius * 3),
+                child: CachedNetworkImage(
+                    width: 30,
+                    height: 30,
+                    fit: BoxFit.cover,
+                    imageUrl: sentByImageUrl,
+                    placeholder: (context, url) => const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.bg,
+                    ),
+                    errorWidget: (context, url, error) => CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.bg,
+                      child: Text(
+                        sentByName
+                            .substring(0, 1)
+                            .toString()
+                            .toUpperCase(),
                         style: Theme.of(context)
                             .textTheme
-                            .caption!
-                            .copyWith(fontSize: 12),
+                            .bodyLarge!
+                            .copyWith(fontWeight: FontWeight.w600),
                       ),
-                    ],
-                  ),
+                    )),
+              ),
+              const SizedBox(
+                width: AppSizes.kDefaultPadding / 2,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppSizes.kDefaultPadding * 2,
                 ),
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.cardCornerRadius * 3),
-                      child: CachedNetworkImage(
-                          width: 30,
-                          height: 30,
-                          fit: BoxFit.cover,
-                          imageUrl: sentByImageUrl,
-                          placeholder: (context, url) => const CircleAvatar(
-                                radius: 16,
-                                backgroundColor: AppColors.bg,
-                              ),
-                          errorWidget: (context, url, error) => CircleAvatar(
-                                radius: 16,
-                                backgroundColor: AppColors.bg,
-                                child: Text(
-                                  sentByName
-                                      .substring(0, 1)
-                                      .toString()
-                                      .toUpperCase(),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              )),
-                    ),
-                    const SizedBox(
-                      width: AppSizes.kDefaultPadding / 2,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: AppSizes.kDefaultPadding * 2,
+                    Container(
+                      height: 50,
+                      constraints: BoxConstraints(
+                        maxWidth:
+                        MediaQuery.of(context).size.width * 0.45,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      decoration: const BoxDecoration(
+                          color: AppColors.bg,
+                          borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(
+                                  AppSizes.cardCornerRadius),
+                              bottomRight: Radius.circular(
+                                  AppSizes.cardCornerRadius))),
+                      child: Row(
                         children: [
+                          const SizedBox(
+                            width: AppSizes.kDefaultPadding / 4,
+                          ),
                           Container(
                             height: 50,
-                            constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.45,
-                            ),
-                            decoration: const BoxDecoration(
-                                color: AppColors.bg,
-                                borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(
-                                        AppSizes.cardCornerRadius),
-                                    bottomRight: Radius.circular(
-                                        AppSizes.cardCornerRadius))),
-                            child: Row(
-                              children: [
-                                const SizedBox(
-                                  width: AppSizes.kDefaultPadding / 4,
-                                ),
-                                Container(
-                                  height: 50,
-                                  width: 2,
-                                  color: AppColors.primary,
-                                ),
-                                const SizedBox(
-                                  width: AppSizes.kDefaultPadding / 2,
-                                ),
-                                Flexible(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            replyWhom,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium!
-                                                .copyWith(
-                                                    color: AppColors.primary,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          height: AppSizes.kDefaultPadding / 4,
-                                        ),
-                                        Text(
-                                          replyText,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium!
-                                              .copyWith(
-                                                  color: AppColors.darkGrey),
-                                        ),
-                                      ],
+                            width: 2,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(
+                            width: AppSizes.kDefaultPadding / 2,
+                          ),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      replyWhom,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium!
+                                          .copyWith(
+                                          color: AppColors.primary,
+                                          fontWeight:
+                                          FontWeight.bold),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ChatBubble(
-                            padding: messageType == 'img' ||
-                                    messageType == 'pdf' ||
-                                    messageType == 'docx' ||
-                                    messageType == 'doc'
-                                ? EdgeInsets.zero
-                                : null,
-                            clipper: ChatBubbleClipper3(
-                                type: BubbleType.receiverBubble),
-                            backGroundColor: AppColors.lightGrey,
-                            alignment: Alignment.topLeft,
-                            elevation: 0,
-                            margin: const EdgeInsets.only(
-                                top: AppSizes.kDefaultPadding / 4),
-                            child: Container(
-                              constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.65),
-                              child: messageType == 'img'
-                                  ? GestureDetector(
-                                      onTap: () {
-                                        context
-                                            .push(ShowImage(imageUrl: message));
-                                      },
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                            AppSizes.cardCornerRadius),
-                                        child: CachedNetworkImage(
-                                          imageUrl: message,
-                                          fit: BoxFit.contain,
-                                          placeholder: (context, url) =>
-                                              const CircularProgressIndicator
-                                                  .adaptive(),
-                                          errorWidget: (context, url, error) =>
-                                              const CircularProgressIndicator
-                                                  .adaptive(),
-                                        ),
-                                      ),
-                                    )
-                                  : messageType == 'text'
-                                      ? Linkable(
-                                          text: message,
-                                          linkColor: Colors.blue,
-                                        )
-                                      : messageType == 'pdf'
-                                          ? message != null
-                                              ? Stack(
-                                                  children: [
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius
-                                                          .circular(AppSizes
-                                                              .cardCornerRadius),
-                                                      child: Container(
-                                                        constraints: BoxConstraints(
-                                                            maxWidth: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width *
-                                                                0.45,
-                                                            maxHeight:
-                                                                MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width *
-                                                                    0.30),
-                                                        child: const PDF()
-                                                            .cachedFromUrl(
-                                                          message,
-                                                          maxAgeCacheObject:
-                                                              const Duration(
-                                                                  days: 30),
-                                                          //duration of cache
-                                                          placeholder:
-                                                              (progress) => Center(
-                                                                  child: Text(
-                                                                      '$progress %')),
-                                                          errorWidget: (error) =>
-                                                              const Center(
-                                                                  child: Text(
-                                                                      'Loading...')),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    message != null
-                                                        ? GestureDetector(
-                                                            onTap: () {
-                                                              context
-                                                                  .push(ShowPdf(
-                                                                pdfPath:
-                                                                    message,
-                                                              ));
-                                                            },
-                                                            child: Container(
-                                                              color: AppColors
-                                                                  .transparent,
-                                                              constraints: BoxConstraints(
-                                                                  maxWidth: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      0.45,
-                                                                  maxHeight: MediaQuery.of(
-                                                                              context)
-                                                                          .size
-                                                                          .width *
-                                                                      0.30),
-                                                            ),
-                                                          )
-                                                        : const SizedBox(),
-                                                  ],
-                                                )
-                                              : const SizedBox()
-                                          : const SizedBox(),
+                                  const SizedBox(
+                                    height: AppSizes.kDefaultPadding / 4,
+                                  ),
+                                  Text(
+                                    replyText,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium!
+                                        .copyWith(
+                                        color: AppColors.darkGrey),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
+                    ChatBubble(
+                      padding: messageType == 'img' ||
+                          messageType == 'pdf' ||
+                          messageType == 'docx' ||
+                          messageType == 'doc'
+                          ? EdgeInsets.zero
+                          : null,
+                      clipper: ChatBubbleClipper3(
+                          type: BubbleType.receiverBubble),
+                      backGroundColor: AppColors.lightGrey,
+                      alignment: Alignment.topLeft,
+                      elevation: 0,
+                      margin: const EdgeInsets.only(
+                          top: AppSizes.kDefaultPadding / 4),
+                      child: Container(
+                        constraints: BoxConstraints(
+                            maxWidth:
+                            MediaQuery.of(context).size.width * 0.65),
+                        child: messageType == 'img'
+                            ? GestureDetector(
+                          onTap: () {
+                            context
+                                .push(ShowImage(imageUrl: message));
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                AppSizes.cardCornerRadius),
+                            child: CachedNetworkImage(
+                              imageUrl: message,
+                              fit: BoxFit.contain,
+                              placeholder: (context, url) =>
+                              const CircularProgressIndicator
+                                  .adaptive(),
+                              errorWidget: (context, url, error) =>
+                              const CircularProgressIndicator
+                                  .adaptive(),
+                            ),
+                          ),
+                        )
+                            : messageType == 'text'
+                            ? Linkable(
+                          text: message,
+                          linkColor: Colors.blue,
+                        )
+                            : messageType == 'pdf'
+                            ? message != null
+                            ? Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius
+                                  .circular(AppSizes
+                                  .cardCornerRadius),
+                              child: Container(
+                                constraints: BoxConstraints(
+                                    maxWidth: MediaQuery.of(
+                                        context)
+                                        .size
+                                        .width *
+                                        0.45,
+                                    maxHeight:
+                                    MediaQuery.of(
+                                        context)
+                                        .size
+                                        .width *
+                                        0.30),
+                                child: const PDF()
+                                    .cachedFromUrl(
+                                  message,
+                                  maxAgeCacheObject:
+                                  const Duration(
+                                      days: 30),
+                                  //duration of cache
+                                  placeholder:
+                                      (progress) => Center(
+                                      child: Text(
+                                          '$progress %')),
+                                  errorWidget: (error) =>
+                                  const Center(
+                                      child: Text(
+                                          'Loading...')),
+                                ),
+                              ),
+                            ),
+                            message != null
+                                ? GestureDetector(
+                              onTap: () {
+                                context
+                                    .push(ShowPdf(
+                                  pdfPath:
+                                  message,
+                                ));
+                              },
+                              child: Container(
+                                color: AppColors
+                                    .transparent,
+                                constraints: BoxConstraints(
+                                    maxWidth: MediaQuery.of(
+                                        context)
+                                        .size
+                                        .width *
+                                        0.45,
+                                    maxHeight: MediaQuery.of(
+                                        context)
+                                        .size
+                                        .width *
+                                        0.30),
+                              ),
+                            )
+                                : const SizedBox(),
+                          ],
+                        )
+                            : const SizedBox()
+                            : const SizedBox(),
+                      ),
+                    ),
                   ],
                 ),
-              ],
-            ),
-          );
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _senderTile(
@@ -1395,183 +1386,183 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
       bool? isDelivered) {
     return messageType == 'notify'
         ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(
-                  vertical: AppSizes.kDefaultPadding / 2,
-                ),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.kDefaultPadding,
-                    vertical: AppSizes.kDefaultPadding / 1.5),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: AppColors.lightGrey),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.cardCornerRadius / 2),
-                    color: AppColors.shimmer),
-                child: Text(
-                  '$groupCreatedBy $message'.trim(),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          )
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: AppSizes.kDefaultPadding / 2,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.kDefaultPadding,
+              vertical: AppSizes.kDefaultPadding / 1.5),
+          decoration: BoxDecoration(
+              border: Border.all(width: 1, color: AppColors.lightGrey),
+              borderRadius:
+              BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+              color: AppColors.shimmer),
+          child: Text(
+            '$groupCreatedBy $message'.trim(),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    )
         : GestureDetector(
-            //onHorizontalDragEnd: (DragEndDetails) => onTap,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                  right: AppSizes.kDefaultPadding,
-                  top: AppSizes.kDefaultPadding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+      //onHorizontalDragEnd: (DragEndDetails) => onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(
+            right: AppSizes.kDefaultPadding,
+            top: AppSizes.kDefaultPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          sentTime,
-                          style: Theme.of(context)
-                              .textTheme
-                              .caption!
-                              .copyWith(fontSize: 12),
-                        ),
-                        const SizedBox(
-                          width: AppSizes.kDefaultPadding / 2,
-                        ),
-                        // isDelivered == true
-                        //     ?
-                        Icon(
-                          Icons.done_all_rounded,
-                          size: 16,
-                          color: isSeen == true
-                              ? AppColors.primary
-                              : AppColors.grey,
-                        )
-                        // : const Icon(
-                        //     Icons.check,
-                        //     size: 16,
-                        //     color: AppColors.grey,
-                        //   )
-                      ],
-                    ),
+                  Text(
+                    sentTime,
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 12),
                   ),
-                  ChatBubble(
-                    clipper: ChatBubbleClipper3(type: BubbleType.sendBubble),
-                    backGroundColor: AppColors.secondary.withOpacity(0.3),
-                    alignment: Alignment.topRight,
-                    elevation: 0,
-                    margin: const EdgeInsets.only(
-                        top: AppSizes.kDefaultPadding / 4),
-                    child: Container(
-                      constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.65),
-                      child: messageType == 'img'
-                          ? GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) =>
-                                            ShowImage(imageUrl: message)));
-                              },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    AppSizes.cardCornerRadius),
-                                child: CachedNetworkImage(
-                                  imageUrl: message,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) =>
-                                      const CircularProgressIndicator
-                                          .adaptive(),
-                                  errorWidget: (context, url, error) =>
-                                      const CircularProgressIndicator
-                                          .adaptive(),
-                                ),
-                              ),
-                            )
-                          : messageType == 'text'
-                              ? Linkable(
-                                  text: message.trim(),
-                                  linkColor: Colors.blue,
-                                )
-                              : messageType == 'pdf'
-                                  ? Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                              AppSizes.cardCornerRadius),
-                                          child: Container(
-                                              constraints: BoxConstraints(
-                                                  maxWidth:
-                                                      MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          0.45,
-                                                  maxHeight:
-                                                      MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          0.30),
-                                              child: const PDF().cachedFromUrl(
-                                                message,
-                                                maxAgeCacheObject:
-                                                    const Duration(days: 30),
-                                                //duration of cache
-                                                placeholder: (progress) =>
-                                                    Center(
-                                                        child: Text(
-                                                            '$progress %')),
-                                                errorWidget: (error) =>
-                                                    const Center(
-                                                        child:
-                                                            Text('Loading...')),
-                                              )
-                                              // SfPdfViewer.network(
-                                              //   message,
-                                              //   canShowPaginationDialog: false,
-                                              //   enableHyperlinkNavigation: false,
-                                              //   canShowScrollHead: false,
-                                              //   enableDoubleTapZooming: false,
-                                              //   canShowScrollStatus: false,
-                                              //   pageLayoutMode:
-                                              //       PdfPageLayoutMode.single,
-                                              //   canShowPasswordDialog: false,
-                                              // ),
-                                              ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: () {
-                                            context.push(ShowPdf(
-                                              pdfPath: message,
-                                            ));
-                                          },
-                                          child: Container(
-                                            color: AppColors.transparent,
-                                            constraints: BoxConstraints(
-                                                maxWidth: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.45,
-                                                maxHeight:
-                                                    MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.30),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : const SizedBox(),
-                    ),
+                  const SizedBox(
+                    width: AppSizes.kDefaultPadding / 2,
                   ),
+                  // isDelivered == true
+                  //     ?
+                  Icon(
+                    Icons.done_all_rounded,
+                    size: 16,
+                    color: isSeen == true
+                        ? AppColors.primary
+                        : AppColors.grey,
+                  )
+                  // : const Icon(
+                  //     Icons.check,
+                  //     size: 16,
+                  //     color: AppColors.grey,
+                  //   )
                 ],
               ),
             ),
-          );
+            ChatBubble(
+              clipper: ChatBubbleClipper3(type: BubbleType.sendBubble),
+              backGroundColor: AppColors.secondary.withOpacity(0.3),
+              alignment: Alignment.topRight,
+              elevation: 0,
+              margin: const EdgeInsets.only(
+                  top: AppSizes.kDefaultPadding / 4),
+              child: Container(
+                constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.65),
+                child: messageType == 'img'
+                    ? GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                ShowImage(imageUrl: message)));
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                        AppSizes.cardCornerRadius),
+                    child: CachedNetworkImage(
+                      imageUrl: message,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                      const CircularProgressIndicator
+                          .adaptive(),
+                      errorWidget: (context, url, error) =>
+                      const CircularProgressIndicator
+                          .adaptive(),
+                    ),
+                  ),
+                )
+                    : messageType == 'text'
+                    ? Linkable(
+                  text: message.trim(),
+                  linkColor: Colors.blue,
+                )
+                    : messageType == 'pdf'
+                    ? Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                          AppSizes.cardCornerRadius),
+                      child: Container(
+                          constraints: BoxConstraints(
+                              maxWidth:
+                              MediaQuery.of(context)
+                                  .size
+                                  .width *
+                                  0.45,
+                              maxHeight:
+                              MediaQuery.of(context)
+                                  .size
+                                  .width *
+                                  0.30),
+                          child: const PDF().cachedFromUrl(
+                            message,
+                            maxAgeCacheObject:
+                            const Duration(days: 30),
+                            //duration of cache
+                            placeholder: (progress) =>
+                                Center(
+                                    child: Text(
+                                        '$progress %')),
+                            errorWidget: (error) =>
+                            const Center(
+                                child:
+                                Text('Loading...')),
+                          )
+                        // SfPdfViewer.network(
+                        //   message,
+                        //   canShowPaginationDialog: false,
+                        //   enableHyperlinkNavigation: false,
+                        //   canShowScrollHead: false,
+                        //   enableDoubleTapZooming: false,
+                        //   canShowScrollStatus: false,
+                        //   pageLayoutMode:
+                        //       PdfPageLayoutMode.single,
+                        //   canShowPasswordDialog: false,
+                        // ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        context.push(ShowPdf(
+                          pdfPath: message,
+                        ));
+                      },
+                      child: Container(
+                        color: AppColors.transparent,
+                        constraints: BoxConstraints(
+                            maxWidth: MediaQuery.of(context)
+                                .size
+                                .width *
+                                0.45,
+                            maxHeight:
+                            MediaQuery.of(context)
+                                .size
+                                .width *
+                                0.30),
+                      ),
+                    ),
+                  ],
+                )
+                    : const SizedBox(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _replySenderTile(
@@ -1587,259 +1578,1337 @@ class _BuildMessagesListState extends State<_BuildMessagesList> {
       bool? isDelivered) {
     return messageType == 'notify'
         ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(
-                  vertical: AppSizes.kDefaultPadding / 2,
-                ),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.kDefaultPadding,
-                    vertical: AppSizes.kDefaultPadding / 1.5),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: AppColors.lightGrey),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.cardCornerRadius / 2),
-                    color: AppColors.shimmer),
-                child: Text(
-                  '$groupCreatedBy $message'.trim(),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
-          )
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(
+            vertical: AppSizes.kDefaultPadding / 2,
+          ),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.kDefaultPadding,
+              vertical: AppSizes.kDefaultPadding / 1.5),
+          decoration: BoxDecoration(
+              border: Border.all(width: 1, color: AppColors.lightGrey),
+              borderRadius:
+              BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+              color: AppColors.shimmer),
+          child: Text(
+            '$groupCreatedBy $message'.trim(),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    )
         : GestureDetector(
-            //onHorizontalDragEnd: (DragEndDetails) => onTap,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                  right: AppSizes.kDefaultPadding,
-                  top: AppSizes.kDefaultPadding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+      //onHorizontalDragEnd: (DragEndDetails) => onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(
+            right: AppSizes.kDefaultPadding,
+            top: AppSizes.kDefaultPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          sentTime,
-                          style: Theme.of(context)
-                              .textTheme
-                              .caption!
-                              .copyWith(fontSize: 12),
-                        ),
-                        const SizedBox(
-                          width: AppSizes.kDefaultPadding / 2,
-                        ),
-                        // isDelivered == true
-                        //?
-                        Icon(
-                          Icons.done_all_rounded,
-                          size: 16,
-                          color: isSeen == true
-                              ? AppColors.primary
-                              : AppColors.grey,
-                        )
-                        // : const Icon(
-                        //     Icons.check,
-                        //     size: 16,
-                        //     color: AppColors.grey,
-                        //   )
-                      ],
-                    ),
+                  Text(
+                    sentTime,
+                    style: Theme.of(context)
+                        .textTheme
+                        .caption!
+                        .copyWith(fontSize: 12),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  const SizedBox(
+                    width: AppSizes.kDefaultPadding / 2,
+                  ),
+                  // isDelivered == true
+                  //?
+                  Icon(
+                    Icons.done_all_rounded,
+                    size: 16,
+                    color: isSeen == true
+                        ? AppColors.primary
+                        : AppColors.grey,
+                  )
+                  // : const Icon(
+                  //     Icons.check,
+                  //     size: 16,
+                  //     color: AppColors.grey,
+                  //   )
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  height: 50,
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.45,
+                  ),
+                  decoration: const BoxDecoration(
+                      color: AppColors.bg,
+                      borderRadius: BorderRadius.only(
+                          topRight:
+                          Radius.circular(AppSizes.cardCornerRadius),
+                          bottomRight: Radius.circular(
+                              AppSizes.cardCornerRadius))),
+                  child: Row(
                     children: [
+                      const SizedBox(
+                        width: AppSizes.kDefaultPadding / 4,
+                      ),
                       Container(
                         height: 50,
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.45,
-                        ),
-                        decoration: const BoxDecoration(
-                            color: AppColors.bg,
-                            borderRadius: BorderRadius.only(
-                                topRight:
-                                    Radius.circular(AppSizes.cardCornerRadius),
-                                bottomRight: Radius.circular(
-                                    AppSizes.cardCornerRadius))),
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: AppSizes.kDefaultPadding / 4,
-                            ),
-                            Container(
-                              height: 50,
-                              width: 2,
-                              color: AppColors.primary,
-                            ),
-                            const SizedBox(
-                              width: AppSizes.kDefaultPadding / 2,
-                            ),
-                            Flexible(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        replyWhom,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium!
-                                            .copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: AppSizes.kDefaultPadding / 4,
-                                    ),
-                                    Text(
-                                      replyText,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(color: AppColors.darkGrey),
-                                    ),
-                                  ],
+                        width: 2,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(
+                        width: AppSizes.kDefaultPadding / 2,
+                      ),
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  replyWhom,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium!
+                                      .copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ChatBubble(
-                        clipper:
-                            ChatBubbleClipper3(type: BubbleType.sendBubble),
-                        backGroundColor: AppColors.secondary.withOpacity(0.3),
-                        alignment: Alignment.topRight,
-                        elevation: 0,
-                        margin: const EdgeInsets.only(
-                            top: AppSizes.kDefaultPadding / 4),
-                        child: Container(
-                          constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.65),
-                          child: messageType == 'img'
-                              ? GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                ShowImage(imageUrl: message)));
-                                  },
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                        AppSizes.cardCornerRadius),
-                                    child: CachedNetworkImage(
-                                      imageUrl: message,
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) =>
-                                          const CircularProgressIndicator
-                                              .adaptive(),
-                                      errorWidget: (context, url, error) =>
-                                          const CircularProgressIndicator
-                                              .adaptive(),
-                                    ),
-                                  ),
-                                )
-                              : messageType == 'text'
-                                  ? Linkable(
-                                      text: message.trim(),
-                                      linkColor: AppColors.primary,
-                                    )
-                                  : messageType == 'pdf'
-                                      ? Stack(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(AppSizes
-                                                      .cardCornerRadius),
-                                              child: Container(
-                                                  constraints: BoxConstraints(
-                                                      maxWidth:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.45,
-                                                      maxHeight:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.30),
-                                                  child:
-                                                      const PDF().cachedFromUrl(
-                                                    message,
-                                                    maxAgeCacheObject:
-                                                        const Duration(
-                                                            days: 30),
-                                                    //duration of cache
-                                                    placeholder: (progress) =>
-                                                        Center(
-                                                            child: Text(
-                                                                '$progress %')),
-                                                    errorWidget: (error) =>
-                                                        const Center(
-                                                            child: Text(
-                                                                'Loading...')),
-                                                  )
-                                                  // SfPdfViewer.network(
-                                                  //   message,
-                                                  //   canShowPaginationDialog: false,
-                                                  //   enableHyperlinkNavigation: false,
-                                                  //   canShowScrollHead: false,
-                                                  //   enableDoubleTapZooming: false,
-                                                  //   canShowScrollStatus: false,
-                                                  //   pageLayoutMode:
-                                                  //       PdfPageLayoutMode.single,
-                                                  //   canShowPasswordDialog: false,
-                                                  // ),
-                                                  ),
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                context.push(ShowPdf(
-                                                  pdfPath: message,
-                                                ));
-                                              },
-                                              child: Container(
-                                                color: AppColors.transparent,
-                                                constraints: BoxConstraints(
-                                                    maxWidth:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.45,
-                                                    maxHeight:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.30),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : const SizedBox(),
+                              const SizedBox(
+                                height: AppSizes.kDefaultPadding / 4,
+                              ),
+                              Text(
+                                replyText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(color: AppColors.darkGrey),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                ChatBubble(
+                  clipper:
+                  ChatBubbleClipper3(type: BubbleType.sendBubble),
+                  backGroundColor: AppColors.secondary.withOpacity(0.3),
+                  alignment: Alignment.topRight,
+                  elevation: 0,
+                  margin: const EdgeInsets.only(
+                      top: AppSizes.kDefaultPadding / 4),
+                  child: Container(
+                    constraints: BoxConstraints(
+                        maxWidth:
+                        MediaQuery.of(context).size.width * 0.65),
+                    child: messageType == 'img'
+                        ? GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    ShowImage(imageUrl: message)));
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                            AppSizes.cardCornerRadius),
+                        child: CachedNetworkImage(
+                          imageUrl: message,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                          const CircularProgressIndicator
+                              .adaptive(),
+                          errorWidget: (context, url, error) =>
+                          const CircularProgressIndicator
+                              .adaptive(),
+                        ),
+                      ),
+                    )
+                        : messageType == 'text'
+                        ? Linkable(
+                      text: message.trim(),
+                      linkColor: AppColors.primary,
+                    )
+                        : messageType == 'pdf'
+                        ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius:
+                          BorderRadius.circular(AppSizes
+                              .cardCornerRadius),
+                          child: Container(
+                              constraints: BoxConstraints(
+                                  maxWidth:
+                                  MediaQuery.of(context)
+                                      .size
+                                      .width *
+                                      0.45,
+                                  maxHeight:
+                                  MediaQuery.of(context)
+                                      .size
+                                      .width *
+                                      0.30),
+                              child:
+                              const PDF().cachedFromUrl(
+                                message,
+                                maxAgeCacheObject:
+                                const Duration(
+                                    days: 30),
+                                //duration of cache
+                                placeholder: (progress) =>
+                                    Center(
+                                        child: Text(
+                                            '$progress %')),
+                                errorWidget: (error) =>
+                                const Center(
+                                    child: Text(
+                                        'Loading...')),
+                              )
+                            // SfPdfViewer.network(
+                            //   message,
+                            //   canShowPaginationDialog: false,
+                            //   enableHyperlinkNavigation: false,
+                            //   canShowScrollHead: false,
+                            //   enableDoubleTapZooming: false,
+                            //   canShowScrollStatus: false,
+                            //   pageLayoutMode:
+                            //       PdfPageLayoutMode.single,
+                            //   canShowPasswordDialog: false,
+                            // ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            context.push(ShowPdf(
+                              pdfPath: message,
+                            ));
+                          },
+                          child: Container(
+                            color: AppColors.transparent,
+                            constraints: BoxConstraints(
+                                maxWidth:
+                                MediaQuery.of(context)
+                                    .size
+                                    .width *
+                                    0.45,
+                                maxHeight:
+                                MediaQuery.of(context)
+                                    .size
+                                    .width *
+                                    0.30),
+                          ),
+                        ),
+                      ],
+                    )
+                        : const SizedBox(),
+                  ),
+                ),
+              ],
             ),
-          );
+          ],
+        ),
+      ),
+    );
   }
 }
+
+// class _BuildMessagesList extends StatefulWidget {
+//   final String? groupId;
+//   final Function? onTap;
+//
+//   const _BuildMessagesList({Key? key, this.groupId, this.onTap})
+//       : super(key: key);
+//
+//   @override
+//   State<_BuildMessagesList> createState() => _BuildMessagesListState();
+// }
+//
+// class _BuildMessagesListState extends State<_BuildMessagesList> {
+//   List<QueryDocumentSnapshot> chatList = [];
+//   bool isSender = false;
+//   String sentTime = '';
+//   final FirebaseAuth auth = FirebaseAuth.instance;
+//   List<dynamic> chatMembers = [];
+//   Map<String, dynamic>? chatMemberData = {};
+//   List<dynamic> updatedChatMemberList = [];
+//   int isSeenCount = 0;
+//   dynamic lastChatMsg;
+//   dynamic mem;
+//
+//   late Map<String, dynamic>? replyMessage;
+//
+//   //int isDeliveredCount = 0;
+//   String chatId = '';
+//
+//   //get current user details from firebase firestore
+//   Future<void> updateMessageSeenStatus(
+//     String groupId,
+//     String messageId,
+//     String uid,
+//     String profilePicture,
+//     int index,
+//   ) async {
+//     // Update chat member data for seen and delivered
+//     if (uid == auth.currentUser!.uid) {
+//       chatMemberData = {
+//         "isSeen": true,
+//         "isDelivered": true,
+//         "uid": auth.currentUser!.uid,
+//         "profile_picture": profilePicture,
+//         "name": auth.currentUser!.displayName,
+//       };
+//
+//       // remove item from chat members and update with new data
+//       if (mem.length != null) {
+//         for (var i = 0; i < mem.length; i++) {
+//           if (i == index) {
+//             updatedChatMemberList.removeAt(i);
+//             updatedChatMemberList.add(chatMemberData);
+//             log('updated chat members - ${updatedChatMemberList[i]}');
+//           }
+//         }
+//       }
+//     }
+//
+//     // update new data to firebase firestore
+//     await FirebaseProvider.firestore
+//         .collection('groups')
+//         .doc(groupId)
+//         .collection('chats')
+//         .doc(messageId)
+//         .update({'members': updatedChatMemberList}).then(
+//             (value) => 'Message Seen Status Updated ');
+//   }
+//
+//   Future<void> updateIsSeenStatus(String groupId, String messageId) async {
+//     await FirebaseProvider.firestore
+//         .collection('groups')
+//         .doc(groupId)
+//         .collection('chats')
+//         .doc(messageId)
+//         .update({
+//       'isSeen': true,
+//     });
+//   }
+//
+//   // Future<void> updateIsDeliveredStatus(String groupId, String messageId) async {
+//   //   await FirebaseProvider.firestore
+//   //       .collection('groups')
+//   //       .doc(groupId)
+//   //       .collection('chats')
+//   //       .doc(messageId)
+//   //       .update({
+//   //     'isDelivered': true,
+//   //   }).then((value) => 'Status Updated Successfully');
+//   // }
+//
+//   void onSwipedMessage(Map<String, dynamic> message) {
+//     log("-------------- ${message['sendBy']} - ${message['message']}");
+//     setState(() {
+//       isReplying = true;
+//     });
+//     replyWhom = message['sendBy'];
+//     replyText = message['message'];
+//     FocusScope.of(context).unfocus();
+//     AppHelper.openKeyboard(context, focusNode);
+//   }
+//
+//   void replyToMessage(Map<String, dynamic> message) {
+//     setState(() {
+//       replyMessage = message;
+//       isReplying = true;
+//     });
+//   }
+//
+//   void onCancelReply() {
+//     setState(() {
+//       replyMessage = null;
+//       isReplying = false;
+//     });
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return StreamBuilder(
+//         stream: FirebaseProvider.getChatsMessages(widget.groupId!),
+//         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+//           switch (snapshot.connectionState) {
+//             case ConnectionState.none:
+//             case ConnectionState.waiting:
+//               return const Center(child: CircularProgressIndicator.adaptive());
+//             case ConnectionState.active:
+//             case ConnectionState.done:
+//               if (snapshot.hasData) {
+//                 chatList = snapshot.data!.docs;
+//                 for (var i = 0; i < chatList.length; i++) {
+//                   chatMap = chatList[i].data() as Map<String, dynamic>;
+//                   if (chatMap['type'] == 'text' ||
+//                       chatMap['type'] == 'img' ||
+//                       chatMap['type'] == 'pdf' ||
+//                       chatMap['type'] == 'doc' ||
+//                       chatMap['type'] == 'docx') {
+//                     lastChatMsg = chatList[0].data() as Map<String, dynamic>;
+//                     mem = lastChatMsg['members'];
+//                     chatMembers = chatMap['members'];
+//                     if (mem != null) {
+//                       updatedChatMemberList = mem;
+//                     }
+//                     // log('mem ------------ ${mem}');
+//                     // log('chat members ------------ ${chatMembers}');
+//                     // isSeenCount = 0;
+//                     // for (var j = 0; j < mem.length; j++) {
+//                     //   updateMessageSeenStatus(
+//                     //       '${widget.groupId}',
+//                     //       chatList[0].id,
+//                     //       mem[j]['uid'],
+//                     //       mem[j]['profile_picture'],
+//                     //       j);
+//                     //
+//                     //   //check lst msg seen count
+//                     //   // if (mem[j]['isSeen'] == true) {
+//                     //   //   isSeenCount += 1;
+//                     //   // }
+//                     //
+//                     // }
+//                     // if (isSeenCount == mem.length) {
+//                     //  // updateIsSeenStatus(widget.groupId, chatList[i].id);
+//                     // }
+//                   }
+//                 }
+//                 return Scrollbar(
+//                   child: Column(
+//                     children: [
+//                       Expanded(
+//                         child: ListView.builder(
+//                             itemCount: chatList.length,
+//                             physics: const AlwaysScrollableScrollPhysics(),
+//                             controller: _scrollController,
+//                             shrinkWrap: true,
+//                             reverse: true,
+//                             padding: const EdgeInsets.only(
+//                                 bottom: AppSizes.kDefaultPadding * 2),
+//                             itemBuilder: (context, index) {
+//                               chatMap = chatList[index].data()
+//                                   as Map<String, dynamic>;
+//                               replyMessage = chatList[index].data()
+//                                   as Map<String, dynamic>;
+//                               chatId = chatList[index].id;
+//                               isSender = chatMap['sendBy'] ==
+//                                       auth.currentUser!.displayName
+//                                   ? true
+//                                   : false;
+//                               sentTime = AppHelper.getStringTimeFromTimestamp(
+//                                   chatMap['time']);
+//                               var groupCreatedBy =
+//                                   FirebaseProvider.auth.currentUser!.uid ==
+//                                           chatMap['sendById']
+//                                       ? 'You'
+//                                       : chatMap['sendBy'];
+//                               return isSender
+//                                   ?
+//                                   // chatMap['type'] != 'notify' &&
+//                                   //                 chatMap['type'] != 'pdf' ||
+//                                   //             (chatMap['reply'] != null &&
+//                                   //                 chatMap['reply']['type'] !=
+//                                   //                     'reply')
+//                                   //         ? _senderTile(
+//                                   //             chatMap['message'],
+//                                   //             chatMap['type'],
+//                                   //             sentTime,
+//                                   //             groupCreatedBy,
+//                                   //             sentTime,
+//                                   //             // () {},
+//                                   //             chatMap['isSeen'],
+//                                   //             chatMap['isDelivered'])
+//                                   //         :
+//                                   chatMap['type'] == 'text' &&
+//                                           chatMap['type'] != 'notify' &&
+//                                           (chatMap['reply'] != null &&
+//                                               chatMap['reply']['type'] ==
+//                                                   'reply')
+//                                       ? SwipeTo(
+//                                           onRightSwipe: () {
+//                                             onSwipedMessage(
+//                                                 chatList[index].data()
+//                                                     as Map<String, dynamic>);
+//                                             // FocusScope.of(context).unfocus();
+//                                             // AppHelper.openKeyboard(
+//                                             //     context, focusNode);
+//                                           },
+//                                           child: _replySenderTile(
+//                                               chatMap['message'],
+//                                               chatMap['type'],
+//                                               sentTime,
+//                                               groupCreatedBy,
+//                                               sentTime,
+//                                               chatMap['reply']['replyWhom'],
+//                                               chatMap['reply']['message'],
+//                                               // () {},
+//                                               chatMap['isSeen'],
+//                                               true),
+//                                         )
+//                                       : SwipeTo(
+//                                           onRightSwipe: () {
+//                                             onSwipedMessage(
+//                                                 chatList[index].data()
+//                                                     as Map<String, dynamic>);
+//                                             // FocusScope.of(context).unfocus();
+//                                             // AppHelper.openKeyboard(
+//                                             //     context, focusNode);
+//                                           },
+//                                           child: _senderTile(
+//                                               chatMap['message'],
+//                                               chatMap['type'],
+//                                               sentTime,
+//                                               groupCreatedBy,
+//                                               sentTime,
+//                                               // () {},
+//                                               chatMap['isSeen'],
+//                                               true),
+//                                         )
+//                                   : chatMap['type'] != 'notify' &&
+//                                           chatMap['type'] == 'text' &&
+//                                           (chatMap['reply'] != null &&
+//                                               chatMap['reply']['type'] ==
+//                                                   'reply')
+//                                       ? SwipeTo(
+//                                           onRightSwipe: () {
+//                                             onSwipedMessage(
+//                                                 chatList[index].data()
+//                                                     as Map<String, dynamic>);
+//                                             // FocusScope.of(context).unfocus();
+//                                             // AppHelper.openKeyboard(
+//                                             //     context, focusNode);
+//                                           },
+//                                           child: _replyReceiverTile(
+//                                               chatMap['message'],
+//                                               chatMap['type'],
+//                                               sentTime,
+//                                               chatMap['sendBy'],
+//                                               chatMap['profile_picture'],
+//                                               groupCreatedBy,
+//                                               chatMap['reply']['replyWhom'],
+//                                               chatMap['reply']['message'],
+//                                               (message) {
+//                                             replyToMessage(
+//                                                 chatList[index].data()
+//                                                     as Map<String, dynamic>);
+//                                           }),
+//                                         )
+//                                       : chatMap['type'] != 'notify'
+//                                           ? SwipeTo(
+//                                               onRightSwipe: () {
+//                                                 onSwipedMessage(chatList[index]
+//                                                         .data()
+//                                                     as Map<String, dynamic>);
+//                                                 // FocusScope.of(context).unfocus();
+//                                                 // AppHelper.openKeyboard(
+//                                                 //     context, focusNode);
+//                                               },
+//                                               child: ReceiverTile(
+//                                                 onSwipedMessage: (chatMap) {
+//                                                   replyToMessage(chatMap);
+//                                                 },
+//                                                 message: chatMap['message'],
+//                                                 messageType: chatMap['type'],
+//                                                 sentTime: sentTime,
+//                                                 sentByName: chatMap['sendBy'],
+//                                                 sentByImageUrl:
+//                                                     chatMap['profile_picture'],
+//                                                 groupCreatedBy: groupCreatedBy,
+//                                               ),
+//                                             )
+//                                           : ReceiverTile(
+//                                               onSwipedMessage: (chatMap) {
+//                                                 replyToMessage(chatMap);
+//                                               },
+//                                               message: chatMap['message'],
+//                                               messageType: chatMap['type'],
+//                                               sentTime: sentTime,
+//                                               sentByName: chatMap['sendBy'],
+//                                               sentByImageUrl:
+//                                                   chatMap['profile_picture'],
+//                                               groupCreatedBy: groupCreatedBy,
+//                                             );
+//                             }),
+//                       ),
+//                     ],
+//                   ),
+//                 );
+//               }
+//               return const SizedBox();
+//           }
+//           // return const SizedBox();
+//         });
+//   }
+//
+//   Widget _replyReceiverTile(
+//       String message,
+//       String messageType,
+//       String sentTime,
+//       String sentByName,
+//       String sentByImageUrl,
+//       String groupCreatedBy,
+//       String replyWhom,
+//       String replyText,
+//       ValueChanged<Map<String, dynamic>> onSwipedMessage) {
+//     return messageType == 'notify'
+//         ? Row(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               Container(
+//                 margin: const EdgeInsets.symmetric(
+//                     vertical: AppSizes.kDefaultPadding),
+//                 alignment: Alignment.center,
+//                 padding: const EdgeInsets.symmetric(
+//                     horizontal: AppSizes.kDefaultPadding,
+//                     vertical: AppSizes.kDefaultPadding / 2),
+//                 decoration: BoxDecoration(
+//                     border: Border.all(width: 1, color: AppColors.lightGrey),
+//                     borderRadius:
+//                         BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+//                     color: AppColors.shimmer),
+//                 child: Text(
+//                   '$groupCreatedBy $message',
+//                   style: Theme.of(context).textTheme.bodySmall,
+//                 ),
+//               ),
+//             ],
+//           )
+//         : Padding(
+//             padding: const EdgeInsets.only(
+//                 left: AppSizes.kDefaultPadding / 4,
+//                 top: AppSizes.kDefaultPadding),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Padding(
+//                   padding: const EdgeInsets.only(
+//                       left: AppSizes.kDefaultPadding * 4 - 2),
+//                   child: Row(
+//                     children: [
+//                       Text(
+//                         sentByName,
+//                         style: Theme.of(context).textTheme.caption!.copyWith(
+//                             fontSize: 12, fontWeight: FontWeight.w600),
+//                       ),
+//                       Text(
+//                         ', $sentTime',
+//                         style: Theme.of(context)
+//                             .textTheme
+//                             .caption!
+//                             .copyWith(fontSize: 12),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//                 Row(
+//                   children: [
+//                     ClipRRect(
+//                       borderRadius:
+//                           BorderRadius.circular(AppSizes.cardCornerRadius * 3),
+//                       child: CachedNetworkImage(
+//                           width: 30,
+//                           height: 30,
+//                           fit: BoxFit.cover,
+//                           imageUrl: sentByImageUrl,
+//                           placeholder: (context, url) => const CircleAvatar(
+//                                 radius: 16,
+//                                 backgroundColor: AppColors.bg,
+//                               ),
+//                           errorWidget: (context, url, error) => CircleAvatar(
+//                                 radius: 16,
+//                                 backgroundColor: AppColors.bg,
+//                                 child: Text(
+//                                   sentByName
+//                                       .substring(0, 1)
+//                                       .toString()
+//                                       .toUpperCase(),
+//                                   style: Theme.of(context)
+//                                       .textTheme
+//                                       .bodyLarge!
+//                                       .copyWith(fontWeight: FontWeight.w600),
+//                                 ),
+//                               )),
+//                     ),
+//                     const SizedBox(
+//                       width: AppSizes.kDefaultPadding / 2,
+//                     ),
+//                     Padding(
+//                       padding: const EdgeInsets.only(
+//                         bottom: AppSizes.kDefaultPadding * 2,
+//                       ),
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           Container(
+//                             height: 50,
+//                             constraints: BoxConstraints(
+//                               maxWidth:
+//                                   MediaQuery.of(context).size.width * 0.45,
+//                             ),
+//                             decoration: const BoxDecoration(
+//                                 color: AppColors.bg,
+//                                 borderRadius: BorderRadius.only(
+//                                     topRight: Radius.circular(
+//                                         AppSizes.cardCornerRadius),
+//                                     bottomRight: Radius.circular(
+//                                         AppSizes.cardCornerRadius))),
+//                             child: Row(
+//                               children: [
+//                                 const SizedBox(
+//                                   width: AppSizes.kDefaultPadding / 4,
+//                                 ),
+//                                 Container(
+//                                   height: 50,
+//                                   width: 2,
+//                                   color: AppColors.primary,
+//                                 ),
+//                                 const SizedBox(
+//                                   width: AppSizes.kDefaultPadding / 2,
+//                                 ),
+//                                 Flexible(
+//                                   child: Padding(
+//                                     padding: const EdgeInsets.all(8.0),
+//                                     child: Column(
+//                                       crossAxisAlignment:
+//                                           CrossAxisAlignment.start,
+//                                       children: [
+//                                         Expanded(
+//                                           child: Text(
+//                                             replyWhom,
+//                                             maxLines: 1,
+//                                             overflow: TextOverflow.ellipsis,
+//                                             style: Theme.of(context)
+//                                                 .textTheme
+//                                                 .bodyMedium!
+//                                                 .copyWith(
+//                                                     color: AppColors.primary,
+//                                                     fontWeight:
+//                                                         FontWeight.bold),
+//                                           ),
+//                                         ),
+//                                         const SizedBox(
+//                                           height: AppSizes.kDefaultPadding / 4,
+//                                         ),
+//                                         Text(
+//                                           replyText,
+//                                           maxLines: 1,
+//                                           overflow: TextOverflow.ellipsis,
+//                                           style: Theme.of(context)
+//                                               .textTheme
+//                                               .bodyMedium!
+//                                               .copyWith(
+//                                                   color: AppColors.darkGrey),
+//                                         ),
+//                                       ],
+//                                     ),
+//                                   ),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                           ChatBubble(
+//                             padding: messageType == 'img' ||
+//                                     messageType == 'pdf' ||
+//                                     messageType == 'docx' ||
+//                                     messageType == 'doc'
+//                                 ? EdgeInsets.zero
+//                                 : null,
+//                             clipper: ChatBubbleClipper3(
+//                                 type: BubbleType.receiverBubble),
+//                             backGroundColor: AppColors.lightGrey,
+//                             alignment: Alignment.topLeft,
+//                             elevation: 0,
+//                             margin: const EdgeInsets.only(
+//                                 top: AppSizes.kDefaultPadding / 4),
+//                             child: Container(
+//                               constraints: BoxConstraints(
+//                                   maxWidth:
+//                                       MediaQuery.of(context).size.width * 0.65),
+//                               child: messageType == 'img'
+//                                   ? GestureDetector(
+//                                       onTap: () {
+//                                         context
+//                                             .push(ShowImage(imageUrl: message));
+//                                       },
+//                                       child: ClipRRect(
+//                                         borderRadius: BorderRadius.circular(
+//                                             AppSizes.cardCornerRadius),
+//                                         child: CachedNetworkImage(
+//                                           imageUrl: message,
+//                                           fit: BoxFit.contain,
+//                                           placeholder: (context, url) =>
+//                                               const CircularProgressIndicator
+//                                                   .adaptive(),
+//                                           errorWidget: (context, url, error) =>
+//                                               const CircularProgressIndicator
+//                                                   .adaptive(),
+//                                         ),
+//                                       ),
+//                                     )
+//                                   : messageType == 'text'
+//                                       ? Linkable(
+//                                           text: message,
+//                                           linkColor: Colors.blue,
+//                                         )
+//                                       : messageType == 'pdf'
+//                                           ? message != null
+//                                               ? Stack(
+//                                                   children: [
+//                                                     ClipRRect(
+//                                                       borderRadius: BorderRadius
+//                                                           .circular(AppSizes
+//                                                               .cardCornerRadius),
+//                                                       child: Container(
+//                                                         constraints: BoxConstraints(
+//                                                             maxWidth: MediaQuery.of(
+//                                                                         context)
+//                                                                     .size
+//                                                                     .width *
+//                                                                 0.45,
+//                                                             maxHeight:
+//                                                                 MediaQuery.of(
+//                                                                             context)
+//                                                                         .size
+//                                                                         .width *
+//                                                                     0.30),
+//                                                         child: const PDF()
+//                                                             .cachedFromUrl(
+//                                                           message,
+//                                                           maxAgeCacheObject:
+//                                                               const Duration(
+//                                                                   days: 30),
+//                                                           //duration of cache
+//                                                           placeholder:
+//                                                               (progress) => Center(
+//                                                                   child: Text(
+//                                                                       '$progress %')),
+//                                                           errorWidget: (error) =>
+//                                                               const Center(
+//                                                                   child: Text(
+//                                                                       'Loading...')),
+//                                                         ),
+//                                                       ),
+//                                                     ),
+//                                                     message != null
+//                                                         ? GestureDetector(
+//                                                             onTap: () {
+//                                                               context
+//                                                                   .push(ShowPdf(
+//                                                                 pdfPath:
+//                                                                     message,
+//                                                               ));
+//                                                             },
+//                                                             child: Container(
+//                                                               color: AppColors
+//                                                                   .transparent,
+//                                                               constraints: BoxConstraints(
+//                                                                   maxWidth: MediaQuery.of(
+//                                                                               context)
+//                                                                           .size
+//                                                                           .width *
+//                                                                       0.45,
+//                                                                   maxHeight: MediaQuery.of(
+//                                                                               context)
+//                                                                           .size
+//                                                                           .width *
+//                                                                       0.30),
+//                                                             ),
+//                                                           )
+//                                                         : const SizedBox(),
+//                                                   ],
+//                                                 )
+//                                               : const SizedBox()
+//                                           : const SizedBox(),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           );
+//   }
+//
+//   Widget _senderTile(
+//       String message,
+//       String messageType,
+//       String sentTime,
+//       String groupCreatedBy,
+//       String read,
+//       //VoidCallback? onTap,
+//       bool? isSeen,
+//       bool? isDelivered) {
+//     return messageType == 'notify'
+//         ? Row(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               Container(
+//                 margin: const EdgeInsets.symmetric(
+//                   vertical: AppSizes.kDefaultPadding / 2,
+//                 ),
+//                 alignment: Alignment.center,
+//                 padding: const EdgeInsets.symmetric(
+//                     horizontal: AppSizes.kDefaultPadding,
+//                     vertical: AppSizes.kDefaultPadding / 1.5),
+//                 decoration: BoxDecoration(
+//                     border: Border.all(width: 1, color: AppColors.lightGrey),
+//                     borderRadius:
+//                         BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+//                     color: AppColors.shimmer),
+//                 child: Text(
+//                   '$groupCreatedBy $message'.trim(),
+//                   style: Theme.of(context).textTheme.bodySmall,
+//                 ),
+//               ),
+//             ],
+//           )
+//         : GestureDetector(
+//             //onHorizontalDragEnd: (DragEndDetails) => onTap,
+//             child: Padding(
+//               padding: const EdgeInsets.only(
+//                   right: AppSizes.kDefaultPadding,
+//                   top: AppSizes.kDefaultPadding),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.end,
+//                 children: [
+//                   Padding(
+//                     padding: const EdgeInsets.only(right: 12),
+//                     child: Row(
+//                       crossAxisAlignment: CrossAxisAlignment.center,
+//                       mainAxisAlignment: MainAxisAlignment.end,
+//                       children: [
+//                         Text(
+//                           sentTime,
+//                           style: Theme.of(context)
+//                               .textTheme
+//                               .caption!
+//                               .copyWith(fontSize: 12),
+//                         ),
+//                         const SizedBox(
+//                           width: AppSizes.kDefaultPadding / 2,
+//                         ),
+//                         // isDelivered == true
+//                         //     ?
+//                         Icon(
+//                           Icons.done_all_rounded,
+//                           size: 16,
+//                           color: isSeen == true
+//                               ? AppColors.primary
+//                               : AppColors.grey,
+//                         )
+//                         // : const Icon(
+//                         //     Icons.check,
+//                         //     size: 16,
+//                         //     color: AppColors.grey,
+//                         //   )
+//                       ],
+//                     ),
+//                   ),
+//                   ChatBubble(
+//                     clipper: ChatBubbleClipper3(type: BubbleType.sendBubble),
+//                     backGroundColor: AppColors.secondary.withOpacity(0.3),
+//                     alignment: Alignment.topRight,
+//                     elevation: 0,
+//                     margin: const EdgeInsets.only(
+//                         top: AppSizes.kDefaultPadding / 4),
+//                     child: Container(
+//                       constraints: BoxConstraints(
+//                           maxWidth: MediaQuery.of(context).size.width * 0.65),
+//                       child: messageType == 'img'
+//                           ? GestureDetector(
+//                               onTap: () {
+//                                 Navigator.push(
+//                                     context,
+//                                     MaterialPageRoute(
+//                                         builder: (_) =>
+//                                             ShowImage(imageUrl: message)));
+//                               },
+//                               child: ClipRRect(
+//                                 borderRadius: BorderRadius.circular(
+//                                     AppSizes.cardCornerRadius),
+//                                 child: CachedNetworkImage(
+//                                   imageUrl: message,
+//                                   fit: BoxFit.cover,
+//                                   placeholder: (context, url) =>
+//                                       const CircularProgressIndicator
+//                                           .adaptive(),
+//                                   errorWidget: (context, url, error) =>
+//                                       const CircularProgressIndicator
+//                                           .adaptive(),
+//                                 ),
+//                               ),
+//                             )
+//                           : messageType == 'text'
+//                               ? Linkable(
+//                                   text: message.trim(),
+//                                   linkColor: Colors.blue,
+//                                 )
+//                               : messageType == 'pdf'
+//                                   ? Stack(
+//                                       children: [
+//                                         ClipRRect(
+//                                           borderRadius: BorderRadius.circular(
+//                                               AppSizes.cardCornerRadius),
+//                                           child: Container(
+//                                               constraints: BoxConstraints(
+//                                                   maxWidth:
+//                                                       MediaQuery.of(context)
+//                                                               .size
+//                                                               .width *
+//                                                           0.45,
+//                                                   maxHeight:
+//                                                       MediaQuery.of(context)
+//                                                               .size
+//                                                               .width *
+//                                                           0.30),
+//                                               child: const PDF().cachedFromUrl(
+//                                                 message,
+//                                                 maxAgeCacheObject:
+//                                                     const Duration(days: 30),
+//                                                 //duration of cache
+//                                                 placeholder: (progress) =>
+//                                                     Center(
+//                                                         child: Text(
+//                                                             '$progress %')),
+//                                                 errorWidget: (error) =>
+//                                                     const Center(
+//                                                         child:
+//                                                             Text('Loading...')),
+//                                               )
+//                                               // SfPdfViewer.network(
+//                                               //   message,
+//                                               //   canShowPaginationDialog: false,
+//                                               //   enableHyperlinkNavigation: false,
+//                                               //   canShowScrollHead: false,
+//                                               //   enableDoubleTapZooming: false,
+//                                               //   canShowScrollStatus: false,
+//                                               //   pageLayoutMode:
+//                                               //       PdfPageLayoutMode.single,
+//                                               //   canShowPasswordDialog: false,
+//                                               // ),
+//                                               ),
+//                                         ),
+//                                         GestureDetector(
+//                                           onTap: () {
+//                                             context.push(ShowPdf(
+//                                               pdfPath: message,
+//                                             ));
+//                                           },
+//                                           child: Container(
+//                                             color: AppColors.transparent,
+//                                             constraints: BoxConstraints(
+//                                                 maxWidth: MediaQuery.of(context)
+//                                                         .size
+//                                                         .width *
+//                                                     0.45,
+//                                                 maxHeight:
+//                                                     MediaQuery.of(context)
+//                                                             .size
+//                                                             .width *
+//                                                         0.30),
+//                                           ),
+//                                         ),
+//                                       ],
+//                                     )
+//                                   : const SizedBox(),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           );
+//   }
+//
+//   Widget _replySenderTile(
+//       String message,
+//       String messageType,
+//       String sentTime,
+//       String groupCreatedBy,
+//       String read,
+//       String replyWhom,
+//       String replyText,
+//       //VoidCallback? onTap,
+//       bool? isSeen,
+//       bool? isDelivered) {
+//     return messageType == 'notify'
+//         ? Row(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               Container(
+//                 margin: const EdgeInsets.symmetric(
+//                   vertical: AppSizes.kDefaultPadding / 2,
+//                 ),
+//                 alignment: Alignment.center,
+//                 padding: const EdgeInsets.symmetric(
+//                     horizontal: AppSizes.kDefaultPadding,
+//                     vertical: AppSizes.kDefaultPadding / 1.5),
+//                 decoration: BoxDecoration(
+//                     border: Border.all(width: 1, color: AppColors.lightGrey),
+//                     borderRadius:
+//                         BorderRadius.circular(AppSizes.cardCornerRadius / 2),
+//                     color: AppColors.shimmer),
+//                 child: Text(
+//                   '$groupCreatedBy $message'.trim(),
+//                   style: Theme.of(context).textTheme.bodySmall,
+//                 ),
+//               ),
+//             ],
+//           )
+//         : GestureDetector(
+//             //onHorizontalDragEnd: (DragEndDetails) => onTap,
+//             child: Padding(
+//               padding: const EdgeInsets.only(
+//                   right: AppSizes.kDefaultPadding,
+//                   top: AppSizes.kDefaultPadding),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.end,
+//                 children: [
+//                   Padding(
+//                     padding: const EdgeInsets.only(right: 12),
+//                     child: Row(
+//                       crossAxisAlignment: CrossAxisAlignment.center,
+//                       mainAxisAlignment: MainAxisAlignment.end,
+//                       children: [
+//                         Text(
+//                           sentTime,
+//                           style: Theme.of(context)
+//                               .textTheme
+//                               .caption!
+//                               .copyWith(fontSize: 12),
+//                         ),
+//                         const SizedBox(
+//                           width: AppSizes.kDefaultPadding / 2,
+//                         ),
+//                         // isDelivered == true
+//                         //?
+//                         Icon(
+//                           Icons.done_all_rounded,
+//                           size: 16,
+//                           color: isSeen == true
+//                               ? AppColors.primary
+//                               : AppColors.grey,
+//                         )
+//                         // : const Icon(
+//                         //     Icons.check,
+//                         //     size: 16,
+//                         //     color: AppColors.grey,
+//                         //   )
+//                       ],
+//                     ),
+//                   ),
+//                   Column(
+//                     crossAxisAlignment: CrossAxisAlignment.end,
+//                     children: [
+//                       Container(
+//                         height: 50,
+//                         constraints: BoxConstraints(
+//                           maxWidth: MediaQuery.of(context).size.width * 0.45,
+//                         ),
+//                         decoration: const BoxDecoration(
+//                             color: AppColors.bg,
+//                             borderRadius: BorderRadius.only(
+//                                 topRight:
+//                                     Radius.circular(AppSizes.cardCornerRadius),
+//                                 bottomRight: Radius.circular(
+//                                     AppSizes.cardCornerRadius))),
+//                         child: Row(
+//                           children: [
+//                             const SizedBox(
+//                               width: AppSizes.kDefaultPadding / 4,
+//                             ),
+//                             Container(
+//                               height: 50,
+//                               width: 2,
+//                               color: AppColors.primary,
+//                             ),
+//                             const SizedBox(
+//                               width: AppSizes.kDefaultPadding / 2,
+//                             ),
+//                             Flexible(
+//                               child: Padding(
+//                                 padding: const EdgeInsets.all(8.0),
+//                                 child: Column(
+//                                   crossAxisAlignment: CrossAxisAlignment.start,
+//                                   children: [
+//                                     Expanded(
+//                                       child: Text(
+//                                         replyWhom,
+//                                         maxLines: 1,
+//                                         overflow: TextOverflow.ellipsis,
+//                                         style: Theme.of(context)
+//                                             .textTheme
+//                                             .bodyMedium!
+//                                             .copyWith(
+//                                                 color: AppColors.primary,
+//                                                 fontWeight: FontWeight.bold),
+//                                       ),
+//                                     ),
+//                                     const SizedBox(
+//                                       height: AppSizes.kDefaultPadding / 4,
+//                                     ),
+//                                     Text(
+//                                       replyText,
+//                                       maxLines: 1,
+//                                       overflow: TextOverflow.ellipsis,
+//                                       style: Theme.of(context)
+//                                           .textTheme
+//                                           .bodyMedium!
+//                                           .copyWith(color: AppColors.darkGrey),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                       ChatBubble(
+//                         clipper:
+//                             ChatBubbleClipper3(type: BubbleType.sendBubble),
+//                         backGroundColor: AppColors.secondary.withOpacity(0.3),
+//                         alignment: Alignment.topRight,
+//                         elevation: 0,
+//                         margin: const EdgeInsets.only(
+//                             top: AppSizes.kDefaultPadding / 4),
+//                         child: Container(
+//                           constraints: BoxConstraints(
+//                               maxWidth:
+//                                   MediaQuery.of(context).size.width * 0.65),
+//                           child: messageType == 'img'
+//                               ? GestureDetector(
+//                                   onTap: () {
+//                                     Navigator.push(
+//                                         context,
+//                                         MaterialPageRoute(
+//                                             builder: (_) =>
+//                                                 ShowImage(imageUrl: message)));
+//                                   },
+//                                   child: ClipRRect(
+//                                     borderRadius: BorderRadius.circular(
+//                                         AppSizes.cardCornerRadius),
+//                                     child: CachedNetworkImage(
+//                                       imageUrl: message,
+//                                       fit: BoxFit.cover,
+//                                       placeholder: (context, url) =>
+//                                           const CircularProgressIndicator
+//                                               .adaptive(),
+//                                       errorWidget: (context, url, error) =>
+//                                           const CircularProgressIndicator
+//                                               .adaptive(),
+//                                     ),
+//                                   ),
+//                                 )
+//                               : messageType == 'text'
+//                                   ? Linkable(
+//                                       text: message.trim(),
+//                                       linkColor: AppColors.primary,
+//                                     )
+//                                   : messageType == 'pdf'
+//                                       ? Stack(
+//                                           children: [
+//                                             ClipRRect(
+//                                               borderRadius:
+//                                                   BorderRadius.circular(AppSizes
+//                                                       .cardCornerRadius),
+//                                               child: Container(
+//                                                   constraints: BoxConstraints(
+//                                                       maxWidth:
+//                                                           MediaQuery.of(context)
+//                                                                   .size
+//                                                                   .width *
+//                                                               0.45,
+//                                                       maxHeight:
+//                                                           MediaQuery.of(context)
+//                                                                   .size
+//                                                                   .width *
+//                                                               0.30),
+//                                                   child:
+//                                                       const PDF().cachedFromUrl(
+//                                                     message,
+//                                                     maxAgeCacheObject:
+//                                                         const Duration(
+//                                                             days: 30),
+//                                                     //duration of cache
+//                                                     placeholder: (progress) =>
+//                                                         Center(
+//                                                             child: Text(
+//                                                                 '$progress %')),
+//                                                     errorWidget: (error) =>
+//                                                         const Center(
+//                                                             child: Text(
+//                                                                 'Loading...')),
+//                                                   )
+//                                                   // SfPdfViewer.network(
+//                                                   //   message,
+//                                                   //   canShowPaginationDialog: false,
+//                                                   //   enableHyperlinkNavigation: false,
+//                                                   //   canShowScrollHead: false,
+//                                                   //   enableDoubleTapZooming: false,
+//                                                   //   canShowScrollStatus: false,
+//                                                   //   pageLayoutMode:
+//                                                   //       PdfPageLayoutMode.single,
+//                                                   //   canShowPasswordDialog: false,
+//                                                   // ),
+//                                                   ),
+//                                             ),
+//                                             GestureDetector(
+//                                               onTap: () {
+//                                                 context.push(ShowPdf(
+//                                                   pdfPath: message,
+//                                                 ));
+//                                               },
+//                                               child: Container(
+//                                                 color: AppColors.transparent,
+//                                                 constraints: BoxConstraints(
+//                                                     maxWidth:
+//                                                         MediaQuery.of(context)
+//                                                                 .size
+//                                                                 .width *
+//                                                             0.45,
+//                                                     maxHeight:
+//                                                         MediaQuery.of(context)
+//                                                                 .size
+//                                                                 .width *
+//                                                             0.30),
+//                                               ),
+//                                             ),
+//                                           ],
+//                                         )
+//                                       : const SizedBox(),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           );
+//   }
+// }
 
 class ShowImage extends StatelessWidget {
   final String imageUrl;
