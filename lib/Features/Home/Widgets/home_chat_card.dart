@@ -249,46 +249,48 @@ class HomeChatCard extends StatelessWidget {
                                       const SizedBox(
                                         height: AppSizes.kDefaultPadding / 2,
                                       ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          MembersStackOnGroup(
-                                            groupId: groupId,
-                                          ),
-                                          (snapshot.data != null &&
-                                                  snapshot.data.docs != null &&
-                                                  snapshot.data.docs.length >=
-                                                      1)
-                                              ? snapshot.data.docs[0]
-                                                          ['sendBy'] !=
-                                                      FirebaseProvider
-                                                          .auth
-                                                          .currentUser!
-                                                          .displayName
-                                                  ? snapshot.data.docs[0]
-                                                              ['type'] !=
-                                                          'notify'
-                                                      ? isSeenByUser == false
-                                                          ? Container(
-                                                              alignment:
-                                                                  Alignment
-                                                                      .center,
-                                                              width: 10,
-                                                              height: 10,
-                                                              decoration: BoxDecoration(
-                                                                  shape: BoxShape
-                                                                      .circle,
-                                                                  color: AppColors
-                                                                      .primary
-                                                                      .withOpacity(
-                                                                          0.9)),
-                                                            )
-                                                          : const SizedBox()
-                                                      : const SizedBox()
-                                                  : const SizedBox()
-                                              : const SizedBox()
-                                        ],
+                                      SizedBox(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            MembersStackOnGroup(
+                                              groupId: groupId,
+                                            ),
+                                            (snapshot.data != null &&
+                                                    snapshot.data.docs != null &&
+                                                    snapshot.data.docs.length >=
+                                                        1)
+                                                ? snapshot.data.docs[0]
+                                                            ['sendBy'] !=
+                                                        FirebaseProvider
+                                                            .auth
+                                                            .currentUser!
+                                                            .displayName
+                                                    ? snapshot.data.docs[0]
+                                                                ['type'] !=
+                                                            'notify'
+                                                        ? isSeenByUser == false
+                                                            ? Container(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                width: 10,
+                                                                height: 10,
+                                                                decoration: BoxDecoration(
+                                                                    shape: BoxShape
+                                                                        .circle,
+                                                                    color: AppColors
+                                                                        .primary
+                                                                        .withOpacity(
+                                                                            0.9)),
+                                                              )
+                                                            : const SizedBox()
+                                                        : const SizedBox()
+                                                    : const SizedBox()
+                                                : const SizedBox()
+                                          ],
+                                        ),
                                       )
                                     ],
                                   ),

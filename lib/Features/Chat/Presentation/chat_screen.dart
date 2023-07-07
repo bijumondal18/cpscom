@@ -1184,7 +1184,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: 50,
+                      height: 52,
                       constraints: BoxConstraints(
                         maxWidth:
                         MediaQuery.of(context).size.width * 0.45,
@@ -1202,7 +1202,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             width: AppSizes.kDefaultPadding / 4,
                           ),
                           Container(
-                            height: 50,
+                            height: 52,
                             width: 2,
                             color: AppColors.primary,
                           ),
@@ -1231,17 +1231,19 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                   ),
                                   const SizedBox(
-                                    height: AppSizes.kDefaultPadding / 4,
+                                    height: AppSizes.kDefaultPadding / 6,
                                   ),
-                                  Text(
-                                    replyText,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium!
-                                        .copyWith(
-                                        color: AppColors.darkGrey),
+                                  FittedBox(
+                                    child: Text(
+                                      replyText,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium!
+                                          .copyWith(
+                                          color: AppColors.darkGrey),
+                                    ),
                                   ),
                                 ],
                               ),
