@@ -157,6 +157,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                               .textTheme
                                               .bodyText2,
                                         )),
+
                                   ],
                                   onSelected: (value) {
                                     switch (value) {
@@ -165,6 +166,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                           groupId: widget.groupId,
                                         ));
                                         break;
+
                                     }
                                   },
                                 )

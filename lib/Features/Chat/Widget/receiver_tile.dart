@@ -34,7 +34,6 @@ class ReceiverTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
     return messageType == 'notify'
         ? Row(
             mainAxisAlignment: MainAxisAlignment.center,

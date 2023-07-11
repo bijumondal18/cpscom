@@ -8,11 +8,9 @@ import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/app_images.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/Chat/Widget/receiver_tile.dart';
-import 'package:cpscom_admin/Features/Chat/Widget/sender_tile.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Model/image_picker_model.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
-import 'package:cpscom_admin/Features/MessageInfo/Presentation/message_info_screen.dart';
-import 'package:cpscom_admin/Models/message.dart';
+import 'package:cpscom_admin/Features/ReportScreen/report_screen.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Utils/custom_bottom_modal_sheet.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
@@ -27,31 +25,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
-import 'package:flutter_chat_bubble/bubble_type.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
-import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_3.dart';
+import 'package:focused_menu_custom/focused_menu.dart';
+import 'package:focused_menu_custom/modals.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:linkable/linkable.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:swipe_to/swipe_to.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../Api/urls.dart';
 import '../../../Utils/app_preference.dart';
-
-final ScrollController _scrollController = ScrollController();
-// bool isDelivered = true;
-
-FocusNode focusNode = FocusNode();
-Map<String, dynamic> chatMap = <String, dynamic>{};
-bool isReplying = false;
-String replyWhom = '';
-String replyText = '';
+import '../../../Utils/custom_snack_bar.dart';
 
 class ChatScreen extends StatefulWidget {
-  // final Group group;
   final String groupId;
   bool? isAdmin;
 
@@ -62,6 +50,14 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  FocusNode focusNode = FocusNode();
+  Map<String, dynamic> chatMap = <String, dynamic>{};
+  bool isReplying = false;
+  String replyWhom = '';
+  String replyText = '';
+
   late TextEditingController msgController;
   final AppPreference preference = AppPreference();
   List<dynamic> membersList = [];
@@ -78,6 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   dynamic extension;
   dynamic extType;
+  Offset _tapPosition = Offset.zero;
 
   ////////////
   List<QueryDocumentSnapshot> chatList = [];
@@ -446,6 +443,8 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  String groupName = '';
+
   @override
   void dispose() {
     msgController.dispose();
@@ -465,6 +464,7 @@ class _ChatScreenState extends State<ChatScreen> {
               case ConnectionState.done:
                 if (snapshot.hasData) {
                   membersList = snapshot.data?['members'];
+                  groupName = '${snapshot.data!['name']}';
                   chatMembersList.clear();
                   for (var i = 0; i < membersList.length; i++) {
                     // Add all the members in  the group to check who viewed the message
@@ -533,6 +533,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                         .bodyText2!
                                         .copyWith(color: AppColors.black),
                                   )),
+                              PopupMenuItem(
+                                  value: 2,
+                                  child: Text(
+                                    'Report Group',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2!
+                                        .copyWith(color: AppColors.black),
+                                  )),
                               // PopupMenuItem(
                               //     value: 2,
                               //     child: Text(
@@ -559,6 +568,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                       groupId: widget.groupId,
                                       isAdmin: widget.isAdmin));
                                   break;
+                                case 2:
+                                  customSnackBar(context, 'Coming soon...');
+                                  break;
                                 // case 2:
                                 //   context.push(const GroupMediaScreen());
                                 //   break;
@@ -581,7 +593,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 },
                                 child: StreamBuilder(
                                     stream: FirebaseProvider.getChatsMessages(
-                                        widget.groupId!),
+                                        widget.groupId),
                                     builder: (context,
                                         AsyncSnapshot<QuerySnapshot> snapshot) {
                                       switch (snapshot.connectionState) {
@@ -717,9 +729,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                         onSwipedMessage(chatList[index].data() as Map<
                                                                             String,
                                                                             dynamic>);
-                                                                        // FocusScope.of(context).unfocus();
-                                                                        // AppHelper.openKeyboard(
-                                                                        //     context, focusNode);
                                                                       },
                                                                       child: _replySenderTile(
                                                                           chatMap['message'],
@@ -739,9 +748,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                         onSwipedMessage(chatList[index].data() as Map<
                                                                             String,
                                                                             dynamic>);
-                                                                        // FocusScope.of(context).unfocus();
-                                                                        // AppHelper.openKeyboard(
-                                                                        //     context, focusNode);
                                                                       },
                                                                       child: _senderTile(
                                                                           chatMap['message'],
@@ -768,32 +774,49 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                         onSwipedMessage(chatList[index].data() as Map<
                                                                             String,
                                                                             dynamic>);
-                                                                        // FocusScope.of(context).unfocus();
-                                                                        // AppHelper.openKeyboard(
-                                                                        //     context, focusNode);
                                                                       },
-                                                                      child: _replyReceiverTile(
-                                                                          chatMap[
-                                                                              'message'],
-                                                                          chatMap[
-                                                                              'type'],
-                                                                          sentTime,
-                                                                          chatMap[
-                                                                              'sendBy'],
-                                                                          chatMap[
-                                                                              'profile_picture'],
-                                                                          groupCreatedBy,
-                                                                          chatMap['reply']
-                                                                              [
-                                                                              'replyWhom'],
-                                                                          chatMap['reply']
-                                                                              [
-                                                                              'message'],
-                                                                          (message) {
-                                                                        replyToMessage(chatList[index].data() as Map<
-                                                                            String,
-                                                                            dynamic>);
-                                                                      }),
+                                                                      child:
+                                                                          FocusedMenuHolder(
+                                                                        openWithTap:
+                                                                            true,
+                                                                        menuItems: [
+                                                                          FocusedMenuItem(
+                                                                            title:
+                                                                                const Text('Report'),
+                                                                            trailingIcon:
+                                                                                const Icon(Icons.report_problem_rounded),
+                                                                            onPressed:
+                                                                                () {
+                                                                              context.push(ReportScreen(
+                                                                                chatMap: chatList[index].data() as Map<String, dynamic>,
+                                                                                groupId: widget.groupId,
+                                                                                groupName: groupName,
+                                                                              ));
+                                                                            },
+                                                                          ),
+                                                                        ],
+                                                                        onPressed:
+                                                                            () {},
+                                                                        child: _replyReceiverTile(
+                                                                            chatMap[
+                                                                                'message'],
+                                                                            chatMap[
+                                                                                'type'],
+                                                                            sentTime,
+                                                                            chatMap[
+                                                                                'sendBy'],
+                                                                            chatMap[
+                                                                                'profile_picture'],
+                                                                            groupCreatedBy,
+                                                                            chatMap['reply'][
+                                                                                'replyWhom'],
+                                                                            chatMap['reply']['message'],
+                                                                            (message) {
+                                                                          replyToMessage(chatList[index].data() as Map<
+                                                                              String,
+                                                                              dynamic>);
+                                                                        }),
+                                                                      ),
                                                                     )
                                                                   : chatMap['type'] !=
                                                                           'notify'
@@ -802,28 +825,38 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                               () {
                                                                             onSwipedMessage(chatList[index].data()
                                                                                 as Map<String, dynamic>);
-                                                                            // FocusScope.of(context).unfocus();
-                                                                            // AppHelper.openKeyboard(
-                                                                            //     context, focusNode);
                                                                           },
                                                                           child:
-                                                                              ReceiverTile(
-                                                                            onSwipedMessage:
-                                                                                (chatMap) {
-                                                                              replyToMessage(chatMap);
-                                                                            },
-                                                                            message:
-                                                                                chatMap['message'],
-                                                                            messageType:
-                                                                                chatMap['type'],
-                                                                            sentTime:
-                                                                                sentTime,
-                                                                            sentByName:
-                                                                                chatMap['sendBy'],
-                                                                            sentByImageUrl:
-                                                                                chatMap['profile_picture'],
-                                                                            groupCreatedBy:
-                                                                                groupCreatedBy,
+                                                                              FocusedMenuHolder(
+                                                                            openWithTap:
+                                                                                true,
+                                                                            menuItems: [
+                                                                              FocusedMenuItem(
+                                                                                title: const Text('Report'),
+                                                                                trailingIcon: const Icon(Icons.report_problem_rounded),
+                                                                                onPressed: () {
+                                                                                  context.push(ReportScreen(
+                                                                                    chatMap: chatList[index].data() as Map<String, dynamic>,
+                                                                                    groupId: widget.groupId,
+                                                                                    groupName: groupName,
+                                                                                  ));
+                                                                                },
+                                                                              ),
+                                                                            ],
+                                                                            onPressed:
+                                                                                () {},
+                                                                            child:
+                                                                                ReceiverTile(
+                                                                              onSwipedMessage: (chatMap) {
+                                                                                replyToMessage(chatMap);
+                                                                              },
+                                                                              message: chatMap['message'],
+                                                                              messageType: chatMap['type'],
+                                                                              sentTime: sentTime,
+                                                                              sentByName: chatMap['sendBy'],
+                                                                              sentByImageUrl: chatMap['profile_picture'],
+                                                                              groupCreatedBy: groupCreatedBy,
+                                                                            ),
                                                                           ),
                                                                         )
                                                                       : ReceiverTile(
@@ -999,9 +1032,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                                               return ListTile(
                                                                 //dense: true,
                                                                 onTap: () {
+                                                                  //todo remove current user from list to mention.
+                                                                  log('${_filteredSuggestions[index - 1]}');
                                                                   final mention =
                                                                       _filteredSuggestions[
-                                                                          index];
+                                                                              index]
+                                                                          [
+                                                                          'name'];
                                                                   final text =
                                                                       msgController
                                                                           .text;
@@ -1943,6 +1980,47 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           );
   }
+
+// void _showContextMenu(BuildContext context) async {
+//   final RenderObject? overlay =
+//       Overlay.of(context)?.context.findRenderObject();
+//
+//   final result = await showMenu(
+//       context: context,
+//       position: RelativeRect.fromRect(
+//           Rect.fromLTWH(_tapPosition.dx, _tapPosition.dy, 100, 100),
+//           Rect.fromLTWH(0, 0, overlay!.paintBounds.size.width,
+//               overlay!.paintBounds.size.height)),
+//       items: [
+//         const PopupMenuItem(
+//           child: Text('Add Me'),
+//           value: "fav",
+//         ),
+//         const PopupMenuItem(
+//           child: Text('Close'),
+//           value: "close",
+//         )
+//       ]);
+//   // perform action on selected menu item
+//   switch (result) {
+//     case 'fav':
+//       print("fav");
+//       break;
+//     case 'close':
+//       print('close');
+//       Navigator.pop(context);
+//       break;
+//   }
+// }
+
+// void _getTapPosition(TapDownDetails tapPosition) {
+//   final RenderBox referenceBox = context.findRenderObject() as RenderBox;
+//   setState(() {
+//     _tapPosition = referenceBox.globalToLocal(tapPosition
+//         .globalPosition); // store the tap positon in offset variable
+//     //print(_tapPosition);
+//   });
+// }
 }
 
 // class _BuildMessagesList extends StatefulWidget {

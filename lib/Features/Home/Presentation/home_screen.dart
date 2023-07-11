@@ -118,7 +118,6 @@ class _BuildChatListState extends State<BuildChatList> {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
         Responsive.isMobile(context)
