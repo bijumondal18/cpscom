@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/MyProfile/Presentation/my_profile_screen.dart';
+import 'package:cpscom_admin/Features/SoftwareLicencesScreen/Presentation/licenses_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Commons/app_colors.dart';
@@ -36,6 +37,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                 .headlineLarge!
                 .copyWith(color: AppColors.black, fontWeight: FontWeight.w600),
           ),
+          Spacer(),
           StreamBuilder(
               stream: firebaseProvider.getCurrentUserDetails(),
               builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
@@ -84,6 +86,28 @@ class _HomeHeaderState extends State<HomeHeader> {
                 }
                 return const SizedBox();
               }),
+          PopupMenuButton(
+            icon: const Icon(
+              Icons.more_vert,
+              size: 24,
+              color: AppColors.darkGrey,
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                  value: 1,
+                  child: Text(
+                    'Software Licences',
+                    style: Theme.of(context).textTheme.bodyText2,
+                  )),
+            ],
+            onSelected: (value) {
+              switch (value) {
+                case 1:
+                  context.push(const LicenseScreen());
+                  break;
+              }
+            },
+          )
         ],
       ),
     );
