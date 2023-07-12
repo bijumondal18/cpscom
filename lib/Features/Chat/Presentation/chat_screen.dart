@@ -787,10 +787,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                                 const Icon(Icons.report_problem_rounded),
                                                                             onPressed:
                                                                                 () {
+                                                                              var map = chatList[index].data() as Map<String, dynamic>;
                                                                               context.push(ReportScreen(
                                                                                 chatMap: chatList[index].data() as Map<String, dynamic>,
                                                                                 groupId: widget.groupId,
                                                                                 groupName: groupName,
+                                                                                message: map['message'],
                                                                               ));
                                                                             },
                                                                           ),
@@ -835,10 +837,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                                 title: const Text('Report'),
                                                                                 trailingIcon: const Icon(Icons.report_problem_rounded),
                                                                                 onPressed: () {
+                                                                                  var map = chatList[index].data() as Map<String, dynamic>;
                                                                                   context.push(ReportScreen(
                                                                                     chatMap: chatList[index].data() as Map<String, dynamic>,
                                                                                     groupId: widget.groupId,
                                                                                     groupName: groupName,
+                                                                                    message: map['message'],
                                                                                   ));
                                                                                 },
                                                                               ),

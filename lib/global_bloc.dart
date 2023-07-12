@@ -1,3 +1,4 @@
+import 'package:cpscom_admin/Features/ReportScreen/Bloc/user_report_bloc.dart';
 import 'package:cpscom_admin/Features/Splash/Bloc/get_started_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,7 @@ class GlobalBloc extends StatelessWidget {
     return MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => GetStartedBloc()),
+          BlocProvider(create: (_) => UserReportBloc()),
         ],
         child: child);
   }

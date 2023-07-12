@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cpscom_admin/Api/urls.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Model/response_image_upload.dart';
+import 'package:cpscom_admin/Features/ReportScreen/Model/user_report_model.dart';
 import 'package:cpscom_admin/Features/Splash/Model/get_started_response_model.dart';
 import 'package:cpscom_admin/Models/send_notification_model.dart';
 import 'package:dio/dio.dart';
@@ -27,6 +28,28 @@ class ApiProvider {
         log("Exception occurred: $error stackTrace: $stacktrace");
       }
       return ResponseGetStarted.withError(
+          "You're offline. Please check your Internet connection.");
+    }
+  }
+
+
+  ///--------- User Report Api Call  -----///
+  Future<UserReportResponseModel> userReport(
+      Map<String, dynamic> requestUserReport) async {
+    try {
+      Response response = await _dio.post(Urls.baseUrl + Urls.userReport,
+          data: requestUserReport);
+      if (kDebugMode) {
+        log('--------Response User Report : $response');
+      }
+      return response.statusCode == 200
+          ? UserReportResponseModel.fromJson(response.data)
+          : throw Exception('Something Went Wrong');
+    } catch (error, stacktrace) {
+      if (kDebugMode) {
+        log("Exception occurred: $error stackTrace: $stacktrace");
+      }
+      return UserReportResponseModel.withError(
           "You're offline. Please check your Internet connection.");
     }
   }
