@@ -60,8 +60,10 @@ class _ReportScreenState extends State<ReportScreen> {
         },
         builder: (context, state) {
           return Scaffold(
-            appBar: const CustomAppBar(
-              title: 'Report to this user',
+            appBar: CustomAppBar(
+              title: widget.isGroupReport == true
+                  ? 'Report this group'
+                  : 'Report to this user',
             ),
             body: SafeArea(
               child: Padding(
