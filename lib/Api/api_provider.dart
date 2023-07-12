@@ -37,10 +37,10 @@ class ApiProvider {
   Future<UserReportResponseModel> userReport(
       Map<String, dynamic> requestUserReport) async {
     try {
-      Response response = await _dio.post(Urls.baseUrl + Urls.userReport,
+      Response response = await _dio.post(Urls.baseUrl + Urls.report,
           data: requestUserReport);
       if (kDebugMode) {
-        log('--------Response User Report : $response');
+        log('--------Response Report : $response');
       }
       return response.statusCode == 200
           ? UserReportResponseModel.fromJson(response.data)
@@ -53,7 +53,6 @@ class ApiProvider {
           "You're offline. Please check your Internet connection.");
     }
   }
-
 
   Future<ResponseSendNotification> sendNotification(
       RequestSendNotification requestSendNotification) async {

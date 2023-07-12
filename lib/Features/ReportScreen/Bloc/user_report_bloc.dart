@@ -6,14 +6,14 @@ import 'package:cpscom_admin/Features/ReportScreen/Repository/user_report_reposi
 import 'package:equatable/equatable.dart';
 
 part 'user_report_event.dart';
+
 part 'user_report_state.dart';
 
 class UserReportBloc extends Bloc<UserReportEvent, UserReportState> {
   UserReportBloc() : super(UserReportStateInitial()) {
-
     final UserReportRepository repository = UserReportRepository();
 
-    on<UserReportSubmittedEvent>((event, emit) async{
+    on<UserReportSubmittedEvent>((event, emit) async {
       final Map<String, dynamic> request = {
         "group_id": event.groupId,
         "group_name": event.groupName,
@@ -22,7 +22,8 @@ class UserReportBloc extends Bloc<UserReportEvent, UserReportState> {
         "report_to_id": event.reportToId,
         "report_to_name": event.reportToName,
         "report_reason": event.reportReason,
-        "message": event.message
+        "message": event.message,
+        "type": event.type
       };
 
       try {
@@ -36,7 +37,6 @@ class UserReportBloc extends Bloc<UserReportEvent, UserReportState> {
       } on NetworkError {
         emit(const UserReportStateFailed("No Internet Connection"));
       }
-
     });
   }
 }

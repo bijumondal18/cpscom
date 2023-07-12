@@ -16,6 +16,7 @@ class UserReportSubmittedEvent extends UserReportEvent {
   final String reportToName;
   final String reportReason;
   final String message;
+  final String type;
 
   const UserReportSubmittedEvent(
       this.groupId,
@@ -25,7 +26,8 @@ class UserReportSubmittedEvent extends UserReportEvent {
       this.reportToId,
       this.reportToName,
       this.reportReason,
-      this.message);
+      this.message,
+      this.type);
 
   @override
   List<Object> get props => [
@@ -36,6 +38,7 @@ class UserReportSubmittedEvent extends UserReportEvent {
         reportToId,
         reportToName,
         reportReason,
-        message
+        message,
+        type
       ];
 }

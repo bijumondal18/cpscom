@@ -18,13 +18,15 @@ class ReportScreen extends StatefulWidget {
   final String groupId;
   final String groupName;
   final String message;
+  final bool isGroupReport;
 
   const ReportScreen(
       {super.key,
       required this.chatMap,
       required this.groupId,
       required this.groupName,
-      required this.message});
+      required this.message,
+      required this.isGroupReport});
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -93,18 +95,36 @@ class _ReportScreenState extends State<ReportScreen> {
                         label: 'Submit',
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            context.read<UserReportBloc>().add(
-                                UserReportSubmittedEvent(
-                                    widget.groupId,
-                                    widget.groupName,
-                                    reportById,
-                                    FirebaseProvider
-                                        .auth.currentUser!.displayName
-                                        .toString(),
-                                    widget.chatMap['sendById'],
-                                    widget.chatMap['sendBy'],
-                                    _reasonController.text,
-                                    widget.message));
+                            if (widget.isGroupReport == true) {
+                              context.read<UserReportBloc>().add(
+                                  UserReportSubmittedEvent(
+                                      widget.groupId,
+                                      widget.groupName,
+                                      reportById,
+                                      FirebaseProvider
+                                          .auth.currentUser!.displayName
+                                          .toString(),
+                                      widget.chatMap['sendById'],
+                                      widget.chatMap['sendBy'],
+                                      _reasonController.text,
+                                      widget.message,
+                                      'group-report'));
+                            } else {
+                              context.read<UserReportBloc>().add(
+                                  UserReportSubmittedEvent(
+                                      widget.groupId,
+                                      widget.groupName,
+                                      reportById,
+                                      FirebaseProvider
+                                          .auth.currentUser!.displayName
+                                          .toString(),
+                                      widget.chatMap['sendById'],
+                                      widget.chatMap['sendBy'],
+                                      _reasonController.text,
+                                      widget.message,
+                                      'user-report'));
+                            }
+
                             // log('group name - ${widget.groupName} \n group id - ${widget.groupId} \n Report By ID - $reportById  \n report to name -  ${widget.chatMap['sendBy']} \n report to id  -  ${widget.chatMap['sendById']} \n Reason - ${_reasonController.text} \n message - ${widget.message}');
                           }
                         })

@@ -569,7 +569,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                       isAdmin: widget.isAdmin));
                                   break;
                                 case 2:
-                                  customSnackBar(context, 'Coming soon...');
+                                  context.push(ReportScreen(
+                                    chatMap: chatMap,
+                                    groupId: widget.groupId,
+                                    groupName: groupName,
+                                    message: '',
+                                    isGroupReport: true,
+                                  ));
                                   break;
                                 // case 2:
                                 //   context.push(const GroupMediaScreen());
@@ -793,6 +799,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                                 groupId: widget.groupId,
                                                                                 groupName: groupName,
                                                                                 message: map['message'],
+                                                                                isGroupReport: false,
                                                                               ));
                                                                             },
                                                                           ),
@@ -843,6 +850,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                                     groupId: widget.groupId,
                                                                                     groupName: groupName,
                                                                                     message: map['message'],
+                                                                                    isGroupReport: false,
                                                                                   ));
                                                                                 },
                                                                               ),
