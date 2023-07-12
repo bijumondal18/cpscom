@@ -15,7 +15,6 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'Commons/theme.dart';
 import 'Features/Splash/Presentation/splash_screen.dart';
 import 'firebase_options.dart';
-
 late final FirebaseApp firebaseApp;
 
 @pragma('vm:entry-point')
@@ -26,8 +25,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (kDebugMode) {
     log("Handling a background message messageID: ${message.messageId}");
     log("Handling a background message data: ${message.data.toString()}");
-    log("Handling a background message notification: ${message.notification!
-        .title}");
+    log("Handling a background message notification: ${message.notification!.title}");
   }
 }
 
@@ -60,17 +58,33 @@ Future<void> main() async {
   //   name: AppStrings.appNameInFirebase,
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
-  firebaseApp = await Firebase.initializeApp(
-      name: AppStrings.appNameInFirebase,
-      options: DefaultFirebaseOptions.currentPlatform
-  );
+  const firebaseConfig = {
+    "apiKey": "AIzaSyALDdPTyjaE6qad-Uc-hslCrR2PfknvhWE",
+    "authDomain": "cpscom-aea2f.firebaseapp.com",
+    "projectId": "cpscom-aea2f",
+    "storageBucket": "cpscom-aea2f.appspot.com",
+    "messagingSenderId": "985033228014",
+    "appId": "1:985033228014:web:b48e1ab07d656c29b93dff"
+  };
 
-  // Request Permission for Push Notification
-  requestPermission();
+  if (Platform.isIOS || Platform.isAndroid) {
+    firebaseApp = await Firebase.initializeApp(
+        name: AppStrings.appNameInFirebase,
+        options: DefaultFirebaseOptions.currentPlatform);
+  } else {
+    var app = await Firebase.initializeApp(
+        name: firebaseConfig.toString(),
+        options: DefaultFirebaseOptions.currentPlatform);
+  }
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
-  LocalNotificationService.initialize();
+  if (Platform.isIOS || Platform.isAndroid) {
+    // Request Permission for Push Notification
+    requestPermission();
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    LocalNotificationService.initialize();
+  }
 
   // Main Function to run the application
   runApp(const MyApp());
@@ -98,8 +112,7 @@ class _MyAppState extends State<MyApp> {
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (kDebugMode) {
         log('This method only call when app is terminated');
-        log('Initial Message - ${FirebaseMessaging.instance
-            .getInitialMessage()}');
+        log('Initial Message - ${FirebaseMessaging.instance.getInitialMessage()}');
       }
       if (message != null) {
         if (kDebugMode) {
@@ -110,8 +123,7 @@ class _MyAppState extends State<MyApp> {
     //2: This method only call when app is in foreground or app must be opened
     FirebaseMessaging.onMessage.listen((message) {
       if (kDebugMode) {
-        log(
-            'This method only call when app is in foreground or app must be opened');
+        log('This method only call when app is in foreground or app must be opened');
       }
       if (message.notification != null) {
         if (kDebugMode) {
@@ -126,8 +138,7 @@ class _MyAppState extends State<MyApp> {
     //3: This method only call when app is in background and not terminated
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       if (kDebugMode) {
-        log(
-            'This method only call when app is in background and not terminated');
+        log('This method only call when app is in background and not terminated');
       }
       if (message.notification != null) {
         if (kDebugMode) {

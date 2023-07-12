@@ -69,8 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   File? imageFile;
 
-  String _mention = '';
-  List<dynamic> _filteredSuggestions = [];
+  bool _mention = false;
   List<String> _suggestions = [];
 
   dynamic extension;
@@ -415,33 +414,34 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void mention(List<String> suggestions) {
+    // msgController.addListener(() {
+    setState(() {
+      final text = msgController.text;
+      // final index = text.lastIndexOf('@');
+      // if (index >= 0 && index < text.length - 1) {
+      //   final mention = text.substring(index + 1);
+      //   if (mention != _mention) {
+      //     _mention = mention;
+      //     _filteredSuggestions = suggestions.where((value) {
+      //       return value.startsWith(_mention);
+      //     }).toList();
+      //     // _filteredSuggestions.removeWhere((element) =>
+      //     //     element['uid'] == _auth.currentUser!.uid);
+      //     // log('filtered list - $_filteredSuggestions');
+      //   }
+      // } else {
+      //   _mention = '';
+      //   _filteredSuggestions = [];
+      // }
+    });
+    // });
+  }
+
   @override
   void initState() {
     super.initState();
     msgController = TextEditingController();
-    // Future.delayed(const Duration(milliseconds: 1500), () {
-    //   msgController.addListener(() {
-    //     setState(() {
-    //       final text = msgController.text;
-    //       final index = text.lastIndexOf('@');
-    //       if (index >= 0 && index < text.length - 1) {
-    //         final mention = text.substring(index + 1);
-    //         if (mention != _mention) {
-    //           _mention = mention;
-    //           _filteredSuggestions = _suggestions.where((value) {
-    //             return value.startsWith(_mention);
-    //           }).toList();
-    //           // _filteredSuggestions.removeWhere((element) =>
-    //           //     element['uid'] == _auth.currentUser!.uid);
-    //           // log('filtered list - $_filteredSuggestions');
-    //         }
-    //       } else {
-    //         _mention = '';
-    //         _filteredSuggestions = [];
-    //       }
-    //     });
-    //   });
-    // });
   }
 
   String groupName = '';
@@ -467,14 +467,17 @@ class _ChatScreenState extends State<ChatScreen> {
                   membersList = snapshot.data?['members'];
                   groupName = '${snapshot.data!['name']}';
                   chatMembersList.clear();
+                  _suggestions.clear();
+
                   for (var i = 0; i < membersList.length; i++) {
                     // Add all the members in  the group to check who viewed the message
                     // isSeen by whom and isDelivered to whom
-                    _suggestions.add(membersList[i]['name']);
-                    _suggestions.removeWhere(
-                        (element) => element == _auth.currentUser!.displayName);
-                    log('suggestions --------------------  $_suggestions');
-
+                    if (membersList[i]['uid'] != _auth.currentUser!.uid) {
+                      _suggestions.add(membersList[i]['name']);
+                    }
+                    // _suggestions.removeWhere(
+                    //     (element) => element == _auth.currentUser!.displayName);
+                    //log('suggestions --------------------  $_suggestions');
                     try {
                       chatMembersList.add({
                         "uid": membersList[i]['uid'],
@@ -1040,10 +1043,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     isReplying == true
                                                         ? const CustomDivider()
                                                         : const SizedBox(),
-                                                    _mention != ''
-                                                        ? ListView.builder(
+                                                    Visibility(
+                                                      visible: _mention,
+                                                      child: SizedBox(
+                                                        height: 250,
+                                                        child: ListView.builder(
                                                             itemCount:
-                                                                _filteredSuggestions
+                                                                _suggestions
                                                                     .length,
                                                             shrinkWrap: true,
                                                             itemBuilder:
@@ -1051,37 +1057,27 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                     index) {
                                                               return ListTile(
                                                                 onTap: () {
-                                                                  final mention =
-                                                                      _suggestions[index];
-
-                                                                  final indx = msgController
-                                                                      .text
-                                                                      .lastIndexOf(
-                                                                          '@');
-                                                                  msgController
-                                                                          .value =
-                                                                      TextEditingValue(
-                                                                          text: msgController
-                                                                              .text.substring(0, indx + 1) +
-                                                                              mention,
-                                                                          selection:
-                                                                              TextSelection.collapsed(
-                                                                            offset:
-                                                                            msgController
-                                                                                .text.length,
-                                                                          ));
+                                                                  setState(() {
+                                                                    _mention =
+                                                                        false;
+                                                                    msgController
+                                                                        .text = msgController
+                                                                            .text +
+                                                                        membersList[index]
+                                                                            [
+                                                                            'name'];
+                                                                  });
                                                                 },
                                                                 contentPadding:
                                                                     EdgeInsets
                                                                         .zero,
                                                                 title: Text(
-                                                                    membersList[
-                                                                            index]
-                                                                        [
-                                                                        'name']),
+                                                                    _suggestions[
+                                                                        index]),
                                                               );
-                                                            })
-                                                        : const SizedBox(),
+                                                            }),
+                                                      ),
+                                                    ),
                                                     CustomTextField(
                                                       controller: msgController,
                                                       hintText:
@@ -1093,6 +1089,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           TextInputType
                                                               .multiline,
                                                       minLines: 1,
+                                                      onChanged: (value) {
+                                                        if (value![
+                                                                value.length -
+                                                                    1] ==
+                                                            '@') {
+                                                          setState(() {
+                                                            _mention = true;
+                                                          });
+                                                        }
+                                                      },
                                                       isBorder: false,
                                                       onCancelReply:
                                                           onCancelReply,
@@ -1842,7 +1848,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Flexible(
-                                     flex: 1,
+                                      flex: 1,
                                       child: Text(
                                         replyWhom,
                                         maxLines: 1,
@@ -1867,7 +1873,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium!
-                                            .copyWith(color: AppColors.darkGrey),
+                                            .copyWith(
+                                                color: AppColors.darkGrey),
                                       ),
                                     ),
                                   ],
