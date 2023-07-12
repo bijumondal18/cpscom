@@ -71,10 +71,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String _mention = '';
   List<dynamic> _filteredSuggestions = [];
+  List<String> _suggestions = [];
 
   dynamic extension;
   dynamic extType;
-  Offset _tapPosition = Offset.zero;
 
   ////////////
   List<QueryDocumentSnapshot> chatList = [];
@@ -90,7 +90,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   late Map<String, dynamic>? replyMessage;
 
-  //int isDeliveredCount = 0;
   String chatId = '';
 
   //get current user details from firebase firestore
@@ -156,7 +155,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // }
 
   void onSwipedMessage(Map<String, dynamic> message) {
-    log("-------------- ${message['sendBy']} - ${message['message']}");
+    // log("-------------- ${message['sendBy']} - ${message['message']}");
     setState(() {
       isReplying = true;
     });
@@ -416,31 +415,33 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // late _BuildMessagesListState __buildChatList;
-
   @override
   void initState() {
     super.initState();
     msgController = TextEditingController();
-    msgController.addListener(() {
-      setState(() {
-        final text = msgController.text;
-        final index = text.lastIndexOf('@');
-        if (index >= 0 && index < text.length - 1) {
-          final mention = text.substring(index + 1);
-          if (mention != _mention) {
-            _mention = mention;
-            _filteredSuggestions = membersList.where((value) {
-              log('${value['name']}');
-              return value['name'].startsWith(_mention);
-            }).toList();
-          }
-        } else {
-          _mention = '';
-          _filteredSuggestions = [];
-        }
-      });
-    });
+    // Future.delayed(const Duration(milliseconds: 1500), () {
+    //   msgController.addListener(() {
+    //     setState(() {
+    //       final text = msgController.text;
+    //       final index = text.lastIndexOf('@');
+    //       if (index >= 0 && index < text.length - 1) {
+    //         final mention = text.substring(index + 1);
+    //         if (mention != _mention) {
+    //           _mention = mention;
+    //           _filteredSuggestions = _suggestions.where((value) {
+    //             return value.startsWith(_mention);
+    //           }).toList();
+    //           // _filteredSuggestions.removeWhere((element) =>
+    //           //     element['uid'] == _auth.currentUser!.uid);
+    //           // log('filtered list - $_filteredSuggestions');
+    //         }
+    //       } else {
+    //         _mention = '';
+    //         _filteredSuggestions = [];
+    //       }
+    //     });
+    //   });
+    // });
   }
 
   String groupName = '';
@@ -469,6 +470,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   for (var i = 0; i < membersList.length; i++) {
                     // Add all the members in  the group to check who viewed the message
                     // isSeen by whom and isDelivered to whom
+                    _suggestions.add(membersList[i]['name']);
+                    _suggestions.removeWhere(
+                        (element) => element == _auth.currentUser!.displayName);
+                    log('suggestions --------------------  $_suggestions');
+
                     try {
                       chatMembersList.add({
                         "uid": membersList[i]['uid'],
@@ -1036,36 +1042,33 @@ class _ChatScreenState extends State<ChatScreen> {
                                                         : const SizedBox(),
                                                     _mention != ''
                                                         ? ListView.builder(
-                                                            itemCount: 5,
+                                                            itemCount:
+                                                                _filteredSuggestions
+                                                                    .length,
                                                             shrinkWrap: true,
                                                             itemBuilder:
                                                                 (context,
                                                                     index) {
                                                               return ListTile(
-                                                                //dense: true,
                                                                 onTap: () {
-                                                                  //todo remove current user from list to mention.
-                                                                  log('${_filteredSuggestions[index - 1]}');
                                                                   final mention =
-                                                                      _filteredSuggestions[
-                                                                              index]
-                                                                          [
-                                                                          'name'];
-                                                                  final text =
-                                                                      msgController
-                                                                          .text;
-                                                                  final indx = text
+                                                                      _suggestions[index];
+
+                                                                  final indx = msgController
+                                                                      .text
                                                                       .lastIndexOf(
                                                                           '@');
                                                                   msgController
                                                                           .value =
                                                                       TextEditingValue(
-                                                                          text: text.substring(0, indx + 1) +
+                                                                          text: msgController
+                                                                              .text.substring(0, indx + 1) +
                                                                               mention,
                                                                           selection:
                                                                               TextSelection.collapsed(
                                                                             offset:
-                                                                                text.length,
+                                                                            msgController
+                                                                                .text.length,
                                                                           ));
                                                                 },
                                                                 contentPadding:
