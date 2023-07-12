@@ -1841,7 +1841,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    FittedBox(
+                                    Flexible(
+                                     flex: 1,
                                       child: Text(
                                         replyWhom,
                                         maxLines: 1,
@@ -1857,7 +1858,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     const SizedBox(
                                       height: AppSizes.kDefaultPadding / 6,
                                     ),
-                                    FittedBox(
+                                    Flexible(
+                                      flex: 1,
                                       child: Text(
                                         replyText,
                                         maxLines: 1,
