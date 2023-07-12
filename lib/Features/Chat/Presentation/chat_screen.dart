@@ -1825,7 +1825,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: Row(
                           children: [
                             const SizedBox(
-                              width: AppSizes.kDefaultPadding / 4,
+                              width: AppSizes.kDefaultPadding / 6,
                             ),
                             Container(
                               height: 50,
@@ -1841,7 +1841,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
+                                    FittedBox(
                                       child: Text(
                                         replyWhom,
                                         maxLines: 1,
@@ -1855,16 +1855,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ),
                                     ),
                                     const SizedBox(
-                                      height: AppSizes.kDefaultPadding / 4,
+                                      height: AppSizes.kDefaultPadding / 6,
                                     ),
-                                    Text(
-                                      replyText,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(color: AppColors.darkGrey),
+                                    FittedBox(
+                                      child: Text(
+                                        replyText,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(color: AppColors.darkGrey),
+                                      ),
                                     ),
                                   ],
                                 ),
