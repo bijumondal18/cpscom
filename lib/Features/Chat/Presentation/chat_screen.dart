@@ -475,9 +475,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     if (membersList[i]['uid'] != _auth.currentUser!.uid) {
                       _suggestions.add(membersList[i]['name']);
                     }
-                    // _suggestions.removeWhere(
-                    //     (element) => element == _auth.currentUser!.displayName);
-                    //log('suggestions --------------------  $_suggestions');
+
                     try {
                       chatMembersList.add({
                         "uid": membersList[i]['uid'],
