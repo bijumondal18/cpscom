@@ -340,6 +340,7 @@ class _ChatScreenState extends State<ChatScreen> {
           };
           setState(() {
             isReplying = false;
+            _mention = false;
           });
         } else {
           chatData = {
@@ -355,6 +356,7 @@ class _ChatScreenState extends State<ChatScreen> {
           };
           setState(() {
             isReplying = false;
+            _mention = false;
           });
         }
         await FirebaseProvider.firestore
@@ -1207,6 +1209,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                             '${_auth.currentUser!.displayName}',
                                           );
                                           msgController.clear();
+
                                           SchedulerBinding.instance
                                               .addPostFrameCallback((_) {
                                             _scrollController.animateTo(0.0,
