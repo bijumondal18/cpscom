@@ -992,7 +992,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                       4,
                                                                 ),
                                                                 Container(
-                                                                  height: 50,
+                                                                  height: 54,
                                                                   width: 2,
                                                                   color: AppColors
                                                                       .primary,
@@ -1014,7 +1014,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                           CrossAxisAlignment
                                                                               .start,
                                                                       children: [
-                                                                        Expanded(
+                                                                        Flexible(
+                                                                          flex: 1,
                                                                           child:
                                                                               Text(
                                                                             replyWhom,
@@ -1030,16 +1031,19 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                           height:
                                                                               AppSizes.kDefaultPadding / 4,
                                                                         ),
-                                                                        Text(
-                                                                          replyText,
-                                                                          maxLines:
-                                                                              1,
-                                                                          overflow:
-                                                                              TextOverflow.ellipsis,
-                                                                          style: Theme.of(context)
-                                                                              .textTheme
-                                                                              .bodyMedium!
-                                                                              .copyWith(color: AppColors.darkGrey),
+                                                                        Flexible(
+                                                                          flex: 1,
+                                                                          child: Text(
+                                                                            replyText,
+                                                                            maxLines:
+                                                                                1,
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                            style: Theme.of(context)
+                                                                                .textTheme
+                                                                                .bodyMedium!
+                                                                                .copyWith(color: AppColors.darkGrey),
+                                                                          ),
                                                                         ),
                                                                       ],
                                                                     ),
