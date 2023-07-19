@@ -907,11 +907,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                               itemCount: _suggestions.length,
                                               shrinkWrap: true,
                                               itemBuilder: (context, index) {
-                                                print("mention--> $_mention");
                                                 return ListTile(
                                                   onTap: () {
                                                     setState(() {
-                                                      // _mention = false;
                                                       context
                                                           .read<
                                                           UserMentionCubit>()
@@ -965,7 +963,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   children: [
                                                     isReplying == true
                                                         ? Container(
-                                                            height: 50,
+                                                            height: 56,
                                                             constraints:
                                                                 BoxConstraints(
                                                               maxWidth:
@@ -1029,7 +1027,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                                         ),
                                                                         const SizedBox(
                                                                           height:
-                                                                              AppSizes.kDefaultPadding / 4,
+                                                                              AppSizes.kDefaultPadding / 8,
                                                                         ),
                                                                         Flexible(
                                                                           flex: 1,
