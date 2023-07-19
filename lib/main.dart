@@ -80,7 +80,6 @@ Future<void> main() async {
   if (Platform.isIOS || Platform.isAndroid) {
     // Request Permission for Push Notification
     requestPermission();
-
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
     LocalNotificationService.initialize();

@@ -1,5 +1,6 @@
 import 'package:cpscom_admin/Features/ReportScreen/Bloc/user_report_bloc.dart';
 import 'package:cpscom_admin/Features/Splash/Bloc/get_started_bloc.dart';
+import 'package:cpscom_admin/Utils/cubit/user_mention_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +16,7 @@ class GlobalBloc extends StatelessWidget {
         providers: [
           BlocProvider(create: (_) => GetStartedBloc()),
           BlocProvider(create: (_) => UserReportBloc()),
+          BlocProvider(create: (_) => UserMentionCubit()),
         ],
         child: child);
   }

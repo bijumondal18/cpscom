@@ -12,6 +12,7 @@ import 'package:cpscom_admin/Features/GroupInfo/Model/image_picker_model.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Presentation/group_info_screen.dart';
 import 'package:cpscom_admin/Features/ReportScreen/report_screen.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
+import 'package:cpscom_admin/Utils/cubit/user_mention_cubit.dart';
 import 'package:cpscom_admin/Utils/custom_bottom_modal_sheet.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
@@ -24,6 +25,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:focused_menu_custom/focused_menu.dart';
@@ -340,7 +342,6 @@ class _ChatScreenState extends State<ChatScreen> {
           };
           setState(() {
             isReplying = false;
-            _mention = false;
           });
         } else {
           chatData = {
@@ -356,7 +357,6 @@ class _ChatScreenState extends State<ChatScreen> {
           };
           setState(() {
             isReplying = false;
-            _mention = false;
           });
         }
         await FirebaseProvider.firestore
@@ -414,30 +414,6 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       }
     }
-  }
-
-  void mention(List<String> suggestions) {
-    // msgController.addListener(() {
-    setState(() {
-      final text = msgController.text;
-      // final index = text.lastIndexOf('@');
-      // if (index >= 0 && index < text.length - 1) {
-      //   final mention = text.substring(index + 1);
-      //   if (mention != _mention) {
-      //     _mention = mention;
-      //     _filteredSuggestions = suggestions.where((value) {
-      //       return value.startsWith(_mention);
-      //     }).toList();
-      //     // _filteredSuggestions.removeWhere((element) =>
-      //     //     element['uid'] == _auth.currentUser!.uid);
-      //     // log('filtered list - $_filteredSuggestions');
-      //   }
-      // } else {
-      //   _mention = '';
-      //   _filteredSuggestions = [];
-      // }
-    });
-    // });
   }
 
   @override
@@ -910,6 +886,60 @@ class _ChatScreenState extends State<ChatScreen> {
                                     }),
                               ),
                             ),
+                            BlocBuilder<UserMentionCubit,
+                                    UserMentionState>(
+                                    builder: (context, state) {
+                                      if(state is UserMentionLoadedState) {
+                                        return Container(
+                                          margin: const EdgeInsets.only(
+                                              left: 5, right: 40),
+                                          decoration: const BoxDecoration(
+                                              color: AppColors.bg,
+                                              borderRadius: BorderRadius.only(
+                                                  topRight: Radius.circular(
+                                                      AppSizes.cardCornerRadius),
+                                                  bottomRight: Radius.circular(
+                                                      AppSizes
+                                                          .cardCornerRadius))),
+                                          padding: const EdgeInsets.only(left: 20),
+                                          height: 250,
+                                          child: ListView.builder(
+                                              itemCount: _suggestions.length,
+                                              shrinkWrap: true,
+                                              itemBuilder: (context, index) {
+                                                print("mention--> $_mention");
+                                                return ListTile(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      // _mention = false;
+                                                      context
+                                                          .read<
+                                                          UserMentionCubit>()
+                                                          .mentionCubit(
+                                                          "test");
+                                                      msgController.text =
+                                                          msgController.text +
+                                                              membersList[index]
+                                                              ['name'];
+                                                      msgController.selection =
+                                                          TextSelection.fromPosition(
+                                                              TextPosition(
+                                                                  offset:
+                                                                  msgController
+                                                                      .text
+                                                                      .length));
+                                                    });
+                                                  },
+                                                  contentPadding: EdgeInsets.zero,
+                                                  title:
+                                                  Text(_suggestions[index]),
+                                                );
+                                              }),
+                                        );
+                                      }
+                                      return const SizedBox.shrink();
+                                    },
+                                  ),
                             Stack(
                               children: [
                                 const CustomDivider(),
@@ -933,7 +963,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                               Expanded(
                                                 child: Column(
                                                   children: [
-                                                    //BuildReplyWidget(),
                                                     isReplying == true
                                                         ? Container(
                                                             height: 50,
@@ -1043,41 +1072,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     isReplying == true
                                                         ? const CustomDivider()
                                                         : const SizedBox(),
-                                                    Visibility(
-                                                      visible: _mention,
-                                                      child: SizedBox(
-                                                        height: 250,
-                                                        child: ListView.builder(
-                                                            itemCount:
-                                                                _suggestions
-                                                                    .length,
-                                                            shrinkWrap: true,
-                                                            itemBuilder:
-                                                                (context,
-                                                                    index) {
-                                                              return ListTile(
-                                                                onTap: () {
-                                                                  setState(() {
-                                                                    _mention =
-                                                                        false;
-                                                                    msgController
-                                                                        .text = msgController
-                                                                            .text +
-                                                                        membersList[index]
-                                                                            [
-                                                                            'name'];
-                                                                  });
-                                                                },
-                                                                contentPadding:
-                                                                    EdgeInsets
-                                                                        .zero,
-                                                                title: Text(
-                                                                    _suggestions[
-                                                                        index]),
-                                                              );
-                                                            }),
-                                                      ),
-                                                    ),
                                                     CustomTextField(
                                                       controller: msgController,
                                                       hintText:
@@ -1090,14 +1084,29 @@ class _ChatScreenState extends State<ChatScreen> {
                                                               .multiline,
                                                       minLines: 1,
                                                       onChanged: (value) {
-                                                        if (value![
-                                                                value.length -
-                                                                    1] ==
-                                                            '@') {
-                                                          setState(() {
-                                                            _mention = true;
-                                                          });
-                                                        }
+                                                        context
+                                                            .read<
+                                                                UserMentionCubit>()
+                                                            .mentionCubit(
+                                                                value!);
+
+                                                        // print("onchanged--> $value");
+                                                        // if (value![value.length -1] =='@') {
+                                                        //   print("@pandey ${value![
+                                                        //   value.length -1]}");
+                                                        //   setState(() {
+                                                        //     _mention = true;
+                                                        //   });
+                                                        // } else if(value.isNotEmpty && value![value.length -1]  !='@' ){
+                                                        //   setState(() {
+                                                        //     _mention = false;
+                                                        //   });
+                                                        // } else if(value[0]==''){
+                                                        //   setState(() {
+                                                        //     _mention = false;
+                                                        //   });
+                                                        //
+                                                        // }
                                                       },
                                                       isBorder: false,
                                                       onCancelReply:
