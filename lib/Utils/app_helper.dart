@@ -11,6 +11,7 @@ class AppHelper {
     return outputDate;
   }
 
+<<<<<<< Updated upstream
   static void openKeyboard (BuildContext context, FocusNode focusNode) {
     FocusScope.of(context).requestFocus(focusNode);
   }
@@ -22,6 +23,15 @@ class AppHelper {
     return outputFormat;
   }
 
+=======
+  static String getStringDateFromTimestamp(int timestamp) {
+    DateTime inputDate =
+        DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: false);
+    var outputFormat = DateFormat('dd MMM, yyyy').format(inputDate);
+    return outputFormat;
+  }
+
+>>>>>>> Stashed changes
   static String getStringTimeFromTimestamp(int timestamp) {
     DateTime inputDate =
         DateTime.fromMillisecondsSinceEpoch(timestamp, isUtc: false);
@@ -75,6 +85,7 @@ extension DateHelper on DateTime {
     return now.difference(this).inDays;
   }
 }
+<<<<<<< Updated upstream
 
 extension ListExtensions<T> on List<T> {
   Iterable<T> whereWithIndex(bool test(T element, int index)) {
@@ -101,3 +112,5 @@ String capitalize(String value) {
   if(value.trim().isEmpty) return "";
   return "${value[0].toUpperCase()}${value.substring(1).toLowerCase()}";
 }
+=======
+>>>>>>> Stashed changes

@@ -1,20 +1,31 @@
+<<<<<<< Updated upstream
 import 'dart:developer';
+=======
+import 'dart:io';
+>>>>>>> Stashed changes
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
 import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/MyProfile/Presentation/my_profile_screen.dart';
+<<<<<<< Updated upstream
 import 'package:cpscom_admin/Features/SoftwareLicencesScreen/Presentation/licenses_screen.dart';
+=======
+>>>>>>> Stashed changes
 import 'package:flutter/material.dart';
 
 import '../../../Commons/app_colors.dart';
 import '../../../Commons/app_sizes.dart';
 
 class HomeHeader extends StatefulWidget {
+<<<<<<< Updated upstream
   final List<dynamic>? groupsList;
 
   const HomeHeader({Key? key, this.groupsList}) : super(key: key);
+=======
+  const HomeHeader({Key? key}) : super(key: key);
+>>>>>>> Stashed changes
 
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
@@ -37,21 +48,32 @@ class _HomeHeaderState extends State<HomeHeader> {
                 .headlineLarge!
                 .copyWith(color: AppColors.black, fontWeight: FontWeight.w600),
           ),
+<<<<<<< Updated upstream
           Spacer(),
+=======
+>>>>>>> Stashed changes
           StreamBuilder(
               stream: firebaseProvider.getCurrentUserDetails(),
               builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.none:
                   case ConnectionState.waiting:
+<<<<<<< Updated upstream
                     return const CircularProgressIndicator.adaptive();
+=======
+                    return  const CircularProgressIndicator.adaptive();
+>>>>>>> Stashed changes
                   default:
                     if (snapshot.hasData) {
                       // bool isAdmin = snapshot.data?['isAdmin'];
                       return GestureDetector(
+<<<<<<< Updated upstream
                         onTap: () => context.push(MyProfileScreen(
                           groupsList: widget.groupsList,
                         )),
+=======
+                        onTap: () => context.push(const MyProfileScreen()),
+>>>>>>> Stashed changes
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(
                               AppSizes.cardCornerRadius * 10),
@@ -86,6 +108,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                 }
                 return const SizedBox();
               }),
+<<<<<<< Updated upstream
           PopupMenuButton(
             icon: const Icon(
               Icons.more_vert,
@@ -108,6 +131,8 @@ class _HomeHeaderState extends State<HomeHeader> {
               }
             },
           )
+=======
+>>>>>>> Stashed changes
         ],
       ),
     );

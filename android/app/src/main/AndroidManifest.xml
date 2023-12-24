@@ -3,19 +3,27 @@
 
     <application
         android:name="${applicationName}"
+<<<<<<< Updated upstream
         android:icon="@mipmap/ic_launcher"
         android:label="cpscom">
 
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_launcher" />
+=======
+        android:icon="@mipmap/launcher_icon"
+        android:label="cpscom">
+>>>>>>> Stashed changes
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
+<<<<<<< Updated upstream
             android:showWhenLocked="true"
             android:turnScreenOn="true"
+=======
+>>>>>>> Stashed changes
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
@@ -25,7 +33,11 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+<<<<<<< Updated upstream
 
+=======
+            
+>>>>>>> Stashed changes
             <!-- disable Analytics collection and FCM auto initialization-->
             <meta-data
                 android:name="firebase_messaging_auto_init_enabled"

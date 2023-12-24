@@ -155,6 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(
                 height: AppSizes.kDefaultPadding,
               ),
+<<<<<<< Updated upstream
               // TextButton(
               //     style: TextButton.styleFrom(
               //       minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
@@ -164,6 +165,17 @@ class _LoginScreenState extends State<LoginScreen> {
               //       'Forgot Password?',
               //       style: Theme.of(context).textTheme.bodyMedium,
               //     ))
+=======
+              TextButton(
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
+                  ),
+                  onPressed: () {},
+                  child: Text(
+                    'Forgot Password?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ))
+>>>>>>> Stashed changes
             ],
           ),
         ),
@@ -196,6 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           Expanded(
               flex: 2,
+<<<<<<< Updated upstream
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -331,6 +344,123 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ],
+=======
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                padding: const EdgeInsets.symmetric(
+                    vertical: AppSizes.kDefaultPadding * 2,
+                    horizontal: AppSizes.kDefaultPadding * 3),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Welcome Back!',
+                      style: Theme.of(context)
+                          .textTheme
+                          .displayMedium!
+                          .copyWith(
+                              color: AppColors.black,
+                              fontWeight: FontWeight.w700),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: AppSizes.kDefaultPadding / 2,
+                    ),
+                    Text(
+                      'Sign in to continue',
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                          color: AppColors.black, fontWeight: FontWeight.w400),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(
+                      height: AppSizes.kDefaultPadding * 6,
+                    ),
+                    CustomTextField(
+                      controller: emailController,
+                      hintText: 'Email Address',
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Invalid Email Address';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(
+                      height: AppSizes.kDefaultPadding * 2,
+                    ),
+                    CustomTextField(
+                      controller: passwordController,
+                      hintText: 'Password',
+                      obscureText: true,
+                      keyboardType: TextInputType.visiblePassword,
+                      validator: (value) {
+                        if (value!.isEmpty) {
+                          return 'Invalid Password';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(
+                      height: AppSizes.kDefaultPadding * 6,
+                    ),
+                    BlocProvider(
+                      create: (context) => LoginBloc(),
+                      child: BlocConsumer<LoginBloc, LoginState>(
+                        listener: (context, state) {
+                          if (state is LoginStateLoaded) {
+                            context.pushAndRemoveUntil(const HomeScreen());
+                          }
+                          if (state is LoginStateFailed) {
+                            customSnackBar(
+                              context,
+                              state.errorMsg,
+                            );
+                          }
+                        },
+                        builder: (context, state) {
+                          if (state is LoginStateLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator.adaptive(),
+                            );
+                          }
+                          if (state is LoginStateInitial) {
+                            return FullButton(
+                                label: 'Login',
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    BlocProvider.of<LoginBloc>(context).add(
+                                        LoginSubmittedEvent(
+                                            email: emailController.text.trim(),
+                                            password: passwordController.text
+                                                .trim()));
+                                  }
+                                  return null;
+                                });
+                          }
+                          return Container();
+                        },
+                      ),
+                    ),
+                    const SizedBox(
+                      height: AppSizes.kDefaultPadding,
+                    ),
+                    TextButton(
+                        style: TextButton.styleFrom(
+                          minimumSize:
+                              const Size.fromHeight(AppSizes.buttonHeight),
+                        ),
+                        onPressed: () {},
+                        child: Text(
+                          'Forgot Password?',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ))
+                  ],
+                ),
+>>>>>>> Stashed changes
               ))
         ],
       ),
@@ -375,6 +505,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Expanded(
                     flex: 2,
+<<<<<<< Updated upstream
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -516,6 +647,130 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ],
+=======
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSizes.kDefaultPadding * 2,
+                          horizontal: AppSizes.kDefaultPadding * 3),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Welcome Back!',
+                            style: Theme.of(context)
+                                .textTheme
+                                .displayMedium!
+                                .copyWith(
+                                    color: AppColors.black,
+                                    fontWeight: FontWeight.w700),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding / 2,
+                          ),
+                          Text(
+                            'Sign in to continue',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge!
+                                .copyWith(
+                                    color: AppColors.black,
+                                    fontWeight: FontWeight.w400),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding * 6,
+                          ),
+                          CustomTextField(
+                            controller: emailController,
+                            hintText: 'Email Address',
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Invalid Email Address';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding * 2,
+                          ),
+                          CustomTextField(
+                            controller: passwordController,
+                            hintText: 'Password',
+                            obscureText: true,
+                            keyboardType: TextInputType.visiblePassword,
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Invalid Password';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding * 6,
+                          ),
+                          BlocProvider(
+                            create: (context) => LoginBloc(),
+                            child: BlocConsumer<LoginBloc, LoginState>(
+                              listener: (context, state) {
+                                if (state is LoginStateLoaded) {
+                                  context
+                                      .pushAndRemoveUntil(const HomeScreen());
+                                }
+                                if (state is LoginStateFailed) {
+                                  customSnackBar(
+                                    context,
+                                    state.errorMsg,
+                                  );
+                                }
+                              },
+                              builder: (context, state) {
+                                if (state is LoginStateLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator.adaptive(),
+                                  );
+                                }
+                                if (state is LoginStateInitial) {
+                                  return FullButton(
+                                      label: 'Login',
+                                      onPressed: () {
+                                        if (_formKey.currentState!.validate()) {
+                                          BlocProvider.of<LoginBloc>(context)
+                                              .add(LoginSubmittedEvent(
+                                                  email: emailController.text
+                                                      .trim(),
+                                                  password: passwordController
+                                                      .text
+                                                      .trim()));
+                                        }
+                                        return null;
+                                      });
+                                }
+                                return Container();
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding,
+                          ),
+                          TextButton(
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size.fromHeight(
+                                    AppSizes.buttonHeight),
+                              ),
+                              onPressed: () {},
+                              child: Text(
+                                'Forgot Password?',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ))
+                        ],
+                      ),
+>>>>>>> Stashed changes
                     ))
               ],
             ),

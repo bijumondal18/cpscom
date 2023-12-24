@@ -112,12 +112,47 @@ class _ChangeGroupDescriptionState extends State<ChangeGroupDescription> {
                         onPressed: () {
                           FirebaseProvider.updateGroupDescription(
                               widget.groupId, descController.text);
+<<<<<<< Updated upstream
                           customSnackBar(
                             context,
                             'Group Description Updated Successfully',
                           );
                           context.pop(GroupInfoScreen(groupId: widget.groupId),
                               descController.text);
+=======
+                            customSnackBar(
+                              context,
+                              'Group Description Updated Successfully',
+                            );
+                            context.pop(
+                                GroupInfoScreen(groupId: widget.groupId),
+                                descController.text);
+
+                          // if (_formKey.currentState!.validate()) {
+                          // FirebaseFirestore.instance
+                          //     .collection('users')
+                          //     .doc(FirebaseAuth.instance.currentUser!.uid)
+                          //     .collection('groups')
+                          //     .doc(widget.groupId)
+                          //     .update({
+                          //   "group_description": descController.text
+                          // }).then((value) {
+                          //   customSnackBar(
+                          //     context,
+                          //     'Group Description Updated Successfully',
+                          //   );
+                          //   context.pop(
+                          //       GroupInfoScreen(groupId: widget.groupId),
+                          //       descController.text);
+                          // });
+                          // FirebaseFirestore.instance
+                          //     .collection('groups')
+                          //     .doc(widget.groupId)
+                          //     .update({
+                          //   "group_description": descController.text
+                          // });
+                          //}
+>>>>>>> Stashed changes
                         }),
                     Container(
                       alignment: Alignment.center,

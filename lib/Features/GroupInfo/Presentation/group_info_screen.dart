@@ -1,11 +1,16 @@
+<<<<<<< Updated upstream
 import 'dart:developer';
+=======
+>>>>>>> Stashed changes
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cpscom_admin/Api/firebase_provider.dart';
+import 'package:cpscom_admin/Commons/app_icons.dart';
 import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Features/AddMembers/Presentation/add_members_screen.dart';
+import 'package:cpscom_admin/Features/GroupInfo/Bloc/image_upload_bloc.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupDescription/Presentation/chnage_group_description.dart';
 import 'package:cpscom_admin/Features/GroupInfo/ChangeGroupTitle/Presentation/change_group_title.dart';
 import 'package:cpscom_admin/Utils/custom_snack_bar.dart';
@@ -13,12 +18,20 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_card.dart';
 import 'package:cpscom_admin/Widgets/custom_confirmation_dialog.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
+<<<<<<< Updated upstream
+=======
+import 'package:cpscom_admin/Widgets/custom_image_picker.dart';
+>>>>>>> Stashed changes
 import 'package:cpscom_admin/Widgets/participants_card.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+<<<<<<< Updated upstream
+=======
+import 'package:flutter_bloc/flutter_bloc.dart';
+>>>>>>> Stashed changes
 import 'package:image_picker/image_picker.dart';
 
 import '../../../Commons/app_images.dart';
@@ -38,6 +51,81 @@ class GroupInfoScreen extends StatefulWidget {
 
 class _GroupInfoScreenState extends State<GroupInfoScreen> {
   List<dynamic> membersList = [];
+  List<Map<String, dynamic>> memberList = [];
+  int? indx;
+
+  final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+  File? image;
+  String imageUrl = "";
+
+  Future pickImageFromGallery() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.gallery,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      setState(() => this.image = imageTemp);
+      uploadImage();
+      //uploadFile(imageTemp, DateTime.now().millisecondsSinceEpoch.toString());
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  Future pickImageFromCamera() async {
+    try {
+      final image = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+          maxHeight: 512,
+          maxWidth: 512,
+          imageQuality: 75);
+      if (image == null) return;
+      final imageTemp = File(image.path);
+      setState(() => this.image = imageTemp);
+      await uploadImage();
+      //uploadFile(imageTemp, DateTime.now().millisecondsSinceEpoch.toString());
+    } on PlatformException catch (e) {
+      if (kDebugMode) {
+        print('Failed to pick image: $e');
+      }
+    }
+  }
+
+  UploadTask uploadFile(File image, String fileName) {
+    Reference reference = firebaseStorage.ref().child('group_profile_pictures/$fileName');
+    UploadTask uploadTask = reference.putFile(image);
+    return uploadTask;
+  }
+
+  Future uploadImage() async {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    UploadTask uploadTask = uploadFile(image!, fileName);
+    try {
+      TaskSnapshot snapshot = await uploadTask;
+      imageUrl = await snapshot.ref.getDownloadURL();
+      await FirebaseProvider.firestore
+          .collection('users')
+          .doc(FirebaseProvider.auth.currentUser!.uid)
+          .collection('groups')
+          .doc(widget.groupId)
+          .update({'profile_picture': imageUrl});
+      await FirebaseProvider.firestore
+          .collection('groups')
+          .doc(widget.groupId)
+          .update({'profile_picture': imageUrl});
+
+      // for (var i = 0; i<memberList.length;i++){
+      //
+      // }
+      customSnackBar(context, 'Group Image Updated Successfully');
+      //print('image url - ----------- $imageUrl');
+    } on FirebaseException catch (e) {}
+  }
 
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
   File? image;
@@ -117,6 +205,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(FirebaseProvider.auth.currentUser!.uid);
     return Scaffold(
         body: StreamBuilder(
             stream: FirebaseProvider.getGroupDetails(widget.groupId),
@@ -132,6 +221,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                       if (membersList[i]['isSuperAdmin'] == true) {
                         superAdminUid = membersList[i]['uid'];
                       }
+<<<<<<< Updated upstream
                     }
                     return Scaffold(
                       backgroundColor: AppColors.bg,
@@ -151,10 +241,251 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                   itemBuilder: (context) => [
                                     PopupMenuItem(
                                         value: 1,
+=======
+                    },
+                  )
+                : Container(),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: StreamBuilder(
+              stream: FirebaseProvider.getGroupDetails(widget.groupId),
+              builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.none:
+                  case ConnectionState.waiting:
+                  default:
+                    if (snapshot.hasData) {
+                      membersList = snapshot.data!['members'];
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(
+                                AppSizes.kDefaultPadding * 2),
+                            alignment: Alignment.center,
+                            child: Column(
+                              children: [
+                                Stack(
+                                  children: [
+                                    imageUrl != ''
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                AppSizes.cardCornerRadius * 10),
+                                            child: CachedNetworkImage(
+                                                width: 106,
+                                                height: 106,
+                                                fit: BoxFit.cover,
+                                                imageUrl: imageUrl,
+                                                placeholder: (context, url) =>
+                                                    const CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                    ),
+                                                errorWidget: (context, url,
+                                                        error) =>
+                                                    CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                      child: Text(
+                                                        snapshot.data!['name']
+                                                            .substring(0, 1)
+                                                            .toString()
+                                                            .toUpperCase(),
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .headlineLarge!
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600),
+                                                      ),
+                                                    )),
+                                          )
+                                        : ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                                AppSizes.cardCornerRadius * 10),
+                                            child: CachedNetworkImage(
+                                                width: 106,
+                                                height: 106,
+                                                fit: BoxFit.cover,
+                                                imageUrl:
+                                                    '${snapshot.data!['profile_picture']}',
+                                                placeholder: (context, url) =>
+                                                    const CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                    ),
+                                                errorWidget: (context, url,
+                                                        error) =>
+                                                    CircleAvatar(
+                                                      radius: 66,
+                                                      backgroundColor:
+                                                          AppColors.lightGrey,
+                                                      child: Text(
+                                                        snapshot.data!['name']
+                                                            .substring(0, 1)
+                                                            .toString()
+                                                            .toUpperCase(),
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .headlineLarge!
+                                                            .copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600),
+                                                      ),
+                                                    )),
+                                          ),
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: widget.isAdmin == true
+                                          ? GestureDetector(
+                                              onTap: () {
+                                                showCustomBottomSheet(
+                                                    context,
+                                                    '',
+                                                    SizedBox(
+                                                      height: 150,
+                                                      child: ListView.builder(
+                                                          shrinkWrap: true,
+                                                          padding: const EdgeInsets
+                                                                  .all(
+                                                              AppSizes
+                                                                  .kDefaultPadding),
+                                                          itemCount:
+                                                              pickerList.length,
+                                                          scrollDirection:
+                                                              Axis.horizontal,
+                                                          itemBuilder:
+                                                              (context, index) {
+                                                            return GestureDetector(
+                                                              onTap: () {
+                                                                switch (index) {
+                                                                  case 0:
+                                                                    pickImageFromGallery();
+                                                                    break;
+                                                                  case 1:
+                                                                    pickImageFromCamera();
+                                                                    break;
+                                                                }
+                                                                Navigator.pop(
+                                                                    context);
+                                                              },
+                                                              child: Padding(
+                                                                padding: const EdgeInsets
+                                                                        .only(
+                                                                    left: AppSizes
+                                                                            .kDefaultPadding *
+                                                                        2),
+                                                                child: Column(
+                                                                  children: [
+                                                                    Container(
+                                                                      width: 60,
+                                                                      height:
+                                                                          60,
+                                                                      padding: const EdgeInsets
+                                                                              .all(
+                                                                          AppSizes
+                                                                              .kDefaultPadding),
+                                                                      decoration: BoxDecoration(
+                                                                          border: Border.all(
+                                                                              width:
+                                                                                  1,
+                                                                              color: AppColors
+                                                                                  .lightGrey),
+                                                                          color: AppColors
+                                                                              .white,
+                                                                          shape:
+                                                                              BoxShape.circle),
+                                                                      child: pickerList[
+                                                                              index]
+                                                                          .icon,
+                                                                    ),
+                                                                    const SizedBox(
+                                                                      height:
+                                                                          AppSizes.kDefaultPadding /
+                                                                              2,
+                                                                    ),
+                                                                    Text(
+                                                                      '${pickerList[index].title}',
+                                                                      style: Theme.of(
+                                                                              context)
+                                                                          .textTheme
+                                                                          .bodyMedium,
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }),
+                                                    ));
+                                              },
+                                              child: Container(
+                                                width: 40,
+                                                height: 40,
+                                                padding: const EdgeInsets.all(
+                                                    AppSizes.kDefaultPadding /
+                                                        1.3),
+                                                decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        width: 1,
+                                                        color: AppColors
+                                                            .lightGrey),
+                                                    color: AppColors.white,
+                                                    shape: BoxShape.circle),
+                                                child: Image.asset(
+                                                  AppImages.cameraIcon,
+                                                  width: 36,
+                                                  height: 36,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              ),
+                                            )
+                                          : Container(),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: AppSizes.kDefaultPadding,
+                                ),
+                                Text(
+                                  '${snapshot.data!['name']}',
+                                  style: Theme.of(context).textTheme.headline6,
+                                ),
+                                const SizedBox(
+                                  height: AppSizes.kDefaultPadding / 2,
+                                ),
+                                Text(
+                                  'Group \u2022 ${membersList.length} People',
+                                  style: Theme.of(context).textTheme.caption,
+                                ),
+                              ],
+                            ),
+                          ),
+                          (widget.isAdmin != true &&
+                                  snapshot.data!['group_description'] == '')
+                              ? const SizedBox()
+                              : (widget.isAdmin == true &&
+                                      snapshot.data!['group_description'] == '')
+                                  ? GestureDetector(
+                                      onTap: () => context.push(
+                                          ChangeGroupDescription(
+                                              groupId: widget.groupId)),
+                                      child: CustomCard(
+                                        margin: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
+                                        padding: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
+>>>>>>> Stashed changes
                                         child: Text(
                                           'Change Group Title',
                                           style: Theme.of(context)
                                               .textTheme
+<<<<<<< Updated upstream
                                               .bodyText2,
                                         )),
 
@@ -261,6 +592,38 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                                           .w600),
                                                         ),
                                                       )),
+=======
+                                              .bodyText2!
+                                              .copyWith(
+                                                  color: AppColors.primary,
+                                                  fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    )
+                                  : GestureDetector(
+                                      onTap: () {
+                                        widget.isAdmin == true
+                                            ? context
+                                                .push(ChangeGroupDescription(
+                                                groupId: widget.groupId,
+                                              ))
+                                            : null;
+                                      },
+                                      child: CustomCard(
+                                        margin: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
+                                        padding: const EdgeInsets.all(
+                                            AppSizes.kDefaultPadding),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Group Description',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyText1,
+>>>>>>> Stashed changes
                                             ),
                                       Positioned(
                                         right: 0,
@@ -369,6 +732,7 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
                                                     fit: BoxFit.contain,
                                                   ),
                                                 ),
+<<<<<<< Updated upstream
                                               )
                                             : Container(),
                                       )
@@ -632,5 +996,133 @@ class _GroupInfoScreenState extends State<GroupInfoScreen> {
               }
               return Container();
             }));
+=======
+                                                widget.isAdmin == true
+                                                    ? const Icon(
+                                                        EvaIcons
+                                                            .arrowIosForward,
+                                                        size: 24,
+                                                        color: AppColors.grey,
+                                                      )
+                                                    : const SizedBox()
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(
+                                    AppSizes.kDefaultPadding),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '${membersList.length} Participants',
+                                      style:
+                                          Theme.of(context).textTheme.bodyText1,
+                                    ),
+                                    widget.isAdmin == true
+                                        ? InkWell(
+                                            onTap: () {
+                                              context.push(AddMembersScreen(
+                                                groupId: widget.groupId,
+                                                isCameFromHomeScreen: false,
+                                              ));
+                                            },
+                                            child: Container(
+                                              width: 30,
+                                              height: 30,
+                                              decoration: const BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  gradient: AppColors
+                                                      .buttonGradientColor),
+                                              child: const Icon(
+                                                EvaIcons.plus,
+                                                size: 18,
+                                                color: AppColors.white,
+                                              ),
+                                            ),
+                                          )
+                                        : const SizedBox()
+                                  ],
+                                ),
+                              ),
+                              CustomCard(
+                                margin: const EdgeInsets.all(
+                                    AppSizes.kDefaultPadding),
+                                padding: const EdgeInsets.all(
+                                    AppSizes.kDefaultPadding),
+                                child: ListView.separated(
+                                  itemCount: membersList.length,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  padding: EdgeInsets.zero,
+                                  itemBuilder: (context, index) {
+                                    indx = index;
+                                    return ParticipantsCardWidget(
+                                        profilePicture: membersList[index]
+                                            ['profile_picture'],
+                                        name: membersList[index]['name'],
+                                        email: membersList[index]['email'],
+                                        isAdmin: membersList[index]['isAdmin'],
+                                        isUserAdmin: widget.isAdmin,
+                                        onDeleteButtonPressed: () {
+                                          widget.isAdmin == true
+                                              ? showDialog(
+                                                  context: context,
+                                                  barrierDismissible: false,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return ConfirmationDialog(
+                                                      title: 'Delete Member?',
+                                                      body:
+                                                          'Are you sure want to delete this member from this group?',
+                                                      onPressedPositiveButton:
+                                                          () {
+                                                        FirebaseProvider
+                                                            .deleteMember(
+                                                                widget.groupId,
+                                                                membersList,
+                                                                index);
+                                                        context.pop(
+                                                            GroupInfoScreen(
+                                                          groupId:
+                                                              widget.groupId,
+                                                          isAdmin:
+                                                              widget.isAdmin,
+                                                        ));
+                                                      },
+                                                    );
+                                                  })
+                                              : const SizedBox();
+                                        });
+                                  },
+                                  separatorBuilder:
+                                      (BuildContext context, int index) {
+                                    return const Padding(
+                                      padding: EdgeInsets.only(left: 42),
+                                      child: CustomDivider(),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: AppSizes.kDefaultPadding,
+                          ),
+                        ],
+                      );
+                    }
+                }
+                return Container();
+              }),
+        ));
+>>>>>>> Stashed changes
   }
 }

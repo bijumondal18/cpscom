@@ -1,4 +1,9 @@
+<<<<<<< Updated upstream
 import 'package:cpscom_admin/Commons/app_colors.dart';
+=======
+import 'package:cpscom_admin/Commons/app_icons.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+>>>>>>> Stashed changes
 import 'package:flutter/material.dart';
 
 class ImagePickerList {
@@ -8,6 +13,7 @@ class ImagePickerList {
   ImagePickerList(this.title, this.icon);
 }
 
+<<<<<<< Updated upstream
 final List<ImagePickerList> chatPickerList = [
   ImagePickerList(
       "File",
@@ -43,3 +49,11 @@ final List<ImagePickerList> imagePickerList = [
         color: AppColors.primary,
       ))
 ];
+=======
+final List<ImagePickerList> pickerList = [
+  // ImagePickerList('Gallery', const Icon(EvaIcons.imageOutline)),
+  // ImagePickerList('Camera', const Icon(EvaIcons.cameraOutline))
+  ImagePickerList('Gallery', Image.asset(AppIcons.galleryIcon)),
+  ImagePickerList('Camera', Image.asset(AppIcons.cameraIcon))
+];
+>>>>>>> Stashed changes

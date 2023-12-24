@@ -71,10 +71,14 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                           case ConnectionState.active:
                           case ConnectionState.done:
                             if (snapshot.hasData) {
+<<<<<<< Updated upstream
                               if (snapshot.data?['name'] != null ||
                                   snapshot.data?['name'] != '') {
                                 titleController.text = snapshot.data?['name'];
                               }
+=======
+                              titleController.text = snapshot.data!['name'];
+>>>>>>> Stashed changes
                               return CustomTextField(
                                 controller: titleController,
                                 hintText: 'Group Title',
@@ -106,12 +110,21 @@ class _ChangeGroupTitleState extends State<ChangeGroupTitle> {
                           if (_formKey.currentState!.validate()) {
                             FirebaseProvider.updateGroupTitle(
                                 widget.groupId, titleController.text);
+<<<<<<< Updated upstream
                             context
                                 .pop(GroupInfoScreen(groupId: widget.groupId));
                             customSnackBar(
                               context,
                               'Group Title Updated Successfully',
                             );
+=======
+                              context.pop(
+                                  GroupInfoScreen(groupId: widget.groupId));
+                              customSnackBar(
+                                context,
+                                'Group Title Updated Successfully',
+                              );
+>>>>>>> Stashed changes
                           }
                         }),
                     Container(

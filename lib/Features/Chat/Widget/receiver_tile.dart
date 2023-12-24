@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+<<<<<<< Updated upstream
 import 'package:cpscom_admin/Commons/route.dart';
 import 'package:cpscom_admin/Features/Chat/Presentation/chat_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../Commons/app_colors.dart';
 import '../../../Commons/app_sizes.dart';
 import '../../../Models/message.dart';
+=======
+import 'package:flutter/material.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
+import '../../../Commons/app_colors.dart';
+import '../../../Commons/app_sizes.dart';
+>>>>>>> Stashed changes
 
 class ReceiverTile extends StatelessWidget {
   final String message;
@@ -19,7 +28,10 @@ class ReceiverTile extends StatelessWidget {
   final String sentByName;
   final String sentByImageUrl;
   final String groupCreatedBy;
+<<<<<<< Updated upstream
   final ValueChanged<Map<String, dynamic>> onSwipedMessage;
+=======
+>>>>>>> Stashed changes
 
   const ReceiverTile(
       {Key? key,
@@ -28,13 +40,18 @@ class ReceiverTile extends StatelessWidget {
       required this.sentTime,
       required this.sentByName,
       this.sentByImageUrl = '',
+<<<<<<< Updated upstream
       required this.groupCreatedBy,
       required this.onSwipedMessage})
+=======
+      required this.groupCreatedBy})
+>>>>>>> Stashed changes
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return messageType == 'notify'
+<<<<<<< Updated upstream
         ? Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -56,6 +73,21 @@ class ReceiverTile extends StatelessWidget {
                 ),
               ),
             ],
+=======
+        ? Container(
+            margin:
+                const EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.kDefaultPadding,
+                vertical: AppSizes.kDefaultPadding / 2),
+            decoration:
+                BoxDecoration(color: AppColors.lightGrey.withOpacity(0.8)),
+            child: Text(
+              '$groupCreatedBy $message',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+>>>>>>> Stashed changes
           )
         : Padding(
             padding: const EdgeInsets.only(
@@ -118,6 +150,7 @@ class ReceiverTile extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
+<<<<<<< Updated upstream
                         bottom: AppSizes.kDefaultPadding * 2,
                       ),
                       child: ChatBubble(
@@ -127,6 +160,11 @@ class ReceiverTile extends StatelessWidget {
                                 messageType == 'doc'
                             ? EdgeInsets.zero
                             : null,
+=======
+                        bottom: AppSizes.kDefaultPadding * 3,
+                      ),
+                      child: ChatBubble(
+>>>>>>> Stashed changes
                         clipper:
                             ChatBubbleClipper3(type: BubbleType.receiverBubble),
                         backGroundColor: AppColors.lightGrey,
@@ -139,6 +177,7 @@ class ReceiverTile extends StatelessWidget {
                               maxWidth:
                                   MediaQuery.of(context).size.width * 0.65),
                           child: messageType == 'img'
+<<<<<<< Updated upstream
                               ? GestureDetector(
                                   onTap: () {
                                     context.push(ShowImage(imageUrl: message));
@@ -230,6 +269,44 @@ class ReceiverTile extends StatelessWidget {
                                               ],
                                             )
                                           : const SizedBox()
+=======
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      AppSizes.cardCornerRadius),
+                                  child: CachedNetworkImage(
+                                    imageUrl: message,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) =>
+                                        const CircularProgressIndicator
+                                            .adaptive(),
+                                    errorWidget: (context, url, error) =>
+                                        const CircularProgressIndicator
+                                            .adaptive(),
+                                  ),
+                                )
+                              : messageType == 'text'
+                                  ? Text(
+                                      message,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2!
+                                          .copyWith(color: AppColors.black),
+                                    )
+                                  : messageType == 'pdf'
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                              AppSizes.cardCornerRadius),
+                                          child: SfPdfViewer.network(
+                                            message,
+                                            canShowPaginationDialog: false,
+                                            canShowScrollHead: false,
+                                            canShowScrollStatus: false,
+                                            pageLayoutMode:
+                                                PdfPageLayoutMode.single,
+                                            canShowPasswordDialog: false,
+                                          ),
+                                        )
+>>>>>>> Stashed changes
                                       : const SizedBox(),
                         ),
                       ),

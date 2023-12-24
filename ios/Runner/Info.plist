@@ -31,6 +31,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
+<<<<<<< Updated upstream
 	<string>Click photo from camera to upload users profile picture or send in a group</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Post videos to profile</string>
@@ -43,6 +44,15 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+=======
+	<string>Click photo from camera</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Post videos to profile</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose photo from Library</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+>>>>>>> Stashed changes
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

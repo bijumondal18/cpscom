@@ -7,7 +7,10 @@ import 'package:cpscom_admin/global_bloc.dart';
 import 'package:cpscom_admin/local_notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+<<<<<<< Updated upstream
 import 'package:flutter/foundation.dart';
+=======
+>>>>>>> Stashed changes
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
@@ -22,6 +25,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
   await Firebase.initializeApp();
+<<<<<<< Updated upstream
   if (kDebugMode) {
     log("Handling a background message messageID: ${message.messageId}");
     log("Handling a background message data: ${message.data.toString()}");
@@ -45,6 +49,13 @@ void requestPermission() async {
 }
 
 Future<void> main() async {
+=======
+
+  print("Handling a background message: ${message.messageId}");
+}
+
+void main() async {
+>>>>>>> Stashed changes
   WidgetsFlutterBinding.ensureInitialized();
 
   // Status bar configuration
@@ -53,6 +64,7 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.dark,
       statusBarBrightness: Brightness.light));
 
+<<<<<<< Updated upstream
   // Initialize Firebase to App
   // firebaseApp = await Firebase.initializeApp(
   //   name: AppStrings.appNameInFirebase,
@@ -86,6 +98,13 @@ Future<void> main() async {
   }
 
   // Main Function to run the application
+=======
+  firebaseApp = await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+>>>>>>> Stashed changes
   runApp(const MyApp());
 
   // To Prevent Screenshot in app
@@ -154,7 +173,11 @@ class _MyAppState extends State<MyApp> {
     return GlobalBloc(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+<<<<<<< Updated upstream
         title: AppStrings.appName,
+=======
+        title: 'CPSCOM',
+>>>>>>> Stashed changes
         theme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
         home: const SplashScreen(),

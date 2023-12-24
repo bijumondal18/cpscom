@@ -2,7 +2,10 @@ import 'dart:developer';
 
 import 'package:cpscom_admin/Api/urls.dart';
 import 'package:cpscom_admin/Features/GroupInfo/Model/response_image_upload.dart';
+<<<<<<< Updated upstream
 import 'package:cpscom_admin/Features/ReportScreen/Model/user_report_model.dart';
+=======
+>>>>>>> Stashed changes
 import 'package:cpscom_admin/Features/Splash/Model/get_started_response_model.dart';
 import 'package:cpscom_admin/Models/send_notification_model.dart';
 import 'package:dio/dio.dart';
@@ -33,6 +36,7 @@ class ApiProvider {
   }
 
 
+<<<<<<< Updated upstream
   ///--------- User Report Api Call  -----///
   Future<UserReportResponseModel> userReport(
       Map<String, dynamic> requestUserReport) async {
@@ -44,16 +48,33 @@ class ApiProvider {
       }
       return response.statusCode == 200
           ? UserReportResponseModel.fromJson(response.data)
+=======
+  Future<ResponseSendNotification> sendNotification(
+      RequestSendNotification requestSendNotification) async {
+    try {
+      Response response = await _dio.post(Urls.sendPushNotificationUrl,
+          data: requestSendNotification.toJson());
+      if (kDebugMode) {
+        log('--------Response Send Notification : $response');
+      }
+      return response.statusCode == 200
+          ? ResponseSendNotification.fromJson(response.data)
+>>>>>>> Stashed changes
           : throw Exception('Something Went Wrong');
     } catch (error, stacktrace) {
       if (kDebugMode) {
         log("Exception occurred: $error stackTrace: $stacktrace");
       }
+<<<<<<< Updated upstream
       return UserReportResponseModel.withError(
+=======
+      return ResponseSendNotification.withError(
+>>>>>>> Stashed changes
           "You're offline. Please check your Internet connection.");
     }
   }
 
+<<<<<<< Updated upstream
   Future<ResponseSendNotification> sendNotification(
       RequestSendNotification requestSendNotification) async {
     try {
@@ -74,6 +95,8 @@ class ApiProvider {
     }
   }
 
+=======
+>>>>>>> Stashed changes
 
   ///--------- Upload  Group Image -----///
   // Future<ResponseImageUpload> uploadGroupImage(

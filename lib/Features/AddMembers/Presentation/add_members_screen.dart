@@ -11,7 +11,6 @@ import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:cpscom_admin/Widgets/custom_floating_action_button.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../Utils/custom_snack_bar.dart';
@@ -35,6 +34,10 @@ class AddMembersScreen extends StatefulWidget {
 
 class _AddMembersScreenState extends State<AddMembersScreen> {
   var selectedIndex = [];
+<<<<<<< Updated upstream
+=======
+  List multipleSelected = [];
+>>>>>>> Stashed changes
   List<Map<String, dynamic>> selectedMembers = [];
 
   List<QueryDocumentSnapshot> members = [];
@@ -45,6 +48,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
 
   var indx;
 
+<<<<<<< Updated upstream
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -64,6 +68,11 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
     await firestore.collection('groups').doc(groupId).update({
       'members': widget.existingMembersList //memberList
     }).then((value) => 'Member Added Successfully');
+=======
+  @override
+  void initState() {
+    super.initState();
+>>>>>>> Stashed changes
   }
 
   @override
@@ -111,7 +120,11 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             padding: const EdgeInsets.all(
                                 AppSizes.kDefaultPadding + 6),
                             child: Text(
+<<<<<<< Updated upstream
                                 '${selectedIndex.length} / ${members.length}'),
+=======
+                                '${selectedIndex.length} / ${snapshot.data!.docs.length}'),
+>>>>>>> Stashed changes
                           )
                         ],
                       ),
@@ -171,7 +184,12 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                                 padding: const EdgeInsets.only(
                                     bottom: AppSizes.kDefaultPadding * 9),
                                 itemBuilder: (context, index) {
+<<<<<<< Updated upstream
                                   indx = members.length;
+=======
+                                  members = snapshot.data!.docs;
+                                  indx = index;
+>>>>>>> Stashed changes
                                   //for search members
                                   data = members[index].data()
                                       as Map<String, dynamic>;
@@ -231,6 +249,7 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                     membersList: selectedMembers.unique((x) => x['uid']),
                   ));
                 } else {
+<<<<<<< Updated upstream
                   addMemberToGroup(widget.groupId!);
                   Future.delayed(
                       const Duration(seconds: 1),
@@ -238,6 +257,15 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
                             groupId: widget.groupId!,
                           )));
                   customSnackBar(context, 'Member Added Successfully');
+=======
+                  //FirebaseProvider.addMemberToGroup(widget.groupId!, selectedMembers[indx]);
+
+                  Future.delayed(
+                      const Duration(seconds: 2),
+                      () => context.pop(GroupInfoScreen(
+                            groupId: widget.groupId!,
+                          )));
+>>>>>>> Stashed changes
                 }
               },
               iconData: EvaIcons.arrowForwardOutline,
@@ -302,14 +330,22 @@ class _AddMembersScreenState extends State<AddMembersScreen> {
               setState(() {
                 if (selectedIndex.contains(index)) {
                   selectedIndex.remove(index);
+<<<<<<< Updated upstream
                   selectedMembers
                       .remove(members[index].data() as Map<String, dynamic>);
                   //selectedMembers.unique((x) => x['uid']);
+=======
+                  selectedMembers.unique((x) => x['uid']);
+>>>>>>> Stashed changes
                 } else {
                   selectedIndex.add(index);
                   selectedMembers
                       .add(members[index].data() as Map<String, dynamic>);
+<<<<<<< Updated upstream
                   // selectedMembers.unique((x) => x['uid']);
+=======
+                  selectedMembers.unique((x) => x['uid']);
+>>>>>>> Stashed changes
                 }
               });
             }),

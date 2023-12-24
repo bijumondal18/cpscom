@@ -42,14 +42,18 @@ class CustomTextField extends StatelessWidget {
     this.onChanged,
     this.autoFocus = false,
     this.isBorder = true,
+<<<<<<< Updated upstream
     this.focusNode,
     this.replyMessage,
     this.onCancelReply,
     this.isReplying = false,
+=======
+>>>>>>> Stashed changes
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< Updated upstream
     return Column(
       children: [
         // isReplying == true
@@ -143,6 +147,49 @@ class CustomTextField extends StatelessWidget {
                   errorText: controller.text == "" ? errorText : null),
         ),
       ],
+=======
+    return TextFormField(
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      readOnly: readOnly ?? false,
+      validator: validator,
+      obscureText: obscureText ?? false,
+      minLines: minLines ?? 1,
+      maxLines: maxLines ?? 1,
+      keyboardType: keyboardType ?? TextInputType.text,
+      cursorColor: AppColors.primary,
+      controller: controller,
+      onChanged: onChanged,
+      autofocus: autoFocus!,
+      decoration: isBorder!
+          ? InputDecoration(
+              suffixIcon: suffixIcon,
+          contentPadding: EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
+          //border: InputBorder.none,
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.lightGrey),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: AppColors.lightGrey),
+              ),
+              hintText: hintText ?? '',
+              hintStyle: Theme.of(context).textTheme.bodyText2,
+              labelStyle: Theme.of(context).textTheme.bodyText2,
+              errorText: controller.text == "" ? errorText : null)
+          : InputDecoration(
+              suffixIcon: suffixIcon,
+              border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: AppSizes.kDefaultPadding),
+              // enabledBorder: const UnderlineInputBorder(
+              //   borderSide: BorderSide(color: AppColors.lightGrey),
+              // ),
+              // focusedBorder: const UnderlineInputBorder(
+              //   borderSide: BorderSide(color: AppColors.lightGrey),
+              // ),
+              hintText: hintText ?? '',
+              hintStyle: Theme.of(context).textTheme.bodyText2,
+              labelStyle: Theme.of(context).textTheme.bodyText2,
+              errorText: controller.text == "" ? errorText : null),
+>>>>>>> Stashed changes
     );
   }
 }

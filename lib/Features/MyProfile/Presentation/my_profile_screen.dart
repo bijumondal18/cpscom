@@ -1,4 +1,7 @@
+<<<<<<< Updated upstream
 import 'dart:developer';
+=======
+>>>>>>> Stashed changes
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -13,6 +16,10 @@ import 'package:cpscom_admin/Utils/app_preference.dart';
 import 'package:cpscom_admin/Widgets/custom_app_bar.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+<<<<<<< Updated upstream
+=======
+import 'package:firebase_auth/firebase_auth.dart';
+>>>>>>> Stashed changes
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +29,10 @@ import 'package:image_picker/image_picker.dart';
 import '../../../Commons/app_images.dart';
 import '../../../Utils/custom_bottom_modal_sheet.dart';
 import '../../../Widgets/custom_confirmation_dialog.dart';
+<<<<<<< Updated upstream
+=======
+import '../../../Widgets/custom_image_picker.dart';
+>>>>>>> Stashed changes
 import '../../GroupInfo/Model/image_picker_model.dart';
 
 class MyProfileScreen extends StatefulWidget {
@@ -93,6 +104,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           .collection('users')
           .doc(FirebaseProvider.auth.currentUser!.uid)
           .update({'profile_picture': imageUrl});
+<<<<<<< Updated upstream
 
       // Update user profile picture to firestore, i.e. group-> groupID -> members
       // if (widget.groupsList!.isNotEmpty) {
@@ -127,6 +139,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   void initState() {
     log('final groups list in profile screen --------- ${widget.groupsList?.length}');
     super.initState();
+=======
+      await FirebaseProvider.firestore
+          .collection('users')
+          .doc(FirebaseProvider.auth.currentUser!.uid)
+          .update({'profile_picture': imageUrl});
+    } on FirebaseException catch (e) {}
+>>>>>>> Stashed changes
   }
 
   @override
@@ -249,8 +268,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                             AppSizes
                                                                 .kDefaultPadding),
                                                         itemCount:
+<<<<<<< Updated upstream
                                                             imagePickerList
                                                                 .length,
+=======
+                                                            pickerList.length,
+>>>>>>> Stashed changes
                                                         scrollDirection:
                                                             Axis.horizontal,
                                                         itemBuilder:
@@ -293,7 +316,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                                             .white,
                                                                         shape: BoxShape
                                                                             .circle),
+<<<<<<< Updated upstream
                                                                     child: imagePickerList[
+=======
+                                                                    child: pickerList[
+>>>>>>> Stashed changes
                                                                             index]
                                                                         .icon,
                                                                   ),
@@ -303,7 +330,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                                                             2,
                                                                   ),
                                                                   Text(
+<<<<<<< Updated upstream
                                                                     '${imagePickerList[index].title}',
+=======
+                                                                    '${pickerList[index].title}',
+>>>>>>> Stashed changes
                                                                     style: Theme.of(
                                                                             context)
                                                                         .textTheme

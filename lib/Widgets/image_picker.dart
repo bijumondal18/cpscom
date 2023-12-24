@@ -86,7 +86,11 @@ class _CustomImagePickerState extends State<CustomImagePicker> {
                         '',
                         ListView.builder(
                             shrinkWrap: true,
+<<<<<<< Updated upstream
                             itemCount: chatPickerList.length,
+=======
+                            itemCount: pickerList.length,
+>>>>>>> Stashed changes
                             itemBuilder: (context, index) {
                               return ListTile(
                                 onTap: () {
@@ -100,8 +104,13 @@ class _CustomImagePickerState extends State<CustomImagePicker> {
                                   }
                                   Navigator.pop(context);
                                 },
+<<<<<<< Updated upstream
                                 leading: chatPickerList[index].icon,
                                 title: Text(chatPickerList[index].title!,
+=======
+                                leading: pickerList[index].icon,
+                                title: Text(pickerList[index].title!,
+>>>>>>> Stashed changes
                                     style:
                                         Theme.of(context).textTheme.bodyText1),
                               );

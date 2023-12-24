@@ -1,4 +1,7 @@
+<<<<<<< Updated upstream
 import 'dart:developer';
+=======
+>>>>>>> Stashed changes
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,6 +11,7 @@ import 'package:cpscom_admin/Commons/commons.dart';
 import 'package:cpscom_admin/Utils/app_helper.dart';
 import 'package:cpscom_admin/Widgets/custom_divider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 ///----Home chat card widgets----///
@@ -35,7 +39,10 @@ class HomeChatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< Updated upstream
     var isSeenByUser = false;
+=======
+>>>>>>> Stashed changes
     final FirebaseAuth auth = FirebaseAuth.instance;
     String lastMsgSenderName = '';
     return SizedBox(
@@ -58,6 +65,7 @@ class HomeChatCard extends StatelessWidget {
                             : '';
                     sentTime = AppHelper.getStringTimeFromTimestamp(
                         snapshot.data.docs[0]['time']);
+<<<<<<< Updated upstream
                     List<dynamic> chatMembersList = [];
                     // remove unseen count from home screen when user viewed last message.
                     if (snapshot.data.docs[0]['type'] != 'notify') {
@@ -71,6 +79,8 @@ class HomeChatCard extends StatelessWidget {
                         }
                       }
                     }
+=======
+>>>>>>> Stashed changes
                   }
                   return InkWell(
                     onTap: () => onPressed.call(),
@@ -149,10 +159,14 @@ class HomeChatCard extends StatelessWidget {
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall!
+<<<<<<< Updated upstream
                                                       .copyWith(
                                                           fontSize: 12,
                                                           fontWeight:
                                                               FontWeight.w500),
+=======
+                                                      .copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+>>>>>>> Stashed changes
                                                 )
                                               : const SizedBox(),
                                         ],
@@ -208,7 +222,12 @@ class HomeChatCard extends StatelessWidget {
                                                                         text:
                                                                             ' PDF')
                                                                   ],
+<<<<<<< Updated upstream
                                                                 style: Theme.of(context)
+=======
+                                                                style: Theme.of(
+                                                                        context)
+>>>>>>> Stashed changes
                                                                     .textTheme
                                                                     .bodySmall)
                                                             : snapshot.data.docs[0]
@@ -228,7 +247,11 @@ class HomeChatCard extends StatelessWidget {
                                                                           color:
                                                                               AppColors.grey,
                                                                           size:
+<<<<<<< Updated upstream
                                                                               16,
+=======
+                                                                              14,
+>>>>>>> Stashed changes
                                                                         )),
                                                                         TextSpan(
                                                                             text:
@@ -239,16 +262,21 @@ class HomeChatCard extends StatelessWidget {
                                                                         .bodySmall)
                                                                 : TextSpan(
                                                                     text:
+<<<<<<< Updated upstream
                                                                         ' ${snapshot.data.docs[0]['message']}',
                                                                     style: Theme.of(context)
                                                                         .textTheme
                                                                         .bodySmall),
+=======
+                                                                        ' ${snapshot.data.docs[0]['message']}'),
+>>>>>>> Stashed changes
                                                     //TextSpan(),
                                                   ]))
                                           : const SizedBox(),
                                       const SizedBox(
                                         height: AppSizes.kDefaultPadding / 2,
                                       ),
+<<<<<<< Updated upstream
                                       SizedBox(
                                         child: Row(
                                           mainAxisAlignment:
@@ -292,6 +320,54 @@ class HomeChatCard extends StatelessWidget {
                                           ],
                                         ),
                                       )
+=======
+                                      // Row(
+                                      //   mainAxisAlignment:
+                                      //       MainAxisAlignment.spaceBetween,
+                                      //   children: [
+                                      //     MembersStackOnGroup(
+                                      //       groupId: groupId,
+                                      //     ),
+                                      //     (snapshot.data != null &&
+                                      //             snapshot.data.docs != null &&
+                                      //             snapshot.data.docs.length >=
+                                      //                 1)
+                                      //         ? snapshot.data.docs[0]
+                                      //                     ['sendBy'] !=
+                                      //                 FirebaseProvider
+                                      //                     .auth
+                                      //                     .currentUser!
+                                      //                     .displayName
+                                      //             ? Container(
+                                      //                 alignment:
+                                      //                     Alignment.center,
+                                      //                 width: 18,
+                                      //                 height: 18,
+                                      //                 decoration: BoxDecoration(
+                                      //                     shape:
+                                      //                         BoxShape.circle,
+                                      //                     color: AppColors
+                                      //                         .primary
+                                      //                         .withOpacity(
+                                      //                             0.9)),
+                                      //                 child: FittedBox(
+                                      //                   child: Text(
+                                      //                     '1',
+                                      //                     style: Theme.of(
+                                      //                             context)
+                                      //                         .textTheme
+                                      //                         .caption!
+                                      //                         .copyWith(
+                                      //                             color: AppColors
+                                      //                                 .white),
+                                      //                   ),
+                                      //                 ),
+                                      //               )
+                                      //             : const SizedBox()
+                                      //         : const SizedBox()
+                                      //   ],
+                                      // )
+>>>>>>> Stashed changes
                                     ],
                                   ),
                                 ),
@@ -324,6 +400,11 @@ class MembersStackOnGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var stream = FirebaseFirestore.instance
+<<<<<<< Updated upstream
+=======
+        // .collection('users')
+        // .doc(FirebaseAuth.instance.currentUser!.uid)
+>>>>>>> Stashed changes
         .collection('groups')
         .doc(groupId)
         .snapshots();
@@ -338,11 +419,20 @@ class MembersStackOnGroup extends StatelessWidget {
             switch (snapshot.connectionState) {
               case ConnectionState.none:
               case ConnectionState.waiting:
+<<<<<<< Updated upstream
                 return const CircularProgressIndicator.adaptive();
               case ConnectionState.active:
               case ConnectionState.done:
                 if (snapshot.hasData) {
                   membersList = snapshot.data?['members'];
+=======
+                return Platform.isAndroid
+                    ? const CircularProgressIndicator()
+                    : const CupertinoActivityIndicator();
+              default:
+                if (snapshot.hasData) {
+                  membersList = snapshot.data!['members'];
+>>>>>>> Stashed changes
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -352,9 +442,13 @@ class MembersStackOnGroup extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           ListView.builder(
+<<<<<<< Updated upstream
                               itemCount: membersList.length < 3
                                   ? membersList.length
                                   : 3,
+=======
+                              itemCount: 3,
+>>>>>>> Stashed changes
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               scrollDirection: Axis.horizontal,
